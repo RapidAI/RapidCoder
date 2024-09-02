@@ -16,26 +16,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     }
   },
-  server: {
-    host: '0.0.0.0',
-    port: 8080,
-    open: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        ws: true,
-      }
-    },
-    watch: {
-      usePolling: true,
-    },
-  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    minify: 'terser',
-    sourcemap: false,
+    minify: process.env.NODE_ENV === 'development' ? false : 'terser',
+    sourcemap: process.env.NODE_ENV === 'development',
+  },
+  server: {
+    hmr: true
   }
 });
