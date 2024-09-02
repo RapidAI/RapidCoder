@@ -6,10 +6,6 @@
         <div class="logo-text">MyCodeGPT</div>
       </div>
       <a-menu v-model:selectedKeys="selectedKeys">
-        <a-menu-item key="User" @click="navigateTo('/User')">
-          <UserOutlined/>
-          <span>用户管理</span>
-        </a-menu-item>
         <a-menu-item key="ModelTable" @click="navigateTo('/ModelTable')">
           <ToolOutlined/>
           <span>AI模型管理</span>
@@ -20,15 +16,7 @@
         </a-menu-item>
         <a-menu-item key="SessionWithBigData" @click="navigateTo('/SessionWithBigData')">
           <LineChartOutlined/>
-          <span>多数据库AI分析</span>
-        </a-menu-item>
-        <a-menu-item key="QueryVector" @click="navigateTo('/QueryVector')">
-          <FileSearchOutlined/>
-          <span>sql知识库</span>
-        </a-menu-item>
-        <a-menu-item key="MySettings" @click="navigateTo('/MySettings')">
-          <SettingOutlined/>
-          <span>个人信息</span>
+          <span>AI代码</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>

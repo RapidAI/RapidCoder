@@ -50,6 +50,8 @@
       <!-- Markdown 渲染 -->
       <div v-else v-html="block.content" class="markdown-content"></div>
     </div>
+    <!-- 图表渲染 -->
+    <ChartRenderer v-if="chartData" :chartData="chartData" :chartOptions="chartOptions"/>
   </div>
 </template>
 
@@ -58,6 +60,7 @@ import {ref, computed, onMounted, watch} from 'vue'
 import {useMessageStore} from '@/store/MessageStoreWithBigData.js'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
+import ChartRenderer from './ChartRenderer.vue'
 import {message, Pagination, Table, Spin} from 'ant-design-vue'
 import {StarOutlined, CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue'
 import 'highlight.js/styles/github.css'
@@ -71,6 +74,7 @@ export default {
     messagelistindex: {type: Number, default: 0},
   },
   components: {
+    ChartRenderer,
     APagination: Pagination,
     ATable: Table,
     ASpin: Spin,
