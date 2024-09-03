@@ -44,28 +44,21 @@ ipcMain.handle('select-directory', async () => {
     return result;
 });
 
-ipcMain.handle('get-all-files', (event, dirPath, ignorePatterns = []) => {
-
-    const shouldIgnore = (filePath) => {
-        return ignorePatterns.some(pattern => {
-            const regex = new RegExp(pattern.replace(/\./g, '\\.').replace(/\*/g, '.*'));
-            return regex.test(filePath);
-        });
-    };
-
+ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = []) => {
     const getAllFiles = (dirPath, arrayOfFiles = []) => {
         const files = fs.readdirSync(dirPath);
 
         files.forEach(file => {
             const fullPath = path.join(dirPath, file);
+
+            // 检查是否需要忽略该文件或文件夹
+            const isIgnored = ignoredPatterns.some(pattern => fullPath.includes(pattern));
+            if (isIgnored) return;
+
             if (fs.statSync(fullPath).isDirectory()) {
-                if (!shouldIgnore(fullPath)) {
-                    getAllFiles(fullPath, arrayOfFiles);
-                }
+                getAllFiles(fullPath, arrayOfFiles);
             } else {
-                if (!shouldIgnore(fullPath)) {
-                    arrayOfFiles.push(fullPath);
-                }
+                arrayOfFiles.push(fullPath);
             }
         });
 
