@@ -2,7 +2,7 @@
   <a-layout class="full-height">
     <a-layout-sider theme="light">
       <!-- 新建对话 -->
-      <a-button class="new_session_button" type="primary" :loading="loadingDatabases" @click="createNewSession">
+      <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
         <template #icon>
           <EditOutlined/>
         </template>
@@ -49,7 +49,6 @@
 import { onMounted, ref } from 'vue';
 import Chat from '../chatwithbigdata/Chat.vue';
 import { useMessageStore } from '@/store/MessageStore.js';
-import { useUserStore } from '@/store/UserStore.js';
 import { DatabaseOutlined, EditOutlined, EllipsisOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -62,12 +61,11 @@ export default {
     EditOutlined,
   },
   setup() {
-    const userStore = useUserStore();
     const messageStore = useMessageStore();
     const isRenameModalVisible = ref(false);
     const newSessionName = ref('');
     const sessionToRename = ref(null);
-    const loadingDatabases = ref(false);
+    const loadingProjects = ref(false);
     const route = useRoute();
     const router = useRouter();
 
@@ -86,9 +84,9 @@ export default {
 
     // 创建新的会话
     const createNewSession = async () => {
-      loadingDatabases.value = true;
+      loadingProjects.value = true;
       await messageStore.sessionCreate();
-      loadingDatabases.value = false;
+      loadingProjects.value = false;
       router.push({ query: { sessionId: messageStore.session.sessionId } })
     };
 
@@ -137,11 +135,11 @@ export default {
 
     // 组件挂载时加载会话和数据库
     onMounted(async () => {
-      loadingDatabases.value = true;
+      loadingProjects.value = true;
       await messageStore.modelsLoad();
       await messageStore.projectsLoad();
       await locateSessionFromUrl();
-      loadingDatabases.value = false;
+      loadingProjects.value = false;
     });
 
     return {
@@ -155,7 +153,7 @@ export default {
       handleCancelRename,
       showRenameModal,
       createNewSession,
-      loadingDatabases,
+      loadingProjects,
     };
   },
 };
