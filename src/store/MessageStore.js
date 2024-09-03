@@ -15,6 +15,15 @@ export const useMessageStore = defineStore('messageStore', {
         currentModel: null,
         isStreaming: false,
     }),
+    persist: {
+        enabled: true,
+        strategies: [
+            {
+                key: 'messageStore',
+                storage: localStorage,
+            },
+        ],
+    },
     actions: {
         async modelsLoad() {
             const res = await post('/model/getAll');
@@ -57,9 +66,9 @@ export const useMessageStore = defineStore('messageStore', {
             }
         },
         async sessionsLoad(userId) {
-            const response = await post('/sessions/getByUserId', {userId});
-            if (response?.success && response.data) {
-                this.sessions = response.data;
+            const localSessions = JSON.parse(localStorage.getItem('sessions')) || [];
+            if (localSessions.length > 0) {
+                this.sessions = localSessions;
                 this.messagesInit(this.sessions[0]);
                 return true;
             } else {
@@ -68,6 +77,7 @@ export const useMessageStore = defineStore('messageStore', {
         },
         async sessionCreate(userId) {
             const newSession = {
+                sessionId: Date.now(),
                 title: `全部数据库分析`,
                 modelId: this.models[0].modelId,
                 userId,
@@ -78,11 +88,9 @@ export const useMessageStore = defineStore('messageStore', {
                     content: this.databaseCreateSQLTableStatements(this.databaseInfo)
                 }]),
             };
-            const response = await post('/sessions/add', newSession);
-            if (response?.success) {
-                this.sessions.unshift(response.data);
-                this.messagesInit(response.data);
-            }
+            this.sessions.unshift(newSession);
+            this.messagesInit(newSession);
+            this.saveSessionsToLocal();
         },
         messagesInit(newSession) {
             if (newSession) {
@@ -94,33 +102,33 @@ export const useMessageStore = defineStore('messageStore', {
             }
         },
         async sessionDelete(index) {
-            const sessionToDelete = this.sessions[index];
-            const response = await post('/sessions/delete', {sessionId: sessionToDelete.sessionId});
-            if (response?.success) {
-                this.sessions.splice(index, 1);
-                this.messagesInit(this.sessions.length > 0 ? this.sessions[0] : null);
-            } else {
-                message.error('删除失败');
-            }
+            this.sessions.splice(index, 1);
+            this.messagesInit(this.sessions.length > 0 ? this.sessions[0] : null);
+            this.saveSessionsToLocal();
         },
         async sessionRename(session, newName) {
-            const updatedSession = {...session, title: newName};
-            const response = await post('/sessions/update', updatedSession);
-            if (response?.success) {
-                const index = this.sessions.findIndex((s) => s.sessionId === session.sessionId);
-                if (index !== -1) {
-                    this.sessions[index].title = newName;
-                }
+            const sessionIndex = this.sessions.findIndex((s) => s.sessionId === session.sessionId);
+            if (sessionIndex !== -1) {
+                this.sessions[sessionIndex].title = newName;
+                this.saveSessionsToLocal();
             } else {
                 message.error('重命名失败');
             }
         },
         async sessionUpdate() {
-            this.session.messages = JSON.stringify(this.messages);
-            this.session.databaseInfoCheked = JSON.stringify(this.databaseInfoCheked);
-            await post('/sessions/update', this.session);
+            const sessionIndex = this.sessions.findIndex((s) => s.sessionId === this.session.sessionId);
+            if (sessionIndex !== -1) {
+                this.sessions[sessionIndex].messages = JSON.stringify(this.messages);
+                this.sessions[sessionIndex].databaseInfoCheked = JSON.stringify(this.databaseInfoCheked);
+                this.saveSessionsToLocal();
+            }
         },
+        saveSessionsToLocal() {
+            localStorage.setItem('sessions', JSON.stringify(this.sessions));
+        },
+        // 其余业务逻辑代码保持不变
         async messagePerformSemanticSearch(queryText) {
+            // 此处依然使用接口进行语义检索
             const response = await post('/queryVectors/searchByVectorAndDatabaseInfoId', {
                 queryText
             });
