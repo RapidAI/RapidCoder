@@ -51,7 +51,7 @@
 
 <script>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { post } from '@/api';
+import { useModelStore } from '@/store/ModelStore';  // 引入 ModelStore
 
 export default {
   props: {
@@ -65,6 +65,8 @@ export default {
     },
   },
   setup(props, { emit }) {
+    const modelStore = useModelStore(); // 使用 ModelStore
+
     const formRef = ref(null);
     const formState = reactive({
       modelName: '',
@@ -131,15 +133,15 @@ export default {
         }
 
         if (props.mode === 'add') {
-          await post('/model/add', data);
+          modelStore.addModel(data); // 使用 ModelStore 添加模型
         } else {
           data.modelId = props.initialValues.modelId;
-          await post('/model/update', data);
+          modelStore.updateModel(data); // 使用 ModelStore 更新模型
         }
 
         emit('onCancel');
       } catch (error) {
-        console.error('Validation failed or request error:', error);
+        console.error('Validation failed or store update error:', error);
       }
     };
 

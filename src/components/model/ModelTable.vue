@@ -26,64 +26,54 @@
     </a-table>
     <a-modal v-model:open="isModalVisible" :title="modalType === 'add' ? '添加模型' : '更新模型'" :footer="null" :width="600">
       <ModelForm v-if="isModalVisible" ref="modelFormRef" :initialValues="currentModel" :mode="modalType"
-                   @onCancel="handleCancel"/>
+                 @onCancel="handleCancel"/>
     </a-modal>
   </a-layout-content>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { useModelStore } from '@/store/ModelStore';
 import ModelForm from './ModelForm.vue';
-import { post } from '@/api';
 import { message } from 'ant-design-vue';
 
 export default {
   components: {
-    ModelForm
+    ModelForm,
   },
   setup() {
-    const models = ref([]);
+    const modelStore = useModelStore();
+
     const isModalVisible = ref(false);
     const currentModel = ref({});
     const modalType = ref('add');
 
     const columns = [
-      {title: '模型名称', dataIndex: 'modelName', align: 'center'},
-      {title: 'baseUrl', dataIndex: 'baseUrl', align: 'center'},
-      {title: 'API Key', dataIndex: 'apiKey', align: 'center'},
-      {title: '操作', dataIndex: 'action', align: 'center'}
+      { title: '模型名称', dataIndex: 'modelName', align: 'center' },
+      { title: 'baseUrl', dataIndex: 'baseUrl', align: 'center' },
+      { title: 'API Key', dataIndex: 'apiKey', align: 'center' },
+      { title: '操作', dataIndex: 'action', align: 'center' },
     ];
-
-    const loadModels = async () => {
-      const res = await post('/model/getAll');
-      if (res && res.success) {
-        models.value = res.data;
-      }
-    };
-
-    onMounted(loadModels);
 
     function showModal(type, model = {}) {
       modalType.value = type;
-      currentModel.value = {...model};
+      currentModel.value = { ...model };
       isModalVisible.value = true;
     }
 
     function handleCancel() {
       isModalVisible.value = false;
       currentModel.value = {};
-      loadModels();
     }
 
+
     async function deleteModel(modelId) {
-      await post('/model/delete', {modelId: modelId});
-      loadModels();
+      await modelStore.deleteModel(modelId);
     }
 
     async function testConnection(model) {
-      model.messages=[{role:'user',content:"你好"}]
-      const res = await post('/chat/generatebyModel', model);
-      if (res && res.success) {
+      const success = await modelStore.testConnection(model);
+      if (success) {
         message.success('连接成功');
       } else {
         message.error('连接失败');
@@ -92,7 +82,7 @@ export default {
 
     return {
       columns,
-      models,
+      models: modelStore.models,
       isModalVisible,
       showModal,
       handleCancel,
@@ -101,7 +91,7 @@ export default {
       currentModel,
       modalType,
     };
-  }
+  },
 };
 </script>
 
