@@ -3,7 +3,7 @@ import Login from '../components/auth/Login.vue';
 import Register from '../components/auth/Register.vue';
 import NotFound from '../components/common/NotFound.vue';
 import UserTable from '../components/user/UserTable.vue';
-import SessionWithBigData from '../components/session/SessionWithBigData.vue';
+import SessionWithBigData from '../components/session/Session.vue';
 import MySettings from '../components/settings/MySettings.vue';
 import ProjectTable from '../components/project/ProjectTable.vue';
 import ModelTable from '../components/model/ModelTable.vue';

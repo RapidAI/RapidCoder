@@ -13,7 +13,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue';
-import { useMessageStore } from "@/store/MessageStoreWithBigData.js";
+import { useMessageStore } from "@/store/MessageStore.js";
 
 export default {
   setup() {

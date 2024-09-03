@@ -48,7 +48,7 @@
 <script>
 import { onMounted, ref } from 'vue';
 import Chat from '../chatwithbigdata/Chat.vue';
-import { useMessageStore } from '@/store/MessageStoreWithBigData.js';
+import { useMessageStore } from '@/store/MessageStore.js';
 import { useUserStore } from '@/store/UserStore.js';
 import { DatabaseOutlined, EditOutlined, EllipsisOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';

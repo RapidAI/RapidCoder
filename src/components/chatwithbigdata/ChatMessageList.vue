@@ -59,7 +59,7 @@
 </template>
 <script>
 import {ref, onMounted, onUnmounted, nextTick} from 'vue';
-import {useMessageStore} from '@/store/MessageStoreWithBigData.js';
+import {useMessageStore} from '@/store/MessageStore.js';
 import {message} from 'ant-design-vue';
 import {UserOutlined, RobotOutlined, ArrowDownOutlined} from '@ant-design/icons-vue';
 import {eventBus} from '@/eventBus.js';

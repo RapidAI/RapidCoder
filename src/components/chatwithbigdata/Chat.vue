@@ -30,7 +30,7 @@
 
 <script>
 import {ref} from 'vue';
-import {useMessageStore} from '@/store/MessageStoreWithBigData.js';
+import {useMessageStore} from '@/store/MessageStore.js';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatMessageInput from './ChatMessageInput.vue';
 

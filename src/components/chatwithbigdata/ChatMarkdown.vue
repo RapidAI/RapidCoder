@@ -57,7 +57,7 @@
 
 <script>
 import {ref, computed, onMounted, watch} from 'vue'
-import {useMessageStore} from '@/store/MessageStoreWithBigData.js'
+import {useMessageStore} from '@/store/MessageStore.js'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import ChartRenderer from './ChartRenderer.vue'
