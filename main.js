@@ -44,16 +44,28 @@ ipcMain.handle('select-directory', async () => {
     return result;
 });
 
-ipcMain.handle('get-all-files', (event, dirPath) => {
+ipcMain.handle('get-all-files', (event, dirPath, ignorePatterns = []) => {
+
+    const shouldIgnore = (filePath) => {
+        return ignorePatterns.some(pattern => {
+            const regex = new RegExp(pattern.replace(/\./g, '\\.').replace(/\*/g, '.*'));
+            return regex.test(filePath);
+        });
+    };
+
     const getAllFiles = (dirPath, arrayOfFiles = []) => {
         const files = fs.readdirSync(dirPath);
 
         files.forEach(file => {
             const fullPath = path.join(dirPath, file);
             if (fs.statSync(fullPath).isDirectory()) {
-                getAllFiles(fullPath, arrayOfFiles);
+                if (!shouldIgnore(fullPath)) {
+                    getAllFiles(fullPath, arrayOfFiles);
+                }
             } else {
-                arrayOfFiles.push(fullPath);
+                if (!shouldIgnore(fullPath)) {
+                    arrayOfFiles.push(fullPath);
+                }
             }
         });
 

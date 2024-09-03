@@ -27,6 +27,7 @@
 
     <a-modal v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze" @cancel="closeAnalyzeModal">
       <a-select v-model:value="selectedModelId" placeholder="请选择一个模型" :options="modelOptions" allow-clear />
+      <a-input v-model="ignorePatterns" placeholder="输入要忽略的文件/文件夹（使用逗号分隔）" style="margin-top: 10px;" />
       <a-spin v-if="isAnalyzing" tip="AI解析中..." />
     </a-modal>
   </a-layout-content>
@@ -52,6 +53,7 @@ export default {
     const currentProject = ref({});
     const modalType = ref('add');
     const modalTitle = ref('');
+    const ignorePatterns = ref('');
     const modelOptions = ref([]);
     const selectedModelId = ref(null);
     const isAnalyzing = ref(false);
@@ -92,50 +94,57 @@ export default {
       }
     };
 
-    const openAnalyzeModal = (record) => {
-      currentProject.value = record;
-      isAnalyzeModalVisible.value = true;
-    };
 
     const closeAnalyzeModal = () => {
       isAnalyzeModalVisible.value = false;
       selectedModelId.value = null;
     };
 
+    const openAnalyzeModal = (record) => {
+      currentProject.value = record;
+      isAnalyzeModalVisible.value = true;
+      // 初始化忽略模式
+      ignorePatterns.value = 'node_modules, dist, *.log';
+    };
+
     const handleAnalyze = async () => {
       if (!selectedModelId.value) {
         return message.error('请选择一个模型');
       }
+
       isAnalyzing.value = true;
 
-      // 调用主进程的文件操作
-      const projectFiles = await ipcRenderer.invoke('get-all-files', currentProject.value.projectPath);
-      console.log(projectFiles)
-      const fileContents = projectFiles.map(file => ({
-        path: file.path,
-        content: file.content
-      }));
+      try {
+        // 将参数转换为 JSON 字符串
+        const projectFiles = await ipcRenderer.invoke(
+            'get-all-files',
+            currentProject.value.projectPath,
+            ignorePatterns.value
+        );
 
-      const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
-      console.log(buildPrompt(fileContents))
-      // const res = await modelStore.chatCompletions({
-      //   ...model,
-      //   messages: [
-      //     { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
-      //     { role: 'user', content: buildPrompt(fileContents) }
-      //   ]
-      // });
-      //
-      // if (res) {
-      //   currentProject.value.projectDescription = extractJsonFromResponse(res.data.content);
-      //   message.success('AI解析成功');
-      // } else {
-      //   message.error('AI解析失败');
-      // }
+        // 如果主进程返回的是 JSON 字符串，可以在这里解析
+        const files = JSON.parse(projectFiles);
 
-      isAnalyzing.value = false;
-      closeAnalyzeModal();
+        const fileContents = files.map(file => ({
+          path: file.path,
+          content: file.content
+        }));
+
+        const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
+        console.log(buildPrompt(fileContents));
+
+        // AI解析逻辑，保持不变
+        // ...
+
+      } catch (error) {
+        console.error('Error during AI analysis:', error);
+        message.error('AI解析失败');
+      } finally {
+        isAnalyzing.value = false;
+        closeAnalyzeModal();
+      }
     };
+
 
     // 递归获取所有文件路径
     const getAllFiles = (dirPath, arrayOfFiles = []) => {
@@ -184,10 +193,13 @@ ${fileContents.map(file => `文件路径: ${file.path}\n内容:\n${file.content}
       isModalVisible,
       modalTitle,
       openModal,
+      modalType,
+      currentProject,
       closeModal,
       deleteProject,
       isAnalyzeModalVisible,
       openAnalyzeModal,
+      ignorePatterns,
       closeAnalyzeModal,
       handleAnalyze,
       modelOptions,
