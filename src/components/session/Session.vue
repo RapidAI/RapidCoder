@@ -139,8 +139,7 @@ export default {
     onMounted(async () => {
       loadingDatabases.value = true;
       await messageStore.modelsLoad();
-      await messageStore.databasesLoad();
-      await messageStore.sessionsLoad(userStore.userData.userId);
+      await messageStore.projectsLoad();
       await locateSessionFromUrl();
       loadingDatabases.value = false;
     });

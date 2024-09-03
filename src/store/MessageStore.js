@@ -4,13 +4,13 @@ import {message, Modal} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
 import {ChartTypes} from './ChartTypes.js';
 import { useModelStore } from '@/store/ModelStore';
+import { useProjectStore } from '@/store/ProjectStore';
 
 export const useMessageStore = defineStore('messageStore', {
     state: () => ({
         sessions: [],
         session: null,
-        databaseInfo: [],
-        databaseInfoCheked: [],
+        projects: [],
         models: [],
         messages: [],
         currentModel: null,
@@ -30,47 +30,9 @@ export const useMessageStore = defineStore('messageStore', {
             const modelStore = useModelStore(); // 获取 ModelStore 实例
             this.models = modelStore.models; // 直接从 ModelStore 中读取 models 数据
         },
-        async databasesLoad() {
-            const res = await post('/databases/getAll');
-            if (res?.success) {
-                this.databaseInfo = await Promise.all(res.data.map(async (db) => {
-                    const tables = await this.tablesLoad(db.databaseInfoId);
-                    return {
-                        ...db,
-                        tables: tables
-                    };
-                }));
-            } else {
-                console.error('加载数据库失败:', res);
-            }
-        },
-        async tablesLoad(databaseId) {
-            const res = await post('/tables/getAllByDatabaseId', {databaseInfoId: databaseId});
-            if (res?.success) {
-                return res.data;
-            } else {
-                console.error('加载表信息失败:', res);
-                return [];
-            }
-        },
-        async columnsLoad(tableId) {
-            const res = await post('/columns/getAllByTableId', {tableInfoId: tableId});
-            if (res?.success) {
-                return res.data;
-            } else {
-                console.error('加载列信息失败:', res);
-                return [];
-            }
-        },
-        async sessionsLoad(userId) {
-            const localSessions = JSON.parse(localStorage.getItem('sessions')) || [];
-            if (localSessions.length > 0) {
-                this.sessions = localSessions;
-                this.messagesInit(this.sessions[0]);
-                return true;
-            } else {
-                return false;
-            }
+        async projectsLoad() {
+            const projectStore = useProjectStore(); // 获取 ModelStore 实例
+            this.projects = projectStore.projects; // 直接从 ModelStore 中读取 models 数据
         },
         async sessionCreate(userId) {
             const newSession = {
@@ -78,8 +40,6 @@ export const useMessageStore = defineStore('messageStore', {
                 title: `全部数据库分析`,
                 modelId: this.models[0].modelId,
                 userId,
-                databaseInfoId: this.databaseInfo[0].databaseInfoId,
-                databaseInfoCheked: JSON.stringify(this.databaseInfo.map(db => db.databaseName)),
                 messages: JSON.stringify([{
                     role: 'system',
                     content: this.databaseCreateSQLTableStatements(this.databaseInfo)
@@ -93,7 +53,6 @@ export const useMessageStore = defineStore('messageStore', {
             if (newSession) {
                 this.session = newSession;
                 this.messages = JSON.parse(newSession.messages).map(msg => ({...msg, isAnalyzing: false}));
-                this.databaseInfoCheked = JSON.parse(newSession.databaseInfoCheked);
                 const model = this.models.find((model) => model.modelId === newSession.modelId);
                 this.currentModel = model || null;
             }
@@ -116,24 +75,6 @@ export const useMessageStore = defineStore('messageStore', {
             const sessionIndex = this.sessions.findIndex((s) => s.sessionId === this.session.sessionId);
             if (sessionIndex !== -1) {
                 this.sessions[sessionIndex].messages = JSON.stringify(this.messages);
-                this.sessions[sessionIndex].databaseInfoCheked = JSON.stringify(this.databaseInfoCheked);
-                this.saveSessionsToLocal();
-            }
-        },
-        saveSessionsToLocal() {
-            localStorage.setItem('sessions', JSON.stringify(this.sessions));
-        },
-        // 其余业务逻辑代码保持不变
-        async messagePerformSemanticSearch(queryText) {
-            // 此处依然使用接口进行语义检索
-            const response = await post('/queryVectors/searchByVectorAndDatabaseInfoId', {
-                queryText
-            });
-            if (response?.success) {
-                return response.data;
-            } else {
-                message.error('语义检索失败');
-                return [];
             }
         },
         async messageSearchDatabaseAndmessageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
