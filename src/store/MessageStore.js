@@ -3,17 +3,14 @@ import {post, streamPost} from '@/api/index.js';
 import {message, Modal} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
 import {ChartTypes} from './ChartTypes.js';
-import { useModelStore } from '@/store/ModelStore';
-import { useProjectStore } from '@/store/ProjectStore';
+import {useModelStore} from '@/store/ModelStore';
+import {useProjectStore} from '@/store/ProjectStore';
 
 export const useMessageStore = defineStore('messageStore', {
     state: () => ({
         sessions: [],
-        session: null,
         projects: [],
         models: [],
-        messages: [],
-        currentModel: null,
         isStreaming: false,
     }),
     persist: {
@@ -34,48 +31,19 @@ export const useMessageStore = defineStore('messageStore', {
             const projectStore = useProjectStore(); // 获取 ModelStore 实例
             this.projects = projectStore.projects; // 直接从 ModelStore 中读取 models 数据
         },
-        async sessionCreate(userId) {
-            const newSession = {
+        async sessionCreate() {
+            this.sessions.push({
                 sessionId: Date.now(),
-                title: `全部数据库分析`,
-                modelId: this.models[0].modelId,
-                userId,
-                messages: JSON.stringify([{
+                title: `代码分析`,
+                messages: [{
                     role: 'system',
-                    content: this.databaseCreateSQLTableStatements(this.databaseInfo)
-                }]),
-            };
-            this.sessions.unshift(newSession);
-            this.messagesInit(newSession);
-            this.saveSessionsToLocal();
-        },
-        messagesInit(newSession) {
-            if (newSession) {
-                this.session = newSession;
-                this.messages = JSON.parse(newSession.messages).map(msg => ({...msg, isAnalyzing: false}));
-                const model = this.models.find((model) => model.modelId === newSession.modelId);
-                this.currentModel = model || null;
-            }
+                    content: this.databaseCreateCodeTableStatements(this.databaseInfo),
+                    isAnalyzing: false
+                }],
+            });
         },
         async sessionDelete(index) {
             this.sessions.splice(index, 1);
-            this.messagesInit(this.sessions.length > 0 ? this.sessions[0] : null);
-            this.saveSessionsToLocal();
-        },
-        async sessionRename(session, newName) {
-            const sessionIndex = this.sessions.findIndex((s) => s.sessionId === session.sessionId);
-            if (sessionIndex !== -1) {
-                this.sessions[sessionIndex].title = newName;
-                this.saveSessionsToLocal();
-            } else {
-                message.error('重命名失败');
-            }
-        },
-        async sessionUpdate() {
-            const sessionIndex = this.sessions.findIndex((s) => s.sessionId === this.session.sessionId);
-            if (sessionIndex !== -1) {
-                this.sessions[sessionIndex].messages = JSON.stringify(this.messages);
-            }
         },
         async messageSearchDatabaseAndmessageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
             // 还原搜索数据库
@@ -135,7 +103,7 @@ export const useMessageStore = defineStore('messageStore', {
             // 更新system定义
             this.messages[0] = {
                 role: 'system',
-                content: this.databaseCreateSQLTableStatements(database),
+                content: this.databaseCreateCodeTableStatements(database),
             };
         },
         async messageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
@@ -152,13 +120,13 @@ export const useMessageStore = defineStore('messageStore', {
                 messagelist[messagelist.length - 2].content
             if (semanticSearch) {
                 const semanticSearchResults = await this.messagePerformSemanticSearch(prompt);
-                const semanticMessageContent = semanticSearchResults.map(result => `### 参考信息\n\n**查询问题:** ${result.queryText}\n**对应SQL:** \`${result.resultText}\``).join('\n\n');
+                const semanticMessageContent = semanticSearchResults.map(result => `### 参考信息\n\n**查询问题:** ${result.queryText}\n**对应Code:** \`${result.resultText}\``).join('\n\n');
                 if (semanticMessageContent) {
                     allMessages.splice(allMessages.length, 0, {role: 'user', content: semanticMessageContent});
                 }
             }
 
-            if(prompt!=="根据以上数据总结分析"){
+            if (prompt !== "根据以上数据总结分析") {
                 // 针对allMessages每一个role==assistant的content是执行结果忽略部分数据
                 allMessages = allMessages.map(message => {
                     if (message.role === 'assistant' && message.content.startsWith('执行结果:')) {
@@ -190,7 +158,7 @@ export const useMessageStore = defineStore('messageStore', {
                 const {done, value} = await reader.read();
                 if (done) {
                     this.messages[assistantIndex].isAnalyzing = false;
-                    await this.messageSplitAndExecuteSQL(this.messages[assistantIndex],
+                    await this.messageSplitAndExecuteCode(this.messages[assistantIndex],
                         this.messages[assistantIndex - 1].role === "user" ?
                             this.messages[assistantIndex - 1] :
                             this.messages[assistantIndex - 2],
@@ -232,43 +200,43 @@ export const useMessageStore = defineStore('messageStore', {
                 message.info('当前没有正在进行的流式请求');
             }
         },
-        async messageSplitAndExecuteSQL(sqlMessage, queryMessage, index = null) {
-            const extractSQLContent = content => {
-                return [...content.matchAll(/([\s\S]*?)```sql([\s\S]*?)```/g)]
-                    .map(match => ({description: match[1].trim(), sql: match[2].trim()}));
+        async messageSplitAndExecuteCode(codeMessage, queryMessage, index = null) {
+            const extractCodeContent = content => {
+                return [...content.matchAll(/([\s\S]*?)```code([\s\S]*?)```/g)]
+                    .map(match => ({description: match[1].trim(), code: match[2].trim()}));
             };
 
-            // 提取并处理 SQL 内容
-            const sqlContent = sqlMessage.content;
-            const sqlBlocks = extractSQLContent(sqlContent);
+            // 提取并处理 Code 内容
+            const codeContent = codeMessage.content;
+            const codeBlocks = extractCodeContent(codeContent);
 
-            if (sqlBlocks.length > 1) {
-                const newMessages = sqlBlocks.flatMap(({description, sql}) => ([
-                    {role: 'assistant', content: `${description}\n\`\`\`sql\n${sql}\n\`\`\``},
+            if (codeBlocks.length > 1) {
+                const newMessages = codeBlocks.flatMap(({description, code}) => ([
+                    {role: 'assistant', content: `${description}\n\`\`\`code\n${code}\n\`\`\``},
                     {role: 'assistant', content: ''}
                 ]));
                 this.messages.splice(index, 1, ...newMessages);
 
                 for (let i = 0; i < newMessages.length; i += 2) {
-                    await this.messageExecuteSQL(newMessages[i], queryMessage, index + i);
+                    await this.messageExecuteCode(newMessages[i], queryMessage, index + i);
                 }
             } else {
-                this.messages[index] = {role: 'assistant', content: sqlContent};
-                await this.messageExecuteSQL(this.messages[index], queryMessage, index);
+                this.messages[index] = {role: 'assistant', content: codeContent};
+                await this.messageExecuteCode(this.messages[index], queryMessage, index);
             }
         },
-        async messageExecuteSQL(sqlMessage, queryMessage, index = null) {
-            if (!this.messageContainsSQL(sqlMessage.content)) {
+        async messageExecuteCode(codeMessage, queryMessage, index = null) {
+            if (!this.messageContainsCode(codeMessage.content)) {
                 await this.sessionUpdate();
                 return;
             }
-            const sql = this.messageExtractSQL(sqlMessage.content);
-            if (!this.messageIsSelectQuery(sql)) {
+            const code = this.messageExtractCode(codeMessage.content);
+            if (!this.messageIsSelectQuery(code)) {
                 // 弹出确认框，确认是否继续执行非SELECT查询
                 const confirmed = await new Promise((resolve) => {
                     Modal.confirm({
                         title: '确认执行',
-                        content: `您确认要执行这个sql吗？:\n${sql}`,
+                        content: `您确认要执行这个code吗？:\n${code}`,
                         onOk: () => resolve(true),
                         onCancel: () => resolve(false),
                     });
@@ -284,7 +252,7 @@ export const useMessageStore = defineStore('messageStore', {
                 databaseInfoId: this.session.databaseInfoId,
                 sessionId: this.session.sessionId,
                 userId: this.session.userId,
-                sqlText: sql,
+                codeText: code,
                 queryText: queryMessage.content
             };
             const response = await post('/queries/execute', querydata);
@@ -295,11 +263,11 @@ export const useMessageStore = defineStore('messageStore', {
                 });
                 eventBus.emit('messageUpdated', index + 1);
             } else {
-                console.error(`执行sql出错:\n${response.data.responseText}`)
+                console.error(`执行code出错:\n${response.data.responseText}`)
                 queryMessage.retryCount = (queryMessage.retryCount || 0) + 1;
                 this.messages.splice(index + 1, 1, {
                     role: 'assistant',
-                    content: `执行sql出错:\n${response.data.responseText}`
+                    content: `执行code出错:\n${response.data.responseText}`
                 });
                 eventBus.emit('messageUpdated', index + 1);
                 if (queryMessage.retryCount < 3) {
@@ -308,27 +276,27 @@ export const useMessageStore = defineStore('messageStore', {
             }
             await this.sessionUpdate();
         },
-        messageContainsSQL(content) {
-            return /```sql([\s\S]*?)```/.test(content);
+        messageContainsCode(content) {
+            return /```code([\s\S]*?)```/.test(content);
         },
-        messageExtractSQL(content) {
-            const matches = content.match(/```sql([\s\S]*?)```/);
+        messageExtractCode(content) {
+            const matches = content.match(/```code([\s\S]*?)```/);
             return matches ? matches[1].trim() : '';
         },
-        messageIsSelectQuery(sql) {
+        messageIsSelectQuery(code) {
             const disallowedKeywords = ["insert", "update", "delete", "merge", "alter", "drop", "create"];
-            return !disallowedKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`).test(sql.trim().toLowerCase()));
+            return !disallowedKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`).test(code.trim().toLowerCase()));
         },
-        databaseCreateSQLTableStatements(databases) {
-            let sqlStatements = `#### 任务: sql数据分析\n`;
-            sqlStatements += `#### 要求: 要求sql展示中文标头, 不要假设字段,不需要解释\n`;
+        databaseCreateCodeTableStatements(databases) {
+            let codeStatements = `#### 任务: code数据分析\n`;
+            codeStatements += `#### 要求: 要求code展示中文标头, 不要假设字段,不需要解释\n`;
             // 打乱 databases 数组顺序
             databases = databases.sort(() => Math.random() - 0.5);
             databases.forEach((database) => {
-                sqlStatements += `#### 数据库名字: ${database.databaseName}\n`;
-                sqlStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
-                sqlStatements += `#### 数据库类型: ${database.databaseType}\n`;
-                sqlStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`sql\n`;
+                codeStatements += `#### 数据库名字: ${database.databaseName}\n`;
+                codeStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
+                codeStatements += `#### 数据库类型: ${database.databaseType}\n`;
+                codeStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`code\n`;
 
                 database.tables.forEach((table) => {
                     let createStatement = `CREATE TABLE ${table.tableName} (\n`;
@@ -348,22 +316,22 @@ export const useMessageStore = defineStore('messageStore', {
                         createStatement += ` comment='${(table.tableComment || '') + ' ' + (table.tableDescription || '')}'`;
                     }
                     createStatement += ';\n\n';
-                    sqlStatements += createStatement;
+                    codeStatements += createStatement;
                 });
 
-                sqlStatements += '```\n';
+                codeStatements += '```\n';
             });
-            return sqlStatements;
+            return codeStatements;
         },
-        databaseCreateSQLTableStatements4Analyze(databases) {
-            let sqlStatements = `#### 任务: 数据库分析\n`;
+        databaseCreateCodeTableStatements4Analyze(databases) {
+            let codeStatements = `#### 任务: 数据库分析\n`;
             // 打乱 databases 数组顺序
             databases = databases.sort(() => Math.random() - 0.5);
             databases.forEach((database) => {
-                sqlStatements += `#### 数据库名字: ${database.databaseName}\n`;
-                sqlStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
-                sqlStatements += `#### 数据库类型: ${database.databaseType}\n`;
-                sqlStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`sql\n`;
+                codeStatements += `#### 数据库名字: ${database.databaseName}\n`;
+                codeStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
+                codeStatements += `#### 数据库类型: ${database.databaseType}\n`;
+                codeStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`code\n`;
                 database.tables.forEach((table) => {
                     let createStatement = `CREATE TABLE ${table.tableName} (\n`;
                     if (table.columns && table.columns.length > 0) {
@@ -382,12 +350,12 @@ export const useMessageStore = defineStore('messageStore', {
                         createStatement += ` comment='${(table.tableComment)}'`;
                     }
                     createStatement += ';\n\n';
-                    sqlStatements += createStatement;
+                    codeStatements += createStatement;
                 });
 
-                sqlStatements += '```\n';
+                codeStatements += '```\n';
             });
-            return sqlStatements;
+            return codeStatements;
         },
         async messageToChart(index, chartType) {
             let prompt = `要求通过js代码将执行结果转换成一个${chartType}图表数据结构,方便进行数据分析,选择合理的数据展示字段\n`;
@@ -412,8 +380,8 @@ export const useMessageStore = defineStore('messageStore', {
             eval(`this.messageToChartJscode = ${jscode}`);
             const tableData = this.messageMarkdownToJson(this.messages[index].content)
             let chartData = this.messageToChartJscode(tableData);
-            chartData = "```chart\n"+JSON.stringify(chartData)+"\n```"
-            this.messages.splice(index + 2, 0, {role: 'assistant', content:chartData });
+            chartData = "```chart\n" + JSON.stringify(chartData) + "\n```"
+            this.messages.splice(index + 2, 0, {role: 'assistant', content: chartData});
             await this.sessionUpdate();
         },
         messageMarkdownToJson(markdown) {

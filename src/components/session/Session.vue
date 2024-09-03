@@ -87,7 +87,7 @@ export default {
     // 创建新的会话
     const createNewSession = async () => {
       loadingDatabases.value = true;
-      await messageStore.sessionCreate(userStore.userData.userId);
+      await messageStore.sessionCreate();
       loadingDatabases.value = false;
       router.push({ query: { sessionId: messageStore.session.sessionId } })
     };
