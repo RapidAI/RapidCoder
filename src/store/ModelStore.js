@@ -45,8 +45,7 @@ export const useModelStore = defineStore('model_store', {
                 }
 
                 // 返回结果
-                const {role, content} = responseData.choices[0].message;
-                return {role, content};
+                return responseData.choices[0].message;
 
             } catch (error) {
                 message.error(`请求失败: ${error.message || error}`);

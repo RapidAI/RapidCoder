@@ -73,8 +73,9 @@ export default {
 
     async function testConnection(model) {
       model.messages = [{role: 'user', content: '你好'}];
-      const success = await modelStore.chatCompletions(model);
-      if (success) {
+      const result = await modelStore.chatCompletions(model);
+      console.log(result)
+      if (result) {
         message.success('连接成功');
       } else {
         message.error('连接失败');
