@@ -37,7 +37,7 @@
 <script>
 import {ref, onMounted} from 'vue';
 import {useProjectStore} from '@/store/ProjectStore';
-import { useModelStore } from '@/store/ModelStore';
+import {useModelStore} from '@/store/ModelStore';
 import {post} from '@/api';
 import ProjectForm from './ProjectForm.vue';
 import {message} from 'ant-design-vue';
@@ -53,7 +53,6 @@ export default {
     const isAnalyzeModalVisible = ref(false);
     const currentProject = ref({});
     const modalType = ref('add');
-    const models = ref([]);
     const modelOptions = ref([]);
     const selectedModelId = ref(1);
     const isAnalyzing = ref(false);
@@ -110,37 +109,26 @@ export default {
       if (selectedModelId.value == null) {
         return message.error('请选择一个模型');
       }
-
       isAnalyzing.value = true;
+      const projectDetails = currentProject.value;
+      const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
-      try {
-        const projectDetails = currentProject.value;
-        const model = models.value.find(model => model.modelId === selectedModelId.value);
-
-        let prompt = `请分析项目 "${projectDetails.projectName}" 的目录结构及描述信息，生成项目结构说明和总结。\n返回json数据结构\n`;
-        prompt += `{\n`;
-        prompt += `   analysis: "该项目的结构说明..."\n`;
-        prompt += `   summary: "{作用:..., 项目结构: [{目录名:...,描述:...,表示:...}...]}"\n`;
-        prompt += `}\n`;
-        model.messages = [{role: 'system', content: projectDetails}, {role: 'user', content: prompt}]
-
-        const res = await post('/chat/generatebyModel', model);
-        if (res?.success) {
-          currentProject.value.projectDescription = extractJsonFromResponse(res.data.content);
-          const updateResponse = await post('/projects/update', currentProject.value);
-          if (updateResponse?.success) {
-            message.success('AI解析成功');
-          }
-        } else {
-          message.error('AI解析失败');
-        }
-      } catch (error) {
-        message.error(`AI解析失败: ${error.message}`);
-      } finally {
-        isAnalyzing.value = false;
-        isAnalyzeModalVisible.value = false;
-        selectedModelId.value = null;
+      let prompt = `请分析项目 "${projectDetails.projectName}" 的目录结构及描述信息，生成项目结构说明和总结。\n返回json数据结构\n`;
+      prompt += `{\n`;
+      prompt += `   analysis: "该项目的结构说明..."\n`;
+      prompt += `   summary: "{作用:..., 项目结构: [{目录名:...,描述:...,表示:...}...]}"\n`;
+      prompt += `}\n`;
+      model.messages = [{role: 'system', content: projectDetails}, {role: 'user', content: prompt}]
+      // model.messages = [{role: 'user', content: '你好'}];
+      const res = await modelStore.chatCompletions(model);
+      if (res) {
+        currentProject.value.projectDescription = extractJsonFromResponse(res.data.content);
+      } else {
+        message.error('AI解析失败');
       }
+      isAnalyzing.value = false;
+      isAnalyzeModalVisible.value = false;
+      selectedModelId.value = null;
     };
 
     const extractJsonFromResponse = (response) => {
