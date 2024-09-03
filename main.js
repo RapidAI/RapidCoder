@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -34,4 +34,12 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
+});
+
+// 添加目录选择的事件处理
+ipcMain.handle('select-directory', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory'],
+    });
+    return result;
 });

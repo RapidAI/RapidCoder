@@ -6,16 +6,16 @@
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 14 }"
   >
-    <a-form-item label="项目名称" name="projectName">
-      <a-input v-model:value="formState.projectName" placeholder="请输入项目名称"/>
-    </a-form-item>
 
     <a-form-item label="项目目录" name="projectPath">
       <div>
         <a-input v-model:value="formState.projectPath" placeholder="请选择项目目录" readonly/>
         <a-button type="primary" @click="selectDirectory">选择目录</a-button>
-        <input type="file" ref="fileInput" style="display: none;" webkitdirectory @change="handleDirectorySelection"/>
       </div>
+    </a-form-item>
+
+    <a-form-item label="项目名称" name="projectName">
+      <a-input v-model:value="formState.projectName" placeholder="请输入项目名称"/>
     </a-form-item>
 
     <a-form-item label="项目描述" name="projectDescription">
@@ -32,6 +32,8 @@
 <script>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useProjectStore } from '@/store/ProjectStore'; // 引入 ProjectStore
+const { ipcRenderer } = window.require('electron'); // 使用 Electron 的 ipcRenderer
+const path = window.require('path'); // 引入 Node.js 的 path 模块
 
 export default {
   props: {
@@ -44,7 +46,7 @@ export default {
       default: 'add',
     },
   },
-  setup(props, { emit }) {
+  setup(props, {emit}) {
     const projectStore = useProjectStore(); // 使用 ProjectStore
     const formRef = ref(null);
     const formState = reactive({
@@ -55,13 +57,13 @@ export default {
 
     const rules = computed(() => ({
       projectName: [
-        { required: true, message: '请输入项目名称', trigger: 'blur' },
+        {required: true, message: '请输入项目名称', trigger: 'blur'},
       ],
       projectPath: [
-        { required: true, message: '请选择项目目录', trigger: 'blur' },
+        {required: true, message: '请选择项目目录', trigger: 'blur'},
       ],
       projectDescription: [
-        { required: true, message: '请输入项目描述', trigger: 'blur' },
+        {required: true, message: '请输入项目描述', trigger: 'blur'},
       ],
     }));
 
@@ -74,27 +76,25 @@ export default {
             formState.projectDescription = newVal.projectDescription || '';
           }
         },
-        { immediate: true }
+        {immediate: true}
     );
 
     const selectDirectory = () => {
-      const fileInput = document.querySelector('input[type="file"][webkitdirectory]');
-      fileInput.click();
-    };
-
-    const handleDirectorySelection = (event) => {
-      const files = event.target.files;
-      if (files.length > 0) {
-        const path = files[0].webkitRelativePath;
-        const directoryPath = path.substring(0, path.indexOf('/'));
-        formState.projectPath = directoryPath;
-      }
+      ipcRenderer.invoke('select-directory').then((result) => {
+        if (result && !result.canceled && result.filePaths.length > 0) {
+          formState.projectPath = result.filePaths[0];
+          // 自动将目录名称设置为项目名称
+          formState.projectName = path.basename(result.filePaths[0]);
+        }
+      }).catch((err) => {
+        console.error('Failed to select directory:', err);
+      });
     };
 
     const onSubmit = async () => {
       try {
         await formRef.value.validate();
-        const data = { ...formState };
+        const data = {...formState};
 
         if (props.mode === 'add') {
           projectStore.addProject(data); // 使用 ProjectStore 添加项目
@@ -126,7 +126,6 @@ export default {
       onSubmit,
       onCancel,
       selectDirectory,
-      handleDirectorySelection,
     };
   },
 };

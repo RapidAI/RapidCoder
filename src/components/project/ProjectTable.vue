@@ -13,7 +13,6 @@
                           @confirm="() => deleteProject(record.projectId)">
               <a-button type="primary">删除</a-button>
             </a-popconfirm>
-            <a-button type="primary" @click="testConnection(record)">测试连接</a-button>
           </a-space>
         </template>
         <template v-else>
@@ -71,14 +70,7 @@ export default {
       projectStore.deleteProject(projectId);
     }
 
-    function testConnection(project) {
-      const success = projectStore.testConnection(project);
-      if (success) {
-        message.success('连接成功');
-      } else {
-        message.error('连接失败');
-      }
-    }
+
 
     return {
       columns,
@@ -87,7 +79,6 @@ export default {
       showModal,
       handleCancel,
       deleteProject,
-      testConnection,
       currentProject,
       modalType,
     };
