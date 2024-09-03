@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { message } from 'ant-design-vue';
+import {defineStore} from 'pinia';
+import {message} from 'ant-design-vue';
 
 export const useModelStore = defineStore('model', {
     state: () => ({
@@ -8,6 +8,7 @@ export const useModelStore = defineStore('model', {
     actions: {
         // 添加模型
         addModel(model) {
+            model.modelId = Date.now()
             this.models.push(model);
         },
         // 更新模型
@@ -24,7 +25,7 @@ export const useModelStore = defineStore('model', {
         // 测试连接（使用 post 请求）
         async testConnection(model) {
             // 初始化消息
-            model.messages = [{ role: 'user', content: '你好' }];
+            model.messages = [{role: 'user', content: '你好'}];
 
             try {
                 // 发送请求
@@ -47,8 +48,8 @@ export const useModelStore = defineStore('model', {
                 }
 
                 // 返回结果
-                const { role, content } = responseData.choices[0].message;
-                return { role, content };
+                const {role, content} = responseData.choices[0].message;
+                return {role, content};
 
             } catch (error) {
                 message.error(`请求失败: ${error.message || error}`);

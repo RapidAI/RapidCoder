@@ -13,7 +13,7 @@ export const useProjectStore = defineStore('project', {
             // 例如：this.projects = JSON.parse(localStorage.getItem('projects')) || [];
         },
         addProject(project) {
-            project.projectId = Date.now().toString(); // 生成简单的唯一ID
+            project.projectId = Date.now(); // 生成简单的唯一ID
             this.projects.push(project);
         },
         updateProject(updatedProject) {
