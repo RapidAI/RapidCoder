@@ -3,6 +3,7 @@ import {post, streamPost} from '@/api/index.js';
 import {message, Modal} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
 import {ChartTypes} from './ChartTypes.js';
+import { useModelStore } from '@/store/ModelStore';
 
 export const useMessageStore = defineStore('messageStore', {
     state: () => ({
@@ -25,13 +26,9 @@ export const useMessageStore = defineStore('messageStore', {
         ],
     },
     actions: {
-        async modelsLoad() {
-            const res = await post('/model/getAll');
-            if (res?.success) {
-                this.models = res.data;
-            } else {
-                console.error('加载模型失败:', res);
-            }
+        modelsLoad() {
+            const modelStore = useModelStore(); // 获取 ModelStore 实例
+            this.models = modelStore.models; // 直接从 ModelStore 中读取 models 数据
         },
         async databasesLoad() {
             const res = await post('/databases/getAll');
