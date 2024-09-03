@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-
+const fs = require('fs');
 function createWindow() {
     const win = new BrowserWindow({
         width: 800,
@@ -42,4 +42,27 @@ ipcMain.handle('select-directory', async () => {
         properties: ['openDirectory'],
     });
     return result;
+});
+
+ipcMain.handle('get-all-files', (event, dirPath) => {
+    const getAllFiles = (dirPath, arrayOfFiles = []) => {
+        const files = fs.readdirSync(dirPath);
+
+        files.forEach(file => {
+            const fullPath = path.join(dirPath, file);
+            if (fs.statSync(fullPath).isDirectory()) {
+                getAllFiles(fullPath, arrayOfFiles);
+            } else {
+                arrayOfFiles.push(fullPath);
+            }
+        });
+
+        return arrayOfFiles;
+    };
+
+    const files = getAllFiles(dirPath);
+    return files.map(filePath => ({
+        path: filePath,
+        content: fs.readFileSync(filePath, 'utf-8')
+    }));
 });
