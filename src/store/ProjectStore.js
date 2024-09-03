@@ -7,11 +7,6 @@ export const useProjectStore = defineStore('project_store', {
         projects: [],
     }),
     actions: {
-        // 模拟从本地加载项目数据
-        loadProjects() {
-            // 在这里可以初始化一些默认项目数据
-            // 例如：this.projects = JSON.parse(localStorage.getItem('projects')) || [];
-        },
         addProject(project) {
             project.projectId = Date.now(); // 生成简单的唯一ID
             this.projects.push(project);

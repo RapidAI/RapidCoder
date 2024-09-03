@@ -67,7 +67,6 @@ export default {
     ];
 
     onMounted(() => {
-      projectStore.loadProjects();
       fetchModels();
     });
 
@@ -80,7 +79,6 @@ export default {
     function handleCancel() {
       isModalVisible.value = false;
       currentProject.value = {};
-      projectStore.loadProjects(); // 取消后重新加载项目
     }
 
     function deleteProject(projectId) {
@@ -133,7 +131,6 @@ export default {
           const updateResponse = await post('/projects/update', currentProject.value);
           if (updateResponse?.success) {
             message.success('AI解析成功');
-            projectStore.loadProjects();
           }
         } else {
           message.error('AI解析失败');
