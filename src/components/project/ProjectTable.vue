@@ -110,27 +110,28 @@ export default {
 
       // 调用主进程的文件操作
       const projectFiles = await ipcRenderer.invoke('get-all-files', currentProject.value.projectPath);
-
+      console.log(projectFiles)
       const fileContents = projectFiles.map(file => ({
         path: file.path,
         content: file.content
       }));
 
       const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
-      const res = await modelStore.chatCompletions({
-        ...model,
-        messages: [
-          { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
-          { role: 'user', content: buildPrompt(fileContents) }
-        ]
-      });
-
-      if (res) {
-        currentProject.value.projectDescription = extractJsonFromResponse(res.data.content);
-        message.success('AI解析成功');
-      } else {
-        message.error('AI解析失败');
-      }
+      console.log(buildPrompt(fileContents))
+      // const res = await modelStore.chatCompletions({
+      //   ...model,
+      //   messages: [
+      //     { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
+      //     { role: 'user', content: buildPrompt(fileContents) }
+      //   ]
+      // });
+      //
+      // if (res) {
+      //   currentProject.value.projectDescription = extractJsonFromResponse(res.data.content);
+      //   message.success('AI解析成功');
+      // } else {
+      //   message.error('AI解析失败');
+      // }
 
       isAnalyzing.value = false;
       closeAnalyzeModal();
