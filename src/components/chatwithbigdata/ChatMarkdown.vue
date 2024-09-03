@@ -65,7 +65,6 @@ import {message, Pagination, Table, Spin} from 'ant-design-vue'
 import {StarOutlined, CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue'
 import 'highlight.js/styles/github.css'
 import {post} from '@/api/index.js'
-import {useUserStore} from '@/store/UserStore.js'
 
 export default {
   props: {
@@ -83,7 +82,6 @@ export default {
     ClockCircleOutlined,
   },
   setup(props) {
-    const userStore = useUserStore()
     const messageStore = useMessageStore()
     const dataBlocks = ref([])
     const pageSize = 10 // 每页显示的行数
@@ -265,7 +263,6 @@ export default {
         const data = {
           databaseInfoId: messageStore.session.databaseInfoId,
           sessionId: messageStore.session.sessionId,
-          userId: userStore.userData.userId,
           queryText,
           resultText: sqlCode,
           success: true,

@@ -90,7 +90,6 @@ export default {
     // 获取所有AI模型
     const fetchModels = async () => {
       try {
-        console.log(modelStore.models)
         modelOptions.value = modelStore.models.map(model => ({value: model.modelId, label: model.modelName}));
         selectedModelId.value = modelOptions.value[0]?.value || null;
       } catch (error) {

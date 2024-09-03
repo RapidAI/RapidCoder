@@ -44,7 +44,6 @@ import {
   ToolOutlined,
   LineChartOutlined // 新增图标用于多数据库AI分析
 } from '@ant-design/icons-vue';
-import { useUserStore } from '@/store/UserStore.js';
 
 export default {
   components: {
@@ -67,7 +66,6 @@ export default {
     const collapsed = ref(false);
     const router = useRouter();
     const route = useRoute();
-    const userStore = useUserStore();
     const selectedKeys = ref([route.path.split('/').pop()]);
 
     const navigateTo = (route) => {
@@ -75,9 +73,7 @@ export default {
       selectedKeys.value = [route.split('/').pop()];
     };
 
-    const logout = () => {
-      userStore.logout();
-    };
+
 
     // 监听路由变化，更新选中的菜单项
     watch(
@@ -91,8 +87,6 @@ export default {
       collapsed,
       selectedKeys,
       navigateTo,
-      userStore,
-      logout,
     };
   }
 };

@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 
-export const useModelStore = defineStore('model', {
+export const useModelStore = defineStore('model_store', {
     state: () => ({
         models: [], // 初始状态为一个空数组，数据将从本地存储自动加载
     }),
@@ -61,7 +61,7 @@ export const useModelStore = defineStore('model', {
         enabled: true,
         strategies: [
             {
-                key: 'model',
+                key: 'model_store',
                 storage: localStorage, // 或者使用 sessionStorage
             },
         ],

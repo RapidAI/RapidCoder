@@ -6,7 +6,7 @@ import {ChartTypes} from './ChartTypes.js';
 import {useModelStore} from '@/store/ModelStore';
 import {useProjectStore} from '@/store/ProjectStore';
 
-export const useMessageStore = defineStore('messageStore', {
+export const useMessageStore = defineStore('message_store', {
     state: () => ({
         sessions: [],
         projects: [],
@@ -17,7 +17,7 @@ export const useMessageStore = defineStore('messageStore', {
         enabled: true,
         strategies: [
             {
-                key: 'messageStore',
+                key: 'message_store',
                 storage: localStorage,
             },
         ],
