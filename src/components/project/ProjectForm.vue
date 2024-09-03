@@ -31,6 +31,7 @@
 
 <script>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { useProjectStore } from '@/store/ProjectStore'; // 引入 ProjectStore
 
 export default {
   props: {
@@ -44,6 +45,7 @@ export default {
     },
   },
   setup(props, { emit }) {
+    const projectStore = useProjectStore(); // 使用 ProjectStore
     const formRef = ref(null);
     const formState = reactive({
       projectName: '',
@@ -53,13 +55,13 @@ export default {
 
     const rules = computed(() => ({
       projectName: [
-        {required: true, message: '请输入项目名称', trigger: 'blur'},
+        { required: true, message: '请输入项目名称', trigger: 'blur' },
       ],
       projectPath: [
-        {required: true, message: '请选择项目目录', trigger: 'blur'},
+        { required: true, message: '请选择项目目录', trigger: 'blur' },
       ],
       projectDescription: [
-        {required: true, message: '请输入项目描述', trigger: 'blur'},
+        { required: true, message: '请输入项目描述', trigger: 'blur' },
       ],
     }));
 
@@ -72,7 +74,7 @@ export default {
             formState.projectDescription = newVal.projectDescription || '';
           }
         },
-        {immediate: true}
+        { immediate: true }
     );
 
     const selectDirectory = () => {
@@ -92,18 +94,18 @@ export default {
     const onSubmit = async () => {
       try {
         await formRef.value.validate();
-        const data = {...formState};
+        const data = { ...formState };
 
         if (props.mode === 'add') {
-          await post('/project/add', data);
+          projectStore.addProject(data); // 使用 ProjectStore 添加项目
         } else {
           data.projectId = props.initialValues.projectId;
-          await post('/project/update', data);
+          projectStore.updateProject(data); // 使用 ProjectStore 更新项目
         }
 
         emit('onCancel');
       } catch (error) {
-        console.error('Validation failed or request error:', error);
+        console.error('Validation failed:', error);
       }
     };
 

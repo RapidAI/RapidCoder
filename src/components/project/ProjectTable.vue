@@ -30,8 +30,8 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import { useProjectStore } from '@/store/ProjectStore';
 import ProjectForm from './ProjectForm.vue';
-import { post } from '@/api';
 import { message } from 'ant-design-vue';
 
 export default {
@@ -39,7 +39,7 @@ export default {
     ProjectForm
   },
   setup() {
-    const projects = ref([]);
+    const projectStore = useProjectStore();
     const isModalVisible = ref(false);
     const currentProject = ref({});
     const modalType = ref('add');
@@ -51,35 +51,29 @@ export default {
       {title: '操作', dataIndex: 'action', align: 'center'}
     ];
 
-    const loadProjects = async () => {
-      const res = await post('/project/getAll');
-      if (res && res.success) {
-        projects.value = res.data;
-      }
-    };
-
-    onMounted(loadProjects);
+    onMounted(() => {
+      projectStore.loadProjects();
+    });
 
     function showModal(type, project = {}) {
       modalType.value = type;
-      currentProject.value = {...project};
+      currentProject.value = { ...project };
       isModalVisible.value = true;
     }
 
     function handleCancel() {
       isModalVisible.value = false;
       currentProject.value = {};
-      loadProjects();
+      projectStore.loadProjects(); // 取消后重新加载项目
     }
 
-    async function deleteProject(projectId) {
-      await post('/project/delete', {projectId: projectId});
-      loadProjects();
+    function deleteProject(projectId) {
+      projectStore.deleteProject(projectId);
     }
 
-    async function testConnection(project) {
-      const res = await post('/project/testConnection', project);
-      if (res && res.success) {
+    function testConnection(project) {
+      const success = projectStore.testConnection(project);
+      if (success) {
         message.success('连接成功');
       } else {
         message.error('连接失败');
@@ -88,7 +82,7 @@ export default {
 
     return {
       columns,
-      projects,
+      projects: projectStore.projects,
       isModalVisible,
       showModal,
       handleCancel,
