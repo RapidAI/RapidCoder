@@ -23,10 +23,7 @@ export const useModelStore = defineStore('model_store', {
             this.models = this.models.filter(model => model.modelId !== modelId);
         },
         // 测试连接（使用 post 请求）
-        async testConnection(model) {
-            // 初始化消息
-            model.messages = [{role: 'user', content: '你好'}];
-
+        async chatCompletions(model) {
             try {
                 // 发送请求
                 const response = await fetch(`${model.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`, {

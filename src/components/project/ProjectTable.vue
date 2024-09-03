@@ -28,7 +28,6 @@
     </a-modal>
     <a-modal v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze"
              @cancel="isAnalyzeModalVisible = false">
-      {{modelOptions}}
       <a-select v-model:value="selectedModelId" placeholder="请选择一个模型" :options="modelOptions"
                 :allow-clear="true" @change="updateSelectedModel"/>
       <a-spin v-if="isAnalyzing" tip="AI解析中..."></a-spin>
