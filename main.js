@@ -44,7 +44,20 @@ ipcMain.handle('select-directory', async () => {
     return result;
 });
 
-ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = []) => {
+ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
+    // 确保dirPath是字符串
+    if (typeof dirPath !== 'string') {
+        throw new Error('dirPath must be a string');
+    }
+
+    // 确保ignoredPatterns是字符串
+    if (typeof ignoredPatterns !== 'string') {
+        throw new Error('ignoredPatterns must be a string');
+    }
+
+    // 将ignoredPatterns字符串分割为数组
+    const ignoredPatternsArray = ignoredPatterns.split(',').map(pattern => pattern.trim());
+
     const getAllFiles = (dirPath, arrayOfFiles = []) => {
         const files = fs.readdirSync(dirPath);
 
@@ -52,7 +65,7 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = []) => {
             const fullPath = path.join(dirPath, file);
 
             // 检查是否需要忽略该文件或文件夹
-            const isIgnored = ignoredPatterns.some(pattern => fullPath.includes(pattern));
+            const isIgnored = ignoredPatternsArray.some(pattern => fullPath.includes(pattern));
             if (isIgnored) return;
 
             if (fs.statSync(fullPath).isDirectory()) {
