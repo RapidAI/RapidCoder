@@ -9,7 +9,8 @@
         <template v-if="column.dataIndex === 'action'">
           <a-space>
             <a-button type="primary" @click="openModal('edit', record)">编辑</a-button>
-            <a-popconfirm title="确定要删除这个项目吗？" okText="确定" cancelText="取消" @confirm="deleteProject(record.projectId)">
+            <a-popconfirm title="确定要删除这个项目吗？" okText="确定" cancelText="取消"
+                          @confirm="deleteProject(record.projectId)">
               <a-button type="primary">删除</a-button>
             </a-popconfirm>
             <a-button type="primary" @click="openAnalyzeModal(record)">AI解析</a-button>
@@ -25,25 +26,37 @@
       <ProjectForm ref="projectFormRef" :initialValues="currentProject" :mode="modalType" @onCancel="closeModal"/>
     </a-modal>
 
-    <a-modal v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze" @cancel="closeAnalyzeModal">
-      <a-select v-model:value="selectedModelId" placeholder="请选择一个模型" :options="modelOptions" allow-clear />
-      <a-input v-model:value="ignoredPatterns" placeholder="请输入需要忽略的文件或文件夹（用逗号分隔）" />
-      <a-spin v-if="isAnalyzing" tip="AI解析中..." />
+    <a-modal v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze"
+             @cancel="closeAnalyzeModal">
+      <a-form>
+        <a-form-item label="项目目录">
+          {{ currentProject.projectPath }}
+        </a-form-item>
+        <a-form-item label="模型选择">
+          <a-select v-model:value="selectedModelId" placeholder="请选择一个模型" :options="modelOptions" allow-clear/>
+        </a-form-item>
+        <a-form-item label="忽略文件">
+          <a-input v-model:value="ignoredPatterns" placeholder="请输入需要忽略的文件或文件夹（用逗号分隔）"/>
+        </a-form-item>
+      </a-form>
+      <a-spin v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
+
   </a-layout-content>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { useProjectStore } from '@/store/ProjectStore';
-import { useModelStore } from '@/store/ModelStore';
+import {ref, onMounted} from 'vue';
+import {useProjectStore} from '@/store/ProjectStore';
+import {useModelStore} from '@/store/ModelStore';
 import ProjectForm from './ProjectForm.vue';
-import { message } from 'ant-design-vue';
-const { ipcRenderer } = require('electron');
+import {message} from 'ant-design-vue';
+
+const {ipcRenderer} = require('electron');
 import path from 'path';
 
 export default {
-  components: { ProjectForm },
+  components: {ProjectForm},
   setup() {
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
@@ -56,25 +69,25 @@ export default {
     const modelOptions = ref([]);
     const selectedModelId = ref(null);
     const isAnalyzing = ref(false);
-    const ignoredPatterns = ref([]); // 增加忽略的文件和文件夹的列表
+    const ignoredPatterns = ref('.,node_modules,assets'); // 增加忽略的文件和文件夹的列表
 
     const openAnalyzeModal = (record) => {
       currentProject.value = record;
       isAnalyzeModalVisible.value = true;
-      ignoredPatterns.value = []; // 每次打开分析窗口时清空忽略列表
+      ignoredPatterns.value = '.,node_modules,assets'; // 每次打开分析窗口时清空忽略列表
     };
 
     const columns = [
-      { title: '项目名称', dataIndex: 'projectName', align: 'center' },
-      { title: '项目目录', dataIndex: 'projectPath', align: 'center' },
-      { title: '项目描述', dataIndex: 'projectDescription', align: 'center' },
-      { title: '操作', dataIndex: 'action', align: 'center' }
+      {title: '项目名称', dataIndex: 'projectName', align: 'center'},
+      {title: '项目目录', dataIndex: 'projectPath', align: 'center'},
+      {title: '项目描述', dataIndex: 'projectDescription', align: 'center'},
+      {title: '操作', dataIndex: 'action', align: 'center'}
     ];
 
 
     const openModal = (type, project = {}) => {
       modalType.value = type;
-      currentProject.value = { ...project };
+      currentProject.value = {...project};
       modalTitle.value = type === 'add' ? '添加项目' : '更新项目';
       isModalVisible.value = true;
     };
@@ -90,7 +103,7 @@ export default {
 
     const fetchModels = async () => {
       try {
-        modelOptions.value = modelStore.models.map(({ modelId, modelName }) => ({
+        modelOptions.value = modelStore.models.map(({modelId, modelName}) => ({
           value: modelId,
           label: modelName
         }));
@@ -103,7 +116,6 @@ export default {
 
     const closeAnalyzeModal = () => {
       isAnalyzeModalVisible.value = false;
-      selectedModelId.value = null;
     };
 
     const handleAnalyze = async () => {
@@ -162,6 +174,7 @@ export default {
     };
 
     const buildPrompt = (fileContents) => `
+${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\n')}\`\`\`
 要求详细说明各个文件之间的关联关系,输出标准的json,格式如下:
 ".../...": {
   "components": ["package",],
@@ -172,7 +185,6 @@ export default {
     ...
   }
 },...
-${fileContents.map(file => `文件路径: ${file.path}\n内容:\n${file.content}`).join('\n')}
 `;
 
     const extractJsonFromResponse = (response) => {
