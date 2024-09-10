@@ -15,6 +15,11 @@
             <a-button type="primary" @click="openAnalyzeModal(record)">AI解析</a-button>
           </a-space>
         </template>
+        <template v-else-if="column.dataIndex === 'projectDescription'">
+          <span>
+            <a @click="showFullDescription(record)">点击查看</a>
+          </span>
+        </template>
         <template v-else>
           {{ record[column.dataIndex] }}
         </template>
@@ -39,6 +44,10 @@
       </a-form>
       <a-spin v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
+
+    <a-modal v-model:open="isDescriptionModalVisible" title="项目描述" :footer="null" :width="800">
+      <div v-html="markdownDescription"></div>
+    </a-modal>
   </a-layout-content>
 </template>
 
@@ -48,6 +57,7 @@ import { useProjectStore } from '@/store/ProjectStore';
 import { useModelStore } from '@/store/ModelStore';
 import ProjectForm from './ProjectForm.vue';
 import { message } from 'ant-design-vue';
+import MarkdownIt from 'markdown-it';
 
 const { ipcRenderer } = require('electron');
 
@@ -56,9 +66,11 @@ export default {
   setup() {
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
+    const md = new MarkdownIt();
 
     const isModalVisible = ref(false);
     const isAnalyzeModalVisible = ref(false);
+    const isDescriptionModalVisible = ref(false);
     const selectedProject = ref({});
     const modalType = ref('add');
     const modalTitle = ref('');
@@ -66,17 +78,28 @@ export default {
     const selectedModelId = ref(null);
     const isAnalyzing = ref(false);
     const ignoredPatterns = ref('.,node_modules,assets');
+    const markdownDescription = ref('');
 
     const columns = [
-      { title: '项目名称', dataIndex: 'projectName', align: 'center' },
-      { title: '项目目录', dataIndex: 'projectPath', align: 'center' },
-      { title: '项目描述', dataIndex: 'projectDescription', align: 'center' },
-      { title: '操作', dataIndex: 'action', align: 'center' }
+      {
+        title: '项目名称',
+        dataIndex: 'projectName',
+        align: 'center',
+        customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
+      },
+      {title: '项目目录', dataIndex: 'projectPath', align: 'center'},
+      {
+        title: '项目描述',
+        dataIndex: 'projectDescription',
+        align: 'center',
+        customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
+      },
+      {title: '操作', dataIndex: 'action', align: 'center'}
     ];
 
     const openModal = (type, project = {}) => {
       modalType.value = type;
-      selectedProject.value = { ...project };
+      selectedProject.value = {...project};
       modalTitle.value = type === 'add' ? '添加项目' : '更新项目';
       isModalVisible.value = true;
     };
@@ -88,7 +111,6 @@ export default {
 
     const deleteProject = (projectId) => {
       projectStore.deleteProject(projectId);
-
     };
 
     const openAnalyzeModal = (record) => {
@@ -106,14 +128,14 @@ export default {
       isAnalyzing.value = true;
 
       const projectFiles = await ipcRenderer.invoke('get-all-files', selectedProject.value.projectPath, ignoredPatterns.value);
-      const fileContents = projectFiles.map(file => ({ path: file.path, content: file.content }));
+      const fileContents = projectFiles.map(file => ({path: file.path, content: file.content}));
       const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
       const res = await modelStore.chatCompletions({
         ...model,
         messages: [
-          { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
-          { role: 'user', content: buildPrompt(fileContents) }
+          {role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。"},
+          {role: 'user', content: buildPrompt(fileContents)}
         ]
       });
 
@@ -146,15 +168,20 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
     const extractJsonFromResponse = (response) => {
       try {
         const match = response.match(/```json\n([\s\S]*?)\n```/);
-        return match ? JSON.parse(match[1]): null;
+        return match ? JSON.parse(match[1]) : null;
       } catch (error) {
         console.error('解析JSON失败:', error);
         return null;
       }
     };
 
+    const showFullDescription = (project) => {
+      markdownDescription.value = md.render(`\`\`\`json\n${JSON.stringify(project.projectDescription, null, 2)}\n\`\`\``);
+      isDescriptionModalVisible.value = true;
+    };
+
     onMounted(async () => {
-      modelOptions.value = modelStore.models.map(({ modelId, modelName }) => ({ value: modelId, label: modelName }));
+      modelOptions.value = modelStore.models.map(({modelId, modelName}) => ({value: modelId, label: modelName}));
       selectedModelId.value = modelOptions.value[0]?.value || null;
     });
 
@@ -176,6 +203,9 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
       modelOptions,
       selectedModelId,
       isAnalyzing,
+      showFullDescription,
+      isDescriptionModalVisible,
+      markdownDescription,
     };
   }
 };
