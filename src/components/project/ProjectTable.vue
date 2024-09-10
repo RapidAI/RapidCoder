@@ -15,7 +15,7 @@
             <a-button type="primary" @click="openAnalyzeModal(record)">AI解析</a-button>
           </a-space>
         </template>
-        <template v-else-if="column.dataIndex === 'projectDescription'">
+        <template v-else-if="column.dataIndex === 'projectJSON'">
           <span>
             <a @click="showFullDescription(record)">点击查看</a>
           </span>
@@ -85,12 +85,16 @@ export default {
         title: '项目名称',
         dataIndex: 'projectName',
         align: 'center',
-        customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
       },
       {title: '项目目录', dataIndex: 'projectPath', align: 'center'},
       {
         title: '项目描述',
         dataIndex: 'projectDescription',
+        align: 'center',
+      },
+      {
+        title: '项目描述',
+        dataIndex: 'projectJSON',
         align: 'center',
         customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
       },
@@ -140,7 +144,7 @@ export default {
       });
 
       if (res) {
-        selectedProject.value.projectDescription = extractJsonFromResponse(res.content);
+        selectedProject.value.projectJSON = extractJsonFromResponse(res.content);
         projectStore.updateProject(selectedProject.value);
         message.success('AI解析成功');
       } else {
@@ -176,7 +180,7 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
     };
 
     const showFullDescription = (project) => {
-      markdownDescription.value = md.render(`\`\`\`json\n${JSON.stringify(project.projectDescription, null, 2)}\n\`\`\``);
+      markdownDescription.value = md.render(`\`\`\`json\n${JSON.stringify(project.projectJSON, null, 2)}\n\`\`\``);
       isDescriptionModalVisible.value = true;
     };
 
