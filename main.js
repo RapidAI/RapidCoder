@@ -68,6 +68,9 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
             const isIgnored = ignoredPatternsArray.some(pattern => fullPath.includes(pattern));
             if (isIgnored) return;
 
+            // 检查文件或文件夹是否以.开头
+            if (file.startsWith('.')) return;
+
             if (fs.statSync(fullPath).isDirectory()) {
                 getAllFiles(fullPath, arrayOfFiles);
             } else {

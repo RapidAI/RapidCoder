@@ -45,7 +45,7 @@
       <a-spin v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
 
-    <a-modal v-model:open="isDescriptionModalVisible" title="项目描述" :footer="null" :width="800">
+    <a-modal v-model:open="isDescriptionModalVisible" title="项目解析" :footer="null" :width="800">
       <div v-html="markdownDescription"></div>
     </a-modal>
   </a-layout-content>
@@ -77,7 +77,7 @@ export default {
     const modelOptions = ref([]);
     const selectedModelId = ref(null);
     const isAnalyzing = ref(false);
-    const ignoredPatterns = ref('.,node_modules,assets');
+    const ignoredPatterns = ref('node_modules,assets');
     const markdownDescription = ref('');
 
     const columns = [
@@ -93,7 +93,7 @@ export default {
         align: 'center',
       },
       {
-        title: '项目描述',
+        title: '项目解析',
         dataIndex: 'projectJSON',
         align: 'center',
         customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
@@ -120,7 +120,7 @@ export default {
     const openAnalyzeModal = (record) => {
       selectedProject.value = record;
       isAnalyzeModalVisible.value = true;
-      ignoredPatterns.value = '.,node_modules,assets';
+      ignoredPatterns.value = 'node_modules,assets';
     };
 
     const closeAnalyzeModal = () => {
@@ -130,8 +130,9 @@ export default {
     const handleAnalyze = async () => {
       if (!selectedModelId.value) return message.error('请选择一个模型');
       isAnalyzing.value = true;
-
+      console.log(selectedProject.value.projectPath, ignoredPatterns.value)
       const projectFiles = await ipcRenderer.invoke('get-all-files', selectedProject.value.projectPath, ignoredPatterns.value);
+      console.log(projectFiles)
       const fileContents = projectFiles.map(file => ({path: file.path, content: file.content}));
       const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
