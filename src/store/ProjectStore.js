@@ -12,7 +12,6 @@ export const useProjectStore = defineStore('project_store', {
             this.projects.push(project);
         },
         updateProject(updatedProject) {
-            console.log(updatedProject)
             const index = this.projects.findIndex(project => project.projectId === updatedProject.projectId);
             if (index !== -1) {
                 this.projects[index] = updatedProject;

@@ -33,8 +33,9 @@ export const useMessageStore = defineStore('message_store', {
             this.projects = projectStore.projects; // 直接从 ModelStore 中读取 models 数据
         },
         async sesstionCreate() {
-            this.currentSession={
+            this.currentSession = {
                 sesstionId: Date.now(),
+                currentModel:this.models[0],
                 messages: [{
                     role: 'system',
                     content: `\`\`\`json\n${JSON.stringify(this.projects, null, 2)}\n\`\`\``,
@@ -46,69 +47,38 @@ export const useMessageStore = defineStore('message_store', {
         async sesstionDelete(index) {
             this.sesstions.splice(index, 1);
         },
+        async sesstionUpdate() {
+            const index = this.sesstions.findIndex(session => session.sesstionId === this.currentSession.sesstionId);
+            if (index !== -1) {
+                this.sesstions[index] = this.currentSession;
+            }
+        },
         async messageSearchDatabaseAndmessageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
-            // 还原搜索数据库
-            this.databaseInfoCheked = this.databaseInfo.flatMap(db =>
-                db.tables.map(table => db.databaseName + '.' + table.tableName)
-            );
-            await this.databaseInfofilter(this.databaseInfoCheked)
-            // 搜索数据库
             let messagelistCopy = JSON.parse(JSON.stringify(messagelist));
             const assistantIndex = overwrite ? index - 1 : index;
-            let prompt = `根据问题和上面的信息仔细思考,确定哪几个数据库和表可以查询出用户的问题,如果不需要就返回空数组\n`;
-            prompt += `返回json数据结构\n`;
+            let prompt = `根据问题和projectFileDetails信息仔细思考,确定哪几个文件对应用户的问题,如果没有就返回空数组\n`;
+            prompt += `返回的json数据结构\n`;
             prompt += `{\n`;
-            prompt += `   analysis: "用户的意图分析...,跨库跨表的分析..."\n`;
-            prompt += `   reason: ["选择 数据库 的原因:...选择 表 的原因:...",...]\n`;
-            prompt += `   databaseInfo: [数据库名字.表名字,...]\n`;
+            prompt += `   analysis: "用户的意图分析..."\n`;
+            prompt += `   reason: ["选择 文件.. 的原因:...选择 文件.. 的原因:...",...]\n`;
+            prompt += `   filepath: [文件路径,...]\n`;
             prompt += `}\n`;
             prompt += `问题如下：${messagelist[assistantIndex].content}`;
             messagelistCopy[assistantIndex].content = prompt;
             await this.messageInputAndChat(messagelistCopy, assistantIndex, false, false);
             const content = this.messages[assistantIndex + 1].content;
             const matches = content.match(/```json([\s\S]*?)```/);
-            this.databaseInfoCheked = matches ? JSON.parse(matches[1].trim()).databaseInfo : [];
-            // 获取表信息并更新列信息
-            for (const dbTable of this.databaseInfoCheked) {
-                const [dbName, tableName] = dbTable.split('.');
-                const db = this.databaseInfo.find(d => d.databaseName === dbName);
-                if (db) {
-                    this.sesstion.databaseInfoId = db.databaseInfoId
-                    const table = db.tables.find(t => t.tableName === tableName);
-                    if (table) {
-                        table.columns = await this.columnsLoad(table.tableInfoId);
-                    }
-                }
+            const files = matches ? JSON.parse(matches[1].trim()).filepath : [];
+            // 获取文件目录获取文件信息
+            for (const file of files) {
+
             }
+            console.log(files)
             // 开始对话
-            await this.databaseInfofilter(this.databaseInfoCheked)
             await this.messageInputAndChat(messagelist, index + 1, overwrite, semanticSearch);
         },
-        // 过滤数据库信息并修改system定义
-        async databaseInfofilter(checkedKeysValue) {
-            const database = this.databaseInfo.map(db => ({
-                ...db,
-                tables: (db.tables || []).map(table => ({
-                    ...table,
-                    columns: (table.columns || []).filter(column =>
-                        checkedKeysValue.includes(`${db.databaseName}.${table.tableName}`)
-                    ),
-                })).filter(table =>
-                    checkedKeysValue.includes(`${db.databaseName}.${table.tableName}`) ||
-                    table.columns.length > 0
-                ),
-            })).filter(db =>
-                checkedKeysValue.includes(db.databaseName) ||
-                db.tables.length > 0
-            );
-            // 更新system定义
-            this.messages[0] = {
-                role: 'system',
-                content: this.databaseCreateCodeTableStatements(database),
-            };
-        },
         async messageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
-            if (!this.currentModel) {
+            if (!this.currentSession.currentModel) {
                 message.error('请选择一个模型');
                 return;
             }
@@ -127,25 +97,19 @@ export const useMessageStore = defineStore('message_store', {
                 }
             }
 
-            if (prompt !== "根据以上数据总结分析") {
-                // 针对allMessages每一个role==assistant的content是执行结果忽略部分数据
-                allMessages = allMessages.map(message => {
-                    if (message.role === 'assistant' && message.content.startsWith('执行结果:')) {
-                        const lines = message.content.split('\n');
-                        let selectedLines = lines.slice(0, 7).join('\n');
-                        if (lines.length > 7) {
-                            selectedLines += '\n...';
-                        }
-                        return {...message, content: selectedLines};
-                    }
-                    return message;
-                });
-            }
-
             const modelPayload = {...this.currentModel, messages: allMessages};
             console.log(allMessages)
+            const response = await fetch(`${model.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${model.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(model)
+            });
+
             const responseStream = await streamPost(`/chat/generateStreambyModel?sesstionId=${this.sesstion.sesstionId}`, modelPayload);
-            const reader = responseStream.getReader();
+            const reader = response.body.getReader();
             const decoder = new TextDecoder();
             const assistantIndex = overwrite ? index : index + 1;
 

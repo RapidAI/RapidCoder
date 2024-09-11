@@ -2,7 +2,7 @@
   <div class="chat-container">
     <div class="top-bar">
       <a-select
-          v-model:value="messageStore.currentSession.modelId"
+          v-model:value="messageStore.currentSession.currentModel.modelId"
           placeholder="请选择一个模型"
           :allow-clear="true"
           @change="updateCurrentModel"
@@ -44,7 +44,7 @@ export default {
     // 更新当前模型
     const updateCurrentModel = (modelId) => {
       const model = messageStore.models.find((model) => model.modelId === modelId);
-      messageStore.currentModel = model || null;
+      messageStore.currentSession.currentModel = model || null;
     };
     return {
       updateCurrentModel,
