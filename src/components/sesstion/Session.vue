@@ -9,7 +9,8 @@
         新对话
       </a-button>
       <!-- 对话列表 -->
-      <a-menu v-if="messageStore.sesstions.length" mode="inline" :selectedKeys="[messageStore.currentSession?.sesstionId]"
+      <a-menu v-if="messageStore.sesstions.length" mode="inline"
+              :selectedKeys="[messageStore.currentSession?.sesstionId]"
               class="custom-menu">
         <a-menu-item v-for="(sesstion, index) in messageStore.sesstions" :key="sesstion.sesstionId">
           <div class="menu-item-container">
@@ -36,7 +37,7 @@
     </a-layout-sider>
     <!-- 对话内容区域 -->
     <a-layout-content class="custom-content">
-      <Chat v-if="messageStore.sesstions.length>0"/>
+      <Chat v-if="messageStore.currentSession.sesstionId"/>
     </a-layout-content>
   </a-layout>
   <!-- 重命名会话模态框 -->
@@ -77,9 +78,9 @@ export default {
         const sesstion = messageStore.sesstions.find(s => String(s.sesstionId) === sesstionId);
         if (sesstion) {
           selectSession(sesstion);
-        } else {
-          message.error('会话不存在');
         }
+      } else {
+        selectSession(messageStore.sesstions[0]);
       }
     };
 
@@ -98,6 +99,7 @@ export default {
 
     // 选择会话
     const selectSession = (sesstion) => {
+      console.log(sesstion)
       messageStore.currentSession = sesstion;
       router.push({query: {sesstionId: sesstion.sesstionId}});
     };
@@ -134,11 +136,11 @@ export default {
     };
 
     // 组件挂载时加载会话和数据库
-    onMounted(async () => {
+    onMounted(() => {
       loadingProjects.value = true;
-      await messageStore.modelsLoad();
-      await messageStore.projectsLoad();
-      await locateSessionFromUrl();
+      messageStore.modelsLoad();
+      messageStore.projectsLoad();
+      locateSessionFromUrl();
       loadingProjects.value = false;
     });
 

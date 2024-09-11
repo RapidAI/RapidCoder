@@ -33,7 +33,7 @@ export const useMessageStore = defineStore('message_store', {
             this.projects = projectStore.projects; // 直接从 ModelStore 中读取 models 数据
         },
         async sesstionCreate() {
-            this.sesstions.push({
+            this.currentSession={
                 sesstionId: Date.now(),
                 title: `代码分析`,
                 messages: [{
@@ -41,7 +41,8 @@ export const useMessageStore = defineStore('message_store', {
                     content: JSON.stringify(this.projects),
                     isAnalyzing: false
                 }],
-            });
+            }
+            this.sesstions.push(this.currentSession);
         },
         async sesstionDelete(index) {
             this.sesstions.splice(index, 1);
