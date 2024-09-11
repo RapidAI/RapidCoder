@@ -34,9 +34,9 @@ export default {
 
     const handleSend = async (message) => {
       if (message.trim()) {
-        messageStore.messages.push({role: 'user', content: message})
+        messageStore.currentSession.messages.push({role: 'user', content: message})
         inputMessage.value = ''; // 清空输入框
-        await messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.messages, messageStore.messages.length-1, false, true);
+        await messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, true);
       }
     };
 

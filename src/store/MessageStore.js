@@ -8,7 +8,8 @@ import {useProjectStore} from '@/store/ProjectStore';
 
 export const useMessageStore = defineStore('message_store', {
     state: () => ({
-        sessions: [],
+        sesstions: [],
+        currentSession: {},
         projects: [],
         models: [],
         isStreaming: false,
@@ -31,19 +32,19 @@ export const useMessageStore = defineStore('message_store', {
             const projectStore = useProjectStore(); // 获取 ModelStore 实例
             this.projects = projectStore.projects; // 直接从 ModelStore 中读取 models 数据
         },
-        async sessionCreate() {
-            this.sessions.push({
-                sessionId: Date.now(),
+        async sesstionCreate() {
+            this.sesstions.push({
+                sesstionId: Date.now(),
                 title: `代码分析`,
                 messages: [{
                     role: 'system',
-                    content: this.databaseCreateCodeTableStatements(this.databaseInfo),
+                    content: JSON.stringify(this.projects),
                     isAnalyzing: false
                 }],
             });
         },
-        async sessionDelete(index) {
-            this.sessions.splice(index, 1);
+        async sesstionDelete(index) {
+            this.sesstions.splice(index, 1);
         },
         async messageSearchDatabaseAndmessageInputAndChat(messagelist, index, overwrite, semanticSearch = false) {
             // 还原搜索数据库
@@ -72,7 +73,7 @@ export const useMessageStore = defineStore('message_store', {
                 const [dbName, tableName] = dbTable.split('.');
                 const db = this.databaseInfo.find(d => d.databaseName === dbName);
                 if (db) {
-                    this.session.databaseInfoId = db.databaseInfoId
+                    this.sesstion.databaseInfoId = db.databaseInfoId
                     const table = db.tables.find(t => t.tableName === tableName);
                     if (table) {
                         table.columns = await this.columnsLoad(table.tableInfoId);
@@ -143,7 +144,7 @@ export const useMessageStore = defineStore('message_store', {
 
             const modelPayload = {...this.currentModel, messages: allMessages};
             console.log(allMessages)
-            const responseStream = await streamPost(`/chat/generateStreambyModel?sessionId=${this.session.sessionId}`, modelPayload);
+            const responseStream = await streamPost(`/chat/generateStreambyModel?sesstionId=${this.sesstion.sesstionId}`, modelPayload);
             const reader = responseStream.getReader();
             const decoder = new TextDecoder();
             const assistantIndex = overwrite ? index : index + 1;
@@ -189,7 +190,7 @@ export const useMessageStore = defineStore('message_store', {
         async messageStopChat() {
             if (this.isStreaming) {
                 try {
-                    await post(`/chat/stopStream?sessionId=${this.session.sessionId}`);
+                    await post(`/chat/stopStream?sesstionId=${this.sesstion.sesstionId}`);
                     message.success('请求已终止');
                 } catch (error) {
                     message.error('终止请求失败:');
@@ -227,7 +228,7 @@ export const useMessageStore = defineStore('message_store', {
         },
         async messageExecuteCode(codeMessage, queryMessage, index = null) {
             if (!this.messageContainsCode(codeMessage.content)) {
-                await this.sessionUpdate();
+                await this.sesstionUpdate();
                 return;
             }
             const code = this.messageExtractCode(codeMessage.content);
@@ -249,9 +250,9 @@ export const useMessageStore = defineStore('message_store', {
             }
 
             const querydata = {
-                databaseInfoId: this.session.databaseInfoId,
-                sessionId: this.session.sessionId,
-                userId: this.session.userId,
+                databaseInfoId: this.sesstion.databaseInfoId,
+                sesstionId: this.sesstion.sesstionId,
+                userId: this.sesstion.userId,
                 codeText: code,
                 queryText: queryMessage.content
             };
@@ -274,7 +275,7 @@ export const useMessageStore = defineStore('message_store', {
                     await this.messageInputAndChat(this.messages, index, true);
                 }
             }
-            await this.sessionUpdate();
+            await this.sesstionUpdate();
         },
         messageContainsCode(content) {
             return /```code([\s\S]*?)```/.test(content);
@@ -286,76 +287,6 @@ export const useMessageStore = defineStore('message_store', {
         messageIsSelectQuery(code) {
             const disallowedKeywords = ["insert", "update", "delete", "merge", "alter", "drop", "create"];
             return !disallowedKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`).test(code.trim().toLowerCase()));
-        },
-        databaseCreateCodeTableStatements(databases) {
-            let codeStatements = `#### 任务: code数据分析\n`;
-            codeStatements += `#### 要求: 要求code展示中文标头, 不要假设字段,不需要解释\n`;
-            // 打乱 databases 数组顺序
-            databases = databases.sort(() => Math.random() - 0.5);
-            databases.forEach((database) => {
-                codeStatements += `#### 数据库名字: ${database.databaseName}\n`;
-                codeStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
-                codeStatements += `#### 数据库类型: ${database.databaseType}\n`;
-                codeStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`code\n`;
-
-                database.tables.forEach((table) => {
-                    let createStatement = `CREATE TABLE ${table.tableName} (\n`;
-                    if (table.columns && table.columns.length > 0) {
-                        table.columns.forEach((column, index) => {
-                            createStatement += `  ${column.columnName} ${column.dataType}`;
-                            if (column.columnComment || column.columnDescription) {
-                                createStatement += ` comment '${(column.columnComment || '') + ' ' + (column.columnDescription || '')}'`;
-                            }
-                            createStatement += (index < table.columns.length - 1) ? ',\n' : '\n';
-                        });
-                    } else {
-                        createStatement += `...\n`;
-                    }
-                    createStatement += ')';
-                    if (table.tableComment || table.tableDescription) {
-                        createStatement += ` comment='${(table.tableComment || '') + ' ' + (table.tableDescription || '')}'`;
-                    }
-                    createStatement += ';\n\n';
-                    codeStatements += createStatement;
-                });
-
-                codeStatements += '```\n';
-            });
-            return codeStatements;
-        },
-        databaseCreateCodeTableStatements4Analyze(databases) {
-            let codeStatements = `#### 任务: 数据库分析\n`;
-            // 打乱 databases 数组顺序
-            databases = databases.sort(() => Math.random() - 0.5);
-            databases.forEach((database) => {
-                codeStatements += `#### 数据库名字: ${database.databaseName}\n`;
-                codeStatements += `#### 数据库说明: ${database.databaseDescription}\n`;
-                codeStatements += `#### 数据库类型: ${database.databaseType}\n`;
-                codeStatements += `#### 连接信息: ${database.host} 端口:${database.port} 连接用户:${database.username} \n\n\`\`\`code\n`;
-                database.tables.forEach((table) => {
-                    let createStatement = `CREATE TABLE ${table.tableName} (\n`;
-                    if (table.columns && table.columns.length > 0) {
-                        table.columns.forEach((column, index) => {
-                            createStatement += `  ${column.columnName} ${column.dataType}`;
-                            if (column.columnComment) {
-                                createStatement += ` comment '${(column.columnComment)}'`;
-                            }
-                            createStatement += (index < table.columns.length - 1) ? ',\n' : '\n';
-                        });
-                    } else {
-                        createStatement += `...\n`;
-                    }
-                    createStatement += ')';
-                    if (table.tableComment) {
-                        createStatement += ` comment='${(table.tableComment)}'`;
-                    }
-                    createStatement += ';\n\n';
-                    codeStatements += createStatement;
-                });
-
-                codeStatements += '```\n';
-            });
-            return codeStatements;
         },
         async messageToChart(index, chartType) {
             let prompt = `要求通过js代码将执行结果转换成一个${chartType}图表数据结构,方便进行数据分析,选择合理的数据展示字段\n`;
@@ -382,7 +313,7 @@ export const useMessageStore = defineStore('message_store', {
             let chartData = this.messageToChartJscode(tableData);
             chartData = "```chart\n" + JSON.stringify(chartData) + "\n```"
             this.messages.splice(index + 2, 0, {role: 'assistant', content: chartData});
-            await this.sessionUpdate();
+            await this.sesstionUpdate();
         },
         messageMarkdownToJson(markdown) {
             const markdownTable = markdown.split('\n').filter(line => line.includes('|')).join('\n');

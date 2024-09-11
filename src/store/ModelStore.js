@@ -58,7 +58,7 @@ export const useModelStore = defineStore('model_store', {
         strategies: [
             {
                 key: 'model_store',
-                storage: localStorage, // 或者使用 sessionStorage
+                storage: localStorage,
             },
         ],
     },

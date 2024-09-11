@@ -2,7 +2,7 @@
   <div class="chat-container">
     <div class="top-bar">
       <a-select
-          v-model:value="messageStore.session.modelId"
+          v-model:value="messageStore.currentSession.modelId"
           placeholder="请选择一个模型"
           :allow-clear="true"
           @change="updateCurrentModel"
@@ -15,7 +15,6 @@
           {{ model.modelName }}
         </a-select-option>
       </a-select>
-      <!--        fixme 去掉session中的databaseInfo-->
     </div>
     <a-switch
         v-model:checked="debugMode"
@@ -68,7 +67,7 @@ export default {
   align-items: center;
 }
 
-.session-info {
+.sesstion-info {
   margin-left: 20px;
   display: flex;
   gap: 10px;

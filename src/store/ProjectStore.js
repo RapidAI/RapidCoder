@@ -27,7 +27,7 @@ export const useProjectStore = defineStore('project_store', {
         strategies: [
             {
                 key: 'project_store',
-                storage: localStorage, // 或者 sessionStorage
+                storage: localStorage,
             },
         ],
     },

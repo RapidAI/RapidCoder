@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import NotFound from '../components/common/NotFound.vue';
-import SessionWithBigData from '../components/session/Session.vue';
+import SessionWithBigData from '../components/sesstion/Session.vue';
 import ProjectTable from '../components/project/ProjectTable.vue';
 import ModelTable from '../components/model/ModelTable.vue';
 

@@ -227,8 +227,8 @@ export default {
     // 执行SQL代码
     const executeSQL = () => {
       messageStore.messageExecuteSQL(
-          messageStore.messages[props.messagelistindex],
-          messageStore.messages[props.messagelistindex - 1],
+          messageStore.currentSession.messages[props.messagelistindex],
+          messageStore.currentSession.messages[props.messagelistindex - 1],
           props.messagelistindex
       )
     }
@@ -249,7 +249,7 @@ export default {
       const prompt = `${sqlCode}\n\n根据上面的sql信息仔细思考,推理出用户的查询指令\n返回json数据结构\n{\n   analysis: "...\n   queryinstruct: "...\n}`;
 
       const messages = [
-        messageStore.messages[0],
+        messageStore.currentSession.messages[0],
         {role: 'user', content: prompt},
       ];
 
@@ -261,8 +261,8 @@ export default {
         const queryText = match ? JSON.parse(match[1].trim()).queryinstruct : "...";
 
         const data = {
-          databaseInfoId: messageStore.session.databaseInfoId,
-          sessionId: messageStore.session.sessionId,
+          databaseInfoId: messageStore.currentSession.databaseInfoId,
+          sesstionId: messageStore.currentSession.sesstionId,
           queryText,
           resultText: sqlCode,
           success: true,

@@ -1,6 +1,6 @@
 <template>
   <div ref="messageList" class="custom-list">
-    <div v-for="(item, index) in messageStore.messages" :key="index" class="message-item">
+    <div v-for="(item, index) in messageStore.currentSession.messages" :key="index" class="message-item">
       <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
@@ -95,10 +95,10 @@ export default {
 
     const updateMessage = (index, role) => {
       if (role === 'user' && editedMessageContent.value.trim()) {
-        messageStore.messages[index].content = editedMessageContent.value;
-        messageStore.messages[index].retryCount = 0;//重置
-        messageStore.messages.splice(index + 1);
-        messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.messages, index + 1, true, true);
+        messageStore.currentSession.messages[index].content = editedMessageContent.value;
+        messageStore.currentSession.messages[index].retryCount = 0;//重置
+        messageStore.currentSession.messages.splice(index + 1);
+        messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.currentSession.messages, index + 1, true, true);
         cancelEdit();
       }
     };
@@ -129,7 +129,7 @@ export default {
 
     const analyzeData = (index) => {
       const newMessages = [
-        ...messageStore.messages.slice(0, index + 1),
+        ...messageStore.currentSession.messages.slice(0, index + 1),
         {role: 'user', content: `根据以上数据总结分析`}
       ];
       messageStore.messageInputAndChat(newMessages, index, false);
@@ -166,7 +166,7 @@ export default {
     };
 
     onMounted(() => {
-      scrollToCurrentMessage(messageStore.messages.length - 1);
+      scrollToCurrentMessage(messageStore.currentSession.messages.length - 1);
       eventBus.on('messageUpdated', scrollToCurrentMessage);
     });
 
