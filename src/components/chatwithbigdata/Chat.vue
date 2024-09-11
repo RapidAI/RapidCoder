@@ -40,7 +40,7 @@ export default {
   },
   setup() {
     const messageStore = useMessageStore();
-    const debugMode = ref(false);
+    const debugMode = ref(true);
     // 更新当前模型
     const updateCurrentModel = (modelId) => {
       const model = messageStore.models.find((model) => model.modelId === modelId);

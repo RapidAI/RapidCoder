@@ -15,7 +15,7 @@
             <a-button type="primary" @click="openAnalyzeModal(record)">AI解析</a-button>
           </a-space>
         </template>
-        <template v-else-if="column.dataIndex === 'projectJSON'">
+        <template v-else-if="column.dataIndex === 'projectFileDetails'">
           <span>
             <a @click="showFullDescription(record)">点击查看</a>
           </span>
@@ -94,7 +94,7 @@ export default {
       },
       {
         title: '项目解析',
-        dataIndex: 'projectJSON',
+        dataIndex: 'projectFileDetails',
         align: 'center',
         customCell: (record, rowIndex) => ({style: {cursor: 'pointer'}})
       },
@@ -130,9 +130,7 @@ export default {
     const handleAnalyze = async () => {
       if (!selectedModelId.value) return message.error('请选择一个模型');
       isAnalyzing.value = true;
-      console.log(selectedProject.value.projectPath, ignoredPatterns.value)
       const projectFiles = await ipcRenderer.invoke('get-all-files', selectedProject.value.projectPath, ignoredPatterns.value);
-      console.log(projectFiles)
       const fileContents = projectFiles.map(file => ({path: file.path, content: file.content}));
       const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
@@ -145,7 +143,7 @@ export default {
       });
 
       if (res) {
-        selectedProject.value.projectJSON = extractJsonFromResponse(res.content);
+        selectedProject.value.projectFileDetails = extractJsonFromResponse(res.content);
         projectStore.updateProject(selectedProject.value);
         message.success('AI解析成功');
       } else {
@@ -181,7 +179,7 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
     };
 
     const showFullDescription = (project) => {
-      markdownDescription.value = md.render(`\`\`\`json\n${JSON.stringify(project.projectJSON, null, 2)}\n\`\`\``);
+      markdownDescription.value = md.render(`\`\`\`json\n${JSON.stringify(project, null, 2)}\n\`\`\``);
       isDescriptionModalVisible.value = true;
     };
 

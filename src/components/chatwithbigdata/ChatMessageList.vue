@@ -4,21 +4,12 @@
       <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
-          <template v-if="item.role === 'system'">
-            <chat-system-message v-show="debugMode"/>
-            <chat-markdown v-show="!debugMode" :markdown="collapsed ? item.content : '数据库信息'"
-                           :messagelistindex="index"/>
-          </template>
-          <template v-else>
-            <chat-markdown v-if="shouldRenderMarkdown(item)" :markdown="item.content" :debugMode="debugMode"
-                           :messagelistindex="index"/>
-            <div v-else-if="!debugMode && containsCodeData(item.content)" class="analysis-complete">
-              {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
-              <a-spin v-if="item.isAnalyzing" class="loading-icon"/>
-              <span v-else class="check-icon">✅</span>
-            </div>
-            <div v-else-if="item.role === 'user'" class="user-container" v-html="formatUserMessage(item.content)"></div>
-          </template>
+          <chat-markdown v-if="debugMode" :markdown="item.content" :debugMode="debugMode" :messagelistindex="index"/>
+          <div v-if="!debugMode" class="analysis-complete">
+            {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
+            <a-spin v-if="item.isAnalyzing" class="loading-icon"/>
+            <span v-else class="check-icon">✅</span>
+          </div>
           <div class="message-actions">
             <a v-if="item.role === 'user'" @click="enableEditMode(index, item.content)">编辑</a>
             <a v-if="!isNonCopyableAssistant(item)" @click="copyToClipboard(item.content)">复制</a>
@@ -38,9 +29,6 @@
                 </a-menu>
               </template>
             </a-dropdown>
-            <a v-if="item.role === 'system' && !debugMode" @click="systemToggleCollapse">{{
-                collapsed ? '折叠' : '展开'
-              }}</a>
             <a v-if="messageContainsSQLdata(item.content)" @click="analyzeData(index)">解析数据</a>
           </div>
         </div>
@@ -63,13 +51,11 @@ import {useMessageStore} from '@/store/MessageStore.js';
 import {message} from 'ant-design-vue';
 import {UserOutlined, RobotOutlined, ArrowDownOutlined} from '@ant-design/icons-vue';
 import {eventBus} from '@/eventBus.js';
-import ChatSystemMessage from "./ChatSystemMessage.vue";
 import ChatMarkdown from "./ChatMarkdown.vue";
 
 export default {
   components: {
     ChatMarkdown,
-    ChatSystemMessage,
     UserOutlined,
     RobotOutlined,
     ArrowDownOutlined,
@@ -85,7 +71,6 @@ export default {
     const messageList = ref([]);
     const editedMessageIndex = ref(null);
     const editedMessageContent = ref('');
-    const collapsed = ref(false);
     let isComposition = false;
 
     const enableEditMode = (index, content) => {
@@ -98,7 +83,7 @@ export default {
         messageStore.currentSession.messages[index].content = editedMessageContent.value;
         messageStore.currentSession.messages[index].retryCount = 0;//重置
         messageStore.currentSession.messages.splice(index + 1);
-        messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.currentSession.messages, index + 1, true, true);
+        messageStore.messageSearchDatabaseAndmessageInputAndChat(messageStore.currentSession.messages, index + 1, true, false);
         cancelEdit();
       }
     };
@@ -146,9 +131,6 @@ export default {
       isComposition = status;
     };
 
-    const systemToggleCollapse = () => {
-      collapsed.value = !collapsed.value;
-    };
 
     const scrollToCurrentMessage = (index) => {
       nextTick(() => {
@@ -161,9 +143,6 @@ export default {
       return item.role === 'assistant' && !props.debugMode && !messageContainsSQLdata(item.content);
     };
 
-    const shouldRenderMarkdown = (item) => {
-      return item.role === 'assistant' && (props.debugMode || !containsCodeData(item.content) || messageContainsSQLdata(item.content) || containsChartData(item.content));
-    };
 
     onMounted(() => {
       scrollToCurrentMessage(messageStore.currentSession.messages.length - 1);
@@ -181,7 +160,6 @@ export default {
       enableEditMode,
       RobotOutlined,
       UserOutlined,
-      collapsed,
       updateMessage,
       cancelEdit,
       copyToClipboard,
@@ -190,13 +168,11 @@ export default {
       containsCodeData,
       containsChartData,
       handleChartTypeSelect,
-      systemToggleCollapse,
       handleKeyDown,
       handleComposition,
       messageStore,
       analyzeData,
       isNonCopyableAssistant,
-      shouldRenderMarkdown,
     };
   },
 };

@@ -35,10 +35,9 @@ export const useMessageStore = defineStore('message_store', {
         async sesstionCreate() {
             this.currentSession={
                 sesstionId: Date.now(),
-                title: `代码分析`,
                 messages: [{
                     role: 'system',
-                    content: JSON.stringify(this.projects),
+                    content: `\`\`\`json\n${JSON.stringify(this.projects, null, 2)}\n\`\`\``,
                     isAnalyzing: false
                 }],
             }
