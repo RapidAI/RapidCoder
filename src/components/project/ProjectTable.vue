@@ -77,7 +77,7 @@ export default {
     const modelOptions = ref([]);
     const selectedModelId = ref(null);
     const isAnalyzing = ref(false);
-    const ignoredPatterns = ref('node_modules,assets');
+    const ignoredPatterns = ref('node_modules,assets,dist,package-lock.json');
     const markdownDescription = ref('');
 
     const columns = [
@@ -120,7 +120,7 @@ export default {
     const openAnalyzeModal = (record) => {
       selectedProject.value = record;
       isAnalyzeModalVisible.value = true;
-      ignoredPatterns.value = 'node_modules,assets';
+      ignoredPatterns.value = 'node_modules,assets,dist,package-lock.json';
     };
 
     const closeAnalyzeModal = () => {
@@ -134,6 +134,7 @@ export default {
       const fileContents = projectFiles.map(file => ({path: file.path, content: file.content}));
       const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
+      console.log(fileContents)
       const res = await modelStore.chatCompletions({
         ...model,
         messages: [

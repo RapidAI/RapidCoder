@@ -62,29 +62,29 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
         const fs = require('fs');
         const path = require('path');
 
-        // 定义忽略模式的数组（可以根据需求自定义）
-        const ignoredPatternsArray = ['node_modules', 'dist']; // 示例：忽略 node_modules 和 dist 文件夹
-
         // 定义需要过滤掉的已知二进制文件扩展名
-        const binaryFileExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.exe', '.dll'];
+        const binaryFileExtensions = [
+            '.png', '.jpg', '.jpeg', '.gif', '.bmp',
+            '.mp3', '.wav', '.flac', '.aac',
+            '.mp4', '.mkv', '.avi', '.mov', '.wmv',
+            '.zip', '.rar', '.7z', '.tar', '.gz',
+            '.exe', '.dll', '.bin', '.iso',
+            '.pdf', '.swf', '.rtf', '.docx', '.pptx'
+        ];
 
-        // 快速检查文件是否为二进制文件
         const isBinaryFile = (filePath) => {
-            const ext = path.extname(filePath).toLowerCase(); // 获取文件扩展名
-            if (binaryFileExtensions.includes(ext)) {
-                return true; // 如果扩展名在已知二进制文件列表中，直接返回 true
-            }
+            const ext = path.extname(filePath).toLowerCase();
+            if (binaryFileExtensions.includes(ext)) return true;
 
-            const data = fs.readFileSync(filePath); // 读取文件的前 16 个字节
-            const sampleSize = Math.min(data.length, 16); // 读取最多 16 个字节
+            const data = fs.readFileSync(filePath);
+            const sampleSize = Math.min(data.length, 16);
             for (let i = 0; i < sampleSize; i++) {
                 const charCode = data[i];
-                // 一旦发现不可打印字符，立即返回 true
                 if (charCode === 0 || (charCode < 32 && charCode !== 9 && charCode !== 10 && charCode !== 13)) {
-                    return true; // 二进制文件
+                    return true;
                 }
             }
-            return false; // 文本文件
+            return false;
         };
 
         const files = fs.readdirSync(dirPath);
@@ -92,30 +92,26 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
         files.forEach(file => {
             const fullPath = path.join(dirPath, file);
 
-            // 检查是否需要忽略该文件或文件夹
-            const isIgnored = ignoredPatternsArray.some(pattern => fullPath.includes(pattern));
+            // 使用 path.basename 检查是否需要忽略该文件或文件夹
+            const isIgnored = ignoredPatternsArray.some(pattern => path.basename(fullPath) === pattern);
             if (isIgnored) return;
 
-            // 检查文件或文件夹是否以.开头
             if (file.startsWith('.')) return;
 
             const stats = fs.statSync(fullPath);
 
-            // 忽略大于 500KB 的文件
             if (stats.size > 512000) return;
 
             if (stats.isDirectory()) {
                 getAllFiles(fullPath, arrayOfFiles);
             } else {
-                // 检查该文件是否为二进制文件
                 if (isBinaryFile(fullPath)) return;
 
-                // 获取文件的元数据并加入结果
                 arrayOfFiles.push({
-                    path: fullPath,          // 文件路径
-                    size: stats.size,        // 文件大小（字节）
-                    createdAt: stats.birthtime,  // 文件创建时间
-                    modifiedAt: stats.mtime,  // 文件最后修改时间
+                    path: fullPath,
+                    size: stats.size,
+                    createdAt: stats.birthtime,
+                    modifiedAt: stats.mtime,
                 });
             }
         });
@@ -124,8 +120,8 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
     };
 
     const files = getAllFiles(dirPath);
-    return files.map(filePath => ({
-        path: filePath,
-        content: fs.readFileSync(filePath, 'utf-8')
+    return files.map(file => ({
+        path: file.path,
+        content: fs.readFileSync(file.path, 'utf-8')
     }));
 });
