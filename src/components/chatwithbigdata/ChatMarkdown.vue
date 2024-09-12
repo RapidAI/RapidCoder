@@ -262,7 +262,7 @@ export default {
 
         const data = {
           databaseInfoId: messageStore.currentSession.databaseInfoId,
-          sesstionId: messageStore.currentSession.sesstionId,
+          sessionId: messageStore.currentSession.sessionId,
           queryText,
           resultText: sqlCode,
           success: true,

@@ -67,7 +67,7 @@ export default {
   align-items: center;
 }
 
-.sesstion-info {
+.session-info {
   margin-left: 20px;
   display: flex;
   gap: 10px;
