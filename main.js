@@ -125,3 +125,14 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
         content: fs.readFileSync(file.path, 'utf-8')
     }));
 });
+// 获取单个文件
+ipcMain.handle('get-one-file', (event, filePath) => {
+    const stats = fs.statSync(filePath);
+    return {
+        path: filePath,
+        size: stats.size,
+        createdAt: stats.birthtime,
+        modifiedAt: stats.mtime,
+        content: fs.readFileSync(filePath, 'utf-8')
+    };
+});

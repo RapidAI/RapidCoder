@@ -83,7 +83,7 @@ export default {
         messageStore.currentSession.messages[index].content = editedMessageContent.value;
         messageStore.currentSession.messages[index].retryCount = 0;//重置
         messageStore.currentSession.messages.splice(index + 1);
-        messageStore.messageSearchDatabaseAndChat(messageStore.currentSession.messages, index + 1, true, false);
+        messageStore.messageSelectFileAndChat(messageStore.currentSession.messages, index + 1, true, false);
         cancelEdit();
       }
     };

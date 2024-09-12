@@ -26,7 +26,7 @@ export default {
 
     const handleSendOrStop = async () => {
       if (messageStore.isStreaming) {
-        await messageStore.messageStopChat();
+        await messageStore.stopChat();
       } else {
         handleSend(inputMessage.value);
       }
@@ -36,7 +36,7 @@ export default {
       if (message.trim()) {
         messageStore.currentSession.messages.push({role: 'user', content: message})
         inputMessage.value = ''; // 清空输入框
-        await messageStore.messageSearchDatabaseAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, false);
+        await messageStore.messageSelectFileAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, false);
       }
     };
 

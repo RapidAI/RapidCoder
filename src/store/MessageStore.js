@@ -1,8 +1,7 @@
 import {defineStore} from 'pinia';
-import {post, streamPost} from '@/api/index.js';
 import {message, Modal} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
-import {ChartTypes} from './ChartTypes.js';
+const { ipcRenderer } = require('electron');
 import {useModelStore} from '@/store/ModelStore';
 import {useProjectStore} from '@/store/ProjectStore';
 
@@ -53,13 +52,13 @@ export const useMessageStore = defineStore('message_store', {
                 this.sesstions[index] = this.currentSession;
             }
         },
-        async messageSearchDatabaseAndChat(messagelist, index, overwrite, semanticSearch = false) {
+        async messageSelectFileAndChat(messagelist, index, overwrite, semanticSearch = false) {
             if (!this.currentSession.currentModel) {
                 message.error('请选择一个模型');
                 return;
             }
 
-            const assistantIndex = overwrite ? index - 1 : index;
+            let assistantIndex = index;
             let prompt = `根据问题和projectFileDetails信息仔细思考,确定哪几个文件对应用户的问题,如果没有就返回空数组\n`;
             prompt += `返回的json数据结构\n`;
             prompt += `{\n   analysis: "用户的意图分析...",\n   reason: ["选择 文件.. 的原因:...选择 文件.. 的原因:...",...],\n   filepath: [文件路径,...]\n}\n`;
@@ -67,13 +66,35 @@ export const useMessageStore = defineStore('message_store', {
             messagelist[assistantIndex].content = prompt;
 
             // 执行消息输入和对话
-            await this.processChat(messagelist, assistantIndex, false, semanticSearch);
+            await this.processChat(messagelist, assistantIndex, overwrite, semanticSearch);
 
             // 获取返回的文件路径
             const content = this.currentSession.messages[assistantIndex + 1].content;
             const matches = content.match(/```json([\s\S]*?)```/);
             const files = matches ? JSON.parse(matches[1].trim()).filepath : [];
             console.log(files);
+            let combinedContent = "";  // 存储所有文件的合并内容
+
+            for (const file of files) {
+                try {
+                    const info = await ipcRenderer.invoke('get-one-file', file);
+                    console.log(info);
+                    combinedContent += `###${file}:\n${info.content}\n\n`;  // 将每个文件的内容合并
+                } catch (error) {
+                    console.error(`Failed to get content of ${file}:`, error);
+                }
+            }
+
+            // 将合并的文件内容添加到下一个用户消息的 prompt 中
+            prompt = `以下是相关文件的内容:\n\`\`\`\n${combinedContent}\`\`\`\n请基于这些内容回答用户的问题。`;
+
+            assistantIndex = assistantIndex + 2;
+            messagelist[assistantIndex] = {
+                role: "user",
+                content: prompt
+            };
+
+            await this.processChat(messagelist, assistantIndex, overwrite, semanticSearch);
         },
 
         async processChat(messagelist, index, overwrite, semanticSearch = false) {
