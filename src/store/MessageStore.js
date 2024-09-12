@@ -1,7 +1,8 @@
 import {defineStore} from 'pinia';
 import {message, Modal} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
-const { ipcRenderer } = require('electron');
+
+const {ipcRenderer} = require('electron');
 import {useModelStore} from '@/store/ModelStore';
 import {useProjectStore} from '@/store/ProjectStore';
 
@@ -58,45 +59,40 @@ export const useMessageStore = defineStore('message_store', {
                 return;
             }
 
-            let assistantIndex = index;
-            let prompt = `根据问题和projectFileDetails信息仔细思考,确定哪几个文件对应用户的问题,如果没有就返回空数组\n`;
-            prompt += `返回的json数据结构\n`;
-            prompt += `{\n   analysis: "用户的意图分析...",\n   reason: ["选择 文件.. 的原因:...选择 文件.. 的原因:...",...],\n   filepath: [文件路径,...]\n}\n`;
-            prompt += `问题如下：${messagelist[assistantIndex].content}`;
-            messagelist[assistantIndex].content = prompt;
+            const userask = messagelist[index].content;
+            let prompt = `
+根据问题和 projectFileDetails 信息，确定与用户问题相关的文件，如果没有相关文件，返回空数组。
+返回的 JSON 数据结构为：
+{
+    analysis: "用户意图分析...",
+    reason: ["选择 文件 的原因:...", ...],
+    filepath: [文件路径, ...]
+}
+问题如下：${userask}
+`;
+            messagelist[index].content = prompt;
+            await this.processChat(messagelist, index, overwrite, semanticSearch);
 
-            // 执行消息输入和对话
-            await this.processChat(messagelist, assistantIndex, overwrite, semanticSearch);
-
-            // 获取返回的文件路径
-            const content = this.currentSession.messages[assistantIndex + 1].content;
-            const matches = content.match(/```json([\s\S]*?)```/);
+            const matches = this.currentSession.messages[index + 1]?.content.match(/```json([\s\S]*?)```/);
             const files = matches ? JSON.parse(matches[1].trim()).filepath : [];
-            console.log(files);
-            let combinedContent = "";  // 存储所有文件的合并内容
+            if (!files.length) return;
 
-            for (const file of files) {
-                try {
-                    const info = await ipcRenderer.invoke('get-one-file', file);
-                    console.log(info);
-                    combinedContent += `###${file}:\n${info.content}\n\n`;  // 将每个文件的内容合并
-                } catch (error) {
-                    console.error(`Failed to get content of ${file}:`, error);
-                }
-            }
+            const combinedContent = (await Promise.all(
+                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `###${file}:\n${info.content}\n\n`))
+            )).join('');
 
-            // 将合并的文件内容添加到下一个用户消息的 prompt 中
-            prompt = `以下是相关文件的内容:\n\`\`\`\n${combinedContent}\`\`\`\n请基于这些内容回答用户的问题。`;
+            if (!combinedContent) return;
 
-            assistantIndex = assistantIndex + 2;
-            messagelist[assistantIndex] = {
-                role: "user",
-                content: prompt
-            };
-
-            await this.processChat(messagelist, assistantIndex, overwrite, semanticSearch);
+            prompt = `
+以下是相关文件的内容:
+\`\`\`
+${combinedContent}
+\`\`\`
+请基于这些内容回答用户的问题: ${userask}
+`;
+            messagelist[index + 2] = {role: "user", content: prompt};
+            await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
         },
-
         async processChat(messagelist, index, overwrite, semanticSearch = false) {
             this.isStreaming = true;
             let allMessages = [...messagelist];
@@ -112,7 +108,7 @@ export const useMessageStore = defineStore('message_store', {
                     `### 参考信息\n\n**查询问题:** ${result.queryText}\n**对应Code:** \`${result.resultText}\``).join('\n\n');
 
                 if (semanticMessageContent) {
-                    allMessages.push({ role: 'user', content: semanticMessageContent });
+                    allMessages.push({role: 'user', content: semanticMessageContent});
                 }
             }
 
@@ -136,11 +132,11 @@ export const useMessageStore = defineStore('message_store', {
             const assistantIndex = overwrite ? index : index + 1;
 
             this.currentSession.messages[assistantIndex] = overwrite ?
-                { role: 'assistant', content: '', isAnalyzing: true } :
-                { role: 'assistant', content: '', isAnalyzing: true };
+                {role: 'assistant', content: '', isAnalyzing: true} :
+                {role: 'assistant', content: '', isAnalyzing: true};
 
             while (true) {
-                const { done, value } = await this.currentSession.reader.read();
+                const {done, value} = await this.currentSession.reader.read();
                 if (done) {
                     this.currentSession.messages[assistantIndex].isAnalyzing = false;
                     break;
