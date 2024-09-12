@@ -126,34 +126,65 @@ export default {
     const closeAnalyzeModal = () => {
       isAnalyzeModalVisible.value = false;
     };
-
     const handleAnalyze = async () => {
       if (!selectedModelId.value) return message.error('请选择一个模型');
       isAnalyzing.value = true;
+      // 获取所有文件
       const projectFiles = await ipcRenderer.invoke('get-all-files', selectedProject.value.projectPath, ignoredPatterns.value);
-      const fileContents = projectFiles.map(file => ({path: file.path, content: file.content}));
-      const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
+      // 将文件按照目录进行分组
+      const filesByDirectory = projectFiles.reduce((acc, file) => {
+        const dir = file.path.substring(0, file.path.lastIndexOf('/')); // 获取文件目录
+        if (!acc[dir]) acc[dir] = [];
+        acc[dir].push(file);
+        return acc;
+      }, {});
 
-      console.log(fileContents)
-      const res = await modelStore.chatCompletions({
-        ...model,
-        messages: [
-          {role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。"},
-          {role: 'user', content: buildPrompt(fileContents)}
-        ]
-      });
+      // 并发处理每个目录下的文件
+      const analyzeDirectoryFiles = async (files) => {
+        const fileContents = files.map(file => ({ path: file.path, content: file.content }));
+        
+        const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
-      if (res) {
-        selectedProject.value.projectFileDetails = extractJsonFromResponse(res.content);
+        const res = await modelStore.chatCompletions({
+          ...model,
+          messages: [
+            { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
+            { role: 'user', content: buildPrompt(fileContents) }
+          ]
+        });
+
+        
+        if (res) {
+          return extractJsonFromResponse(res.content);
+        } else {
+          throw new Error('AI解析失败');
+        }
+      };
+
+      try {
+        // 使用 Promise.all 并发执行每个目录的文件解析
+        
+        const allResults = await Promise.all(Object.values(filesByDirectory).map(analyzeDirectoryFiles));
+        
+
+        // 将所有结果合并到 selectedProject 的 projectFileDetails 中
+        selectedProject.value.projectFileDetails = allResults.reduce((acc, result) => ({
+          ...acc,
+          ...result
+        }), {});
+        
+
         projectStore.updateProject(selectedProject.value);
         message.success('AI解析成功');
-      } else {
+      } catch (error) {
+        console.error('解析过程中发生错误:', error);
         message.error('AI解析失败');
+      } finally {
+        isAnalyzing.value = false;
+        closeAnalyzeModal();
       }
-
-      isAnalyzing.value = false;
-      closeAnalyzeModal();
     };
+
 
     const buildPrompt = (fileContents) => `
 ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\n')}\`\`\`
