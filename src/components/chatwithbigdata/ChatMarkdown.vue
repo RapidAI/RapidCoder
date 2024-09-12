@@ -24,8 +24,7 @@
           </a-tooltip>
         </div>
       </div>
-      <!-- Markdown 渲染 -->
-      <div v-else v-html="block.content" class="markdown-content"></div>
+      <div v-html="block.content" class="markdown-content"></div>
     </div>
   </div>
 </template>
