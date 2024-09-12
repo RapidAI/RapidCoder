@@ -126,10 +126,16 @@ ${combinedContent}
         },
         parseChatResponse(input) {
             return input.split('data:').reduce((acc, part) => {
-                try {
-                    acc += JSON.parse(part.trim()).choices?.[0]?.delta?.content || '';
-                } catch (error) {
-                    console.error('解析JSON失败:', error, '错误的数据:', part);
+                part = part.trim();
+                if (part && part !== '[DONE]') {
+                    try {
+                        const json = JSON.parse(part);
+                        if (json.choices?.[0]?.delta?.content) {
+                            acc += json.choices[0].delta.content;
+                        }
+                    } catch (error) {
+                        console.error('解析JSON失败:', error, '错误的数据:', part);
+                    }
                 }
                 return acc;
             }, '');
