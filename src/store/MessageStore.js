@@ -76,7 +76,7 @@ export const useMessageStore = defineStore('message_store', {
             if (!files.length) return;
 
             const combinedContent = (await Promise.all(
-                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `###${file}:\n\`\`\`${info.content}\n\`\`\``))
+                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `${file}:\n\`\`\`${info.content}\n\`\`\``))
             )).join('');
 
             if (!combinedContent) return;
