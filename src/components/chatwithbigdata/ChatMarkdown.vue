@@ -1,18 +1,10 @@
 <template>
   <div class="my-markdown">
-    <div v-if="!chartData || debugMode" v-for="(block, index) in dataBlocks" :key="index">
+    <div v-if="debugMode" v-for="(block, index) in dataBlocks" :key="index">
       <!-- 代码块处理 -->
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <a-tooltip  placement="bottom">
-            <template #title>
-              <span>收藏到知识库</span>
-            </template>
-            <a @click="addToQueryVector(block.code)">
-              <StarOutlined/>
-            </a>
-          </a-tooltip>
           <a-spin v-if="block.isLoading"/>
           <a-tooltip placement="bottom">
             <template #title>
@@ -22,7 +14,7 @@
               <CopyOutlined/>
             </a>
           </a-tooltip>
-          <a-tooltip  placement="bottom">
+          <a-tooltip placement="bottom">
             <template #title>
               <span>再次运行</span>
             </template>
@@ -32,26 +24,9 @@
           </a-tooltip>
         </div>
       </div>
-      <!-- 表格渲染 -->
-      <a-table
-          v-if="block.isTable"
-          :columns="block.columns"
-          :dataSource="block.currentData"
-          :pagination="false"
-          rowKey="key"/>
-      <a-pagination
-          v-if="block.isTable"
-          :current="block.currentPage"
-          :total="block.data.length"
-          :pageSize="pageSize"
-          :showSizeChanger="false"
-          @change="(page) => changePage(index, page)"
-          class="pagination-right"/>
       <!-- Markdown 渲染 -->
       <div v-else v-html="block.content" class="markdown-content"></div>
     </div>
-    <!-- 图表渲染 -->
-    <ChartRenderer v-if="chartData" :chartData="chartData" :chartOptions="chartOptions"/>
   </div>
 </template>
 
@@ -60,11 +35,9 @@ import {ref, computed, onMounted, watch} from 'vue'
 import {useMessageStore} from '@/store/MessageStore.js'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
-import ChartRenderer from './ChartRenderer.vue'
-import {message, Pagination, Table, Spin} from 'ant-design-vue'
+import {message, Spin} from 'ant-design-vue'
 import {StarOutlined, CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue'
 import 'highlight.js/styles/github.css'
-import {post} from '@/api/index.js'
 
 export default {
   props: {
@@ -73,9 +46,6 @@ export default {
     messagelistindex: {type: Number, default: 0},
   },
   components: {
-    ChartRenderer,
-    APagination: Pagination,
-    ATable: Table,
     ASpin: Spin,
     StarOutlined,
     CopyOutlined,
@@ -97,40 +67,11 @@ export default {
     // 编译后的 Markdown 内容
     const compiledMarkdown = computed(() => md.render(props.markdown))
 
-    // 解析表格
-    const parseTable = (tableHtml) => {
-      const tableElement = document.createElement('div')
-      tableElement.innerHTML = tableHtml
-
-      const rows = Array.from(tableElement.querySelectorAll('tr'))
-      const headerCells = rows[0].querySelectorAll('th, td')
-      const columns = Array.from(headerCells).map((cell, index) => ({
-        title: cell.textContent.trim(),
-        dataIndex: `col${index}`,
-        key: `col${index}`,
-        align: 'center',
-      }))
-
-      const data = rows.slice(1).map((row, rowIndex) => {
-        const cells = row.querySelectorAll('th, td')
-        const rowData = {}
-        cells.forEach((cell, cellIndex) => {
-          rowData[`col${cellIndex}`] = cell.textContent.trim()
-        })
-        rowData.key = rowIndex
-        return rowData
-      })
-
-      return {columns, data}
-    }
-
     // 解析代码块
     const parseDataBlocks = () => {
       const tempBlocks = []
       const codeRegex = /<pre class="hljs"><code class="language-(.*?)">(.*?)<\/code><\/pre>/gs
-      const tableRegex = /<table>([\s\S]*?)<\/table>/gs
       const matches = [...compiledMarkdown.value.matchAll(codeRegex)]
-      const tableMatches = [...compiledMarkdown.value.matchAll(tableRegex)]
       let lastIndex = 0
 
       // 处理代码块
@@ -146,28 +87,6 @@ export default {
         lastIndex = index + fullMatch.length
       })
 
-      // 处理表格
-      tableMatches.forEach((match) => {
-        const [fullMatch] = match
-        const index = match.index
-
-        if (index > lastIndex) {
-          tempBlocks.push({isCode: false, content: compiledMarkdown.value.slice(lastIndex, index)})
-        }
-
-        const {columns, data} = parseTable(fullMatch)
-        const totalPages = Math.ceil(data.length / pageSize)
-        tempBlocks.push({
-          isTable: true,
-          columns: columns,
-          data: data,
-          currentPage: 1,
-          totalPages: totalPages,
-          currentData: data.slice(0, pageSize),
-        })
-        lastIndex = index + fullMatch.length
-      })
-
       if (lastIndex < compiledMarkdown.value.length) {
         tempBlocks.push({isCode: false, content: compiledMarkdown.value.slice(lastIndex)})
       }
@@ -177,40 +96,6 @@ export default {
 
     onMounted(parseDataBlocks)
     watch(compiledMarkdown, parseDataBlocks)
-
-    // 页码切换处理
-    const changePage = (blockIndex, page) => {
-      const block = dataBlocks.value[blockIndex]
-      block.currentPage = page
-      const start = (page - 1) * pageSize
-      const end = page * pageSize
-      block.currentData = block.data.slice(start, end)
-    }
-
-    // 解析图表数据
-    const parseChartData = () => {
-      const chartRegex = /```chart\n([\s\S]*?)```/
-      const match = props.markdown.match(chartRegex)
-      if (match) {
-        try {
-          return JSON.parse(match[1].trim())
-        } catch (error) {
-          console.error('图表数据解析失败:', error)
-        }
-      }
-      return null
-    }
-
-    // 计算图表数据和选项
-    const chartData = computed(() => parseChartData())
-    const chartOptions = computed(() => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {position: 'top'},
-        title: {display: true, text: ''},
-      },
-    }))
 
     // 复制代码到剪切板
     const copyCode = (code) => {
@@ -233,60 +118,10 @@ export default {
       )
     }
 
-    const addToQueryVector = async (code) => {
-      const block = dataBlocks.value.find((b) => b.code === code);
-      if (block) block.isLoading = true;
-
-      const matches = code.match(/```code([\s\S]*?)```/);
-      if (!matches) {
-        message.error('不是标准code');
-        console.error(code);
-        if (block) block.isLoading = false;
-        return;
-      }
-
-      const codeCode = matches[1].trim();
-      const prompt = `${codeCode}\n\n根据上面的code信息仔细思考,推理出用户的查询指令\n返回json数据结构\n{\n   analysis: "...\n   queryinstruct: "...\n}`;
-
-      const messages = [
-        messageStore.currentSession.messages[0],
-        {role: 'user', content: prompt},
-      ];
-
-      const modelPayload = {...messageStore.currentModel, messages};
-      const response = await post(`/chat/generatebyModel`, modelPayload);
-
-      if (response.success) {
-        const match = response.data.content.match(/```json([\s\S]*?)```/);
-        const queryText = match ? JSON.parse(match[1].trim()).queryinstruct : "...";
-
-        const data = {
-          databaseInfoId: messageStore.currentSession.databaseInfoId,
-          sessionId: messageStore.currentSession.sessionId,
-          queryText,
-          resultText: codeCode,
-          success: true,
-        };
-
-        const res = await post('/queryVectors/add', data);
-
-        res.success ? message.success('收藏成功') : message.error('收藏失败');
-      } else {
-        message.error(response.message);
-        console.error(response);
-      }
-
-      if (block) block.isLoading = false;
-    };
-
     return {
       dataBlocks,
-      chartData,
-      chartOptions,
       copyCode,
       executeCode,
-      addToQueryVector,
-      changePage,
       pageSize,
     }
   },
