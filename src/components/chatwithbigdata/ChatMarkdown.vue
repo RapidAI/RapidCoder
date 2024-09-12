@@ -5,7 +5,7 @@
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <a-tooltip v-if="block.language==='SQL'" placement="bottom">
+          <a-tooltip  placement="bottom">
             <template #title>
               <span>收藏到知识库</span>
             </template>
@@ -22,11 +22,11 @@
               <CopyOutlined/>
             </a>
           </a-tooltip>
-          <a-tooltip v-if="block.language==='SQL'" placement="bottom">
+          <a-tooltip  placement="bottom">
             <template #title>
               <span>再次运行</span>
             </template>
-            <a @click="executeSQL()">
+            <a @click="executeCode()">
               <ClockCircleOutlined/>
             </a>
           </a-tooltip>
@@ -224,9 +224,9 @@ export default {
           })
     }
 
-    // 执行SQL代码
-    const executeSQL = () => {
-      messageStore.messageExecuteSQL(
+    // 执行Code代码
+    const executeCode = () => {
+      messageStore.messageExecuteCode(
           messageStore.currentSession.messages[props.messagelistindex],
           messageStore.currentSession.messages[props.messagelistindex - 1],
           props.messagelistindex
@@ -237,16 +237,16 @@ export default {
       const block = dataBlocks.value.find((b) => b.code === code);
       if (block) block.isLoading = true;
 
-      const matches = code.match(/```sql([\s\S]*?)```/);
+      const matches = code.match(/```code([\s\S]*?)```/);
       if (!matches) {
-        message.error('不是标准sql');
+        message.error('不是标准code');
         console.error(code);
         if (block) block.isLoading = false;
         return;
       }
 
-      const sqlCode = matches[1].trim();
-      const prompt = `${sqlCode}\n\n根据上面的sql信息仔细思考,推理出用户的查询指令\n返回json数据结构\n{\n   analysis: "...\n   queryinstruct: "...\n}`;
+      const codeCode = matches[1].trim();
+      const prompt = `${codeCode}\n\n根据上面的code信息仔细思考,推理出用户的查询指令\n返回json数据结构\n{\n   analysis: "...\n   queryinstruct: "...\n}`;
 
       const messages = [
         messageStore.currentSession.messages[0],
@@ -264,7 +264,7 @@ export default {
           databaseInfoId: messageStore.currentSession.databaseInfoId,
           sessionId: messageStore.currentSession.sessionId,
           queryText,
-          resultText: sqlCode,
+          resultText: codeCode,
           success: true,
         };
 
@@ -284,7 +284,7 @@ export default {
       chartData,
       chartOptions,
       copyCode,
-      executeSQL,
+      executeCode,
       addToQueryVector,
       changePage,
       pageSize,

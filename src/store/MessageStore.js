@@ -76,16 +76,14 @@ export const useMessageStore = defineStore('message_store', {
             if (!files.length) return;
 
             const combinedContent = (await Promise.all(
-                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `###${file}:\n${info.content}\n\n`))
+                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `###${file}:\n\`\`\`${info.content}\n\`\`\``))
             )).join('');
 
             if (!combinedContent) return;
 
             prompt = `
 以下是相关文件的内容:
-\`\`\`
 ${combinedContent}
-\`\`\`
 请基于这些内容回答用户的问题: ${userask}
 `;
             messagelist[index + 2] = {role: "user", content: prompt};
@@ -110,12 +108,13 @@ ${combinedContent}
                 body: JSON.stringify(modelPayload)
             });
 
-            const reader = response.body.getReader(), decoder = new TextDecoder();
+            this.currentSession.reader = response.body.getReader()
+            const decoder = new TextDecoder();
             const assistantIndex = overwrite ? index : index + 1;
             this.currentSession.messages[assistantIndex] = {role: 'assistant', content: '', isAnalyzing: true};
 
             while (true) {
-                const {done, value} = await reader.read();
+                const {done, value} = await this.currentSession.reader.read();
                 if (done) break;
                 this.currentSession.messages[assistantIndex].content += this.parseChatResponse(decoder.decode(value));
                 eventBus.emit('messageUpdated', assistantIndex);
