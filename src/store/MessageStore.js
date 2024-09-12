@@ -70,8 +70,9 @@ export const useMessageStore = defineStore('message_store', {
 }
 问题如下：${userask}
 `;
-            messagelist[index].content = prompt;
-            await this.processChat(messagelist, index, overwrite, semanticSearch);
+            const hidemessagelist=JSON.parse(JSON.stringify(messagelist))
+            hidemessagelist[index].content = prompt;
+            await this.processChat(hidemessagelist, index, overwrite, semanticSearch);
 
             const matches = this.currentSession.messages[index + 1]?.content.match(/```json([\s\S]*?)```/);
             const files = matches ? JSON.parse(matches[1].trim()).filepath : [];
