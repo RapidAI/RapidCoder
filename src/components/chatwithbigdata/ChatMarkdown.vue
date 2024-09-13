@@ -36,7 +36,6 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import {message, Spin} from 'ant-design-vue'
 import {StarOutlined, CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue'
-import 'highlight.js/styles/github.css'
 
 export default {
   props: {
@@ -53,10 +52,10 @@ export default {
   setup(props) {
     const messageStore = useMessageStore()
     const dataBlocks = ref([])
-    const pageSize = 10 // 每页显示的行数
     const md = new MarkdownIt({
       highlight: (str, lang) => {
         if (lang && hljs.getLanguage(lang)) {
+          console.log(lang)
           return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, {language: lang}).value}</code></pre>`
         }
         return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
@@ -76,6 +75,7 @@ export default {
       // 处理代码块
       matches.forEach((match) => {
         const [fullMatch, language, _] = match
+        console.log(language)
         const index = match.index
 
         if (index > lastIndex) {
@@ -121,7 +121,6 @@ export default {
       dataBlocks,
       copyCode,
       executeCode,
-      pageSize,
     }
   },
 }
