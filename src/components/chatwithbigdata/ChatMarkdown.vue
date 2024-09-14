@@ -34,7 +34,7 @@ export default {
   props: {
     markdown: { type: String, default: '' },
     debugMode: { type: Boolean, default: true },
-    messagelistindex: { type: Number, default: 0 },
+    messageindex: { type: Number, default: 0 },
   },
   components: {
     CopyOutlined,
@@ -98,11 +98,7 @@ export default {
 
     const executeCode = () => {
       const { messages } = messageStore.currentSession;
-      messageStore.messageExecuteCode(
-          messages[props.messagelistindex],
-          messages[props.messagelistindex - 1],
-          props.messagelistindex
-      );
+      messageStore.messageExecuteCode(props.messageindex);
     };
 
     return {

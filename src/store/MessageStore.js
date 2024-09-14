@@ -196,6 +196,9 @@ ${combinedContent}
                     return acc;
                 }, '');
         },
+        messageExecuteCode(index) {
+            // 截取代码,并将代码替换掉原来的文件
+        },
         async stopChat() {
             if (this.isStreaming) {
                 await this.currentSession.reader?.cancel();
