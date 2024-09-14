@@ -211,34 +211,38 @@ ${combinedContent}
             const assistantMessage = this.currentSession.messages[index]?.content;
             if (!assistantMessage) return;
 
-            // 更新正则表达式，匹配可能带有反引号的文件路径
-            const codeBlockRegex = /文件路径:\s*`?(.+?)`?\s*```(?:\w+)?\n([\s\S]+?)```/g;
+            // 尝试从消息中提取 JSON 响应
+            try {
+                const matches = assistantMessage.match(/```json([\s\S]*?)```/);
+                const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
+                if (!jsonResponse) {
+                    message.error('未找到有效的 JSON 响应');
+                    return;
+                }
 
-            let match;
-            let replacementCount = 0;
-            const maxReplacements = 2; // 根据需要调整最大替换次数
+                // 从 JSON 响应中获取文件路径和代码内容
+                const { 思考, 反思, 再思考, 结果 } = jsonResponse;
+                if (!结果 || !结果.filePath || !结果.code) {
+                    message.error('JSON 结果中缺少文件路径或代码内容');
+                    return;
+                }
 
-            // 遍历所有匹配项并进行替换
-            while ((match = codeBlockRegex.exec(assistantMessage)) !== null && replacementCount < maxReplacements) {
-                const filePath = match[1].trim();
-                const codeContent = match[2];
+                const filePath = 结果.filePath;
+                const codeContent = 结果.code;
 
-                console.log(filePath, codeContent)
-
+                // 替换文件内容
                 try {
                     const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
-                    result.success
-                        ? message.success(`文件 ${filePath} 已成功更新`)
-                        : message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                    if (result.success) {
+                        message.success(`文件 ${filePath} 已成功更新`);
+                    } else {
+                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                    }
                 } catch (error) {
                     message.error(`调用替换文件内容时出错: ${error.message}`);
                 }
-
-                replacementCount++; // 增加计数
-            }
-
-            if (replacementCount === 0) {
-                message.error('没有找到匹配的文件路径和代码块');
+            } catch (error) {
+                message.error('解析 JSON 时发生错误: ' + error.message);
             }
         },
         async stopChat() {
