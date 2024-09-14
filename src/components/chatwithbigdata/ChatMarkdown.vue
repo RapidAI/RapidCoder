@@ -1,138 +1,117 @@
 <template>
   <div class="my-markdown">
     <div v-if="debugMode" v-for="(block, index) in dataBlocks" :key="index">
-      <!-- 代码块处理 -->
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <a-spin v-if="block.isLoading"/>
-          <a-tooltip placement="bottom">
-            <template #title>
-              <span>复制代码</span>
-            </template>
+          <a-spin v-if="block.isLoading" />
+          <a-tooltip placement="bottom" title="复制代码">
             <a @click="copyCode(block.code)">
-              <CopyOutlined/>
+              <CopyOutlined />
             </a>
           </a-tooltip>
-          <a-tooltip placement="bottom">
-            <template #title>
-              <span>再次运行</span>
-            </template>
+          <a-tooltip placement="bottom" title="再次运行">
             <a @click="executeCode()">
-              <ClockCircleOutlined/>
+              <ClockCircleOutlined />
             </a>
           </a-tooltip>
         </div>
       </div>
-      <div v-html="block.content" class="markdown-content"></div>
+      <div v-html="block.content"></div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useMessageStore } from '@/store/MessageStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import { message, Spin } from 'ant-design-vue';
-import { StarOutlined, CopyOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
-
+import { message } from 'ant-design-vue';
+import { CopyOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
 
 export default {
   props: {
-    markdown: {type: String, default: ''},
-    debugMode: {type: Boolean, default: true},
-    messagelistindex: {type: Number, default: 0},
+    markdown: { type: String, default: '' },
+    debugMode: { type: Boolean, default: true },
+    messagelistindex: { type: Number, default: 0 },
   },
   components: {
-    ASpin: Spin,
-    StarOutlined,
     CopyOutlined,
     ClockCircleOutlined,
   },
   setup(props) {
     const messageStore = useMessageStore();
     const dataBlocks = ref([]);
+
     const md = new MarkdownIt({
       highlight: (str, lang) => {
         if (lang && hljs.getLanguage(lang)) {
-          return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
+          return hljs.highlight(str, { language: lang }).value;
         }
-        if (!lang) {
-          const autoLangResult = hljs.highlightAuto(str);
-          return `<pre class="hljs"><code class="language-${autoLangResult.language}">${autoLangResult.value}</code></pre>`;
-        }
-        lang='html'
-        return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
+        return hljs.highlightAuto(str).value;
       },
     });
 
-    // 编译后的 Markdown 内容
-    const compiledMarkdown = computed(() => md.render(props.markdown))
-
-    // 解析代码块
-    // 解析代码块
     const parseDataBlocks = () => {
-      const tempBlocks = []
-      const codeRegex = /<pre class="hljs"><code class="language-(.*?)">(.*?)<\/code><\/pre>/gs
-      const matches = [...compiledMarkdown.value.matchAll(codeRegex)]
-      let lastIndex = 0
+      const tempBlocks = [];
+      const tokens = md.parse(props.markdown, {});
+      let index = 0;
 
-      // 处理代码块
-      matches.forEach((match) => {
-        const [fullMatch, language, _] = match
-        const index = match.index
-
-        if (index > lastIndex) {
-          tempBlocks.push({isCode: false, content: compiledMarkdown.value.slice(lastIndex, index)})
+      while (index < tokens.length) {
+        const token = tokens[index];
+        if (token.type === 'fence') {
+          const language = token.info.trim().toUpperCase() || 'PLAINTEXT';
+          tempBlocks.push({
+            isCode: true,
+            language,
+            code: token.content,
+            content: md.renderer.render([token], md.options),
+          });
+          index++;
+        } else {
+          const nonCodeTokens = [];
+          while (index < tokens.length && tokens[index].type !== 'fence') {
+            nonCodeTokens.push(tokens[index]);
+            index++;
+          }
+          if (nonCodeTokens.length > 0) {
+            tempBlocks.push({
+              isCode: false,
+              content: md.renderer.render(nonCodeTokens, md.options),
+            });
+          }
         }
-
-        // 如果没有语言信息，则默认设置为 'plaintext' 或调用 highlight.js 自动检测
-        const detectedLanguage = language || hljs.highlightAuto(match[2]).language || 'plaintext';
-
-        tempBlocks.push({isCode: true, language: detectedLanguage.toUpperCase(), code: match[2], content: fullMatch})
-        lastIndex = index + fullMatch.length
-      })
-
-      if (lastIndex < compiledMarkdown.value.length) {
-        tempBlocks.push({isCode: false, content: compiledMarkdown.value.slice(lastIndex)})
       }
 
-      dataBlocks.value = tempBlocks
-    }
+      dataBlocks.value = tempBlocks;
+    };
 
+    watch(() => props.markdown, parseDataBlocks, { immediate: true });
 
-    onMounted(parseDataBlocks)
-    watch(compiledMarkdown, parseDataBlocks)
-
-    // 复制代码到剪切板
     const copyCode = (code) => {
       navigator.clipboard
           .writeText(code)
-          .then(() => {
-            message.success('内容已复制到剪切板')
-          })
-          .catch((err) => {
-            console.error('复制失败', err)
-          })
-    }
+          .then(() => message.success('内容已复制到剪切板'))
+          .catch((err) => console.error('复制失败', err));
+    };
 
-    // 执行Code代码
     const executeCode = () => {
+      const { messages } = messageStore.currentSession;
       messageStore.messageExecuteCode(
-          messageStore.currentSession.messages[props.messagelistindex],
-          messageStore.currentSession.messages[props.messagelistindex - 1],
+          messages[props.messagelistindex],
+          messages[props.messagelistindex - 1],
           props.messagelistindex
-      )
-    }
+      );
+    };
 
     return {
       dataBlocks,
       copyCode,
       executeCode,
-    }
+    };
   },
-}
+};
 </script>
 
 <style>
@@ -141,72 +120,12 @@ export default {
   overflow: auto;
 }
 
-.markdown-content {
-  font-family: 'Arial', sans-serif;
-  line-height: 1.6;
-  color: #333;
-}
-
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3,
-.markdown-content h4,
-.markdown-content h5,
-.markdown-content h6 {
-  font-weight: bold;
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
-.markdown-content p {
-  margin: 10px 0;
-}
-
-.markdown-content a {
-  color: #1e90ff;
-  text-decoration: none;
-}
-
-.markdown-content a:hover {
-  text-decoration: underline;
-}
-
-.markdown-content ul,
-.markdown-content ol {
-  margin: 10px 0 10px 20px;
-}
-
-.markdown-content blockquote {
-  margin: 10px 0;
-  padding: 10px 20px;
-  background-color: #f9f9f9;
-  border-left: 5px solid #ccc;
-}
-
-.markdown-content pre {
-  background: #f8f8f8;
-  padding: 10px;
-  border-radius: 5px;
-  overflow-x: auto; /* 允许水平滚动 */
-  margin-top: 0;
-  padding-top: 0;
-  white-space: pre-wrap; /* 保留空白字符并换行 */
-  word-wrap: break-word; /* 长单词或 URL 换行 */
-}
-
-.markdown-content code {
-  background: #f8f8f8;
-  padding: 2px 4px;
-  border-radius: 3px;
-  white-space: pre-wrap; /* 保留空白字符并换行 */
-  word-wrap: break-word; /* 长单词或 URL 换行 */
-}
-
 .code-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
   padding: 5px 10px;
   border-radius: 5px 5px 0 0;
 }
@@ -214,12 +133,101 @@ export default {
 .code-actions {
   display: flex;
   gap: 10px;
-  color: #005fff;
+  color: #d4d4d4;
 }
 
-.pagination-right {
-  display: flex;
-  margin-top: 20px;
-  justify-content: right;
+pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 10px;
+  margin: 0;
+  border-radius: 0 0 5px 5px;
+  overflow-x: auto;
+}
+
+code {
+  background-color: transparent;
+  color: inherit;
+}
+
+/* VSCode Dark Theme Syntax Highlighting */
+.hljs-comment,
+.hljs-quote {
+  color: #6a9955;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #c586c0;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #b5cea8;
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: #ce9178;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #569cd6;
+}
+
+.hljs-subst {
+  color: #d4d4d4;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #4ec9b0;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+  color: #d7ba7d;
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: #d16969;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+  color: #569cd6;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #dcdcaa;
+}
+
+.hljs-meta {
+  color: #9cdcfe;
+}
+
+.hljs-deletion {
+  background: #ff0000;
+}
+
+.hljs-addition {
+  background: #00ff00;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
 }
 </style>
