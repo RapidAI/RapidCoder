@@ -100,8 +100,8 @@ ${combinedContent}
 根据你的反思做出必要的调整，提出更完善的解决方案。
 4. 结果：
 提供最终的简洁答案。
-
-要求输出代码时候先输出对应的文件路径。例子:path\n\`\`\`...
+要求输出代码时候先输出对应的文件路径。
+文件路径:...\n\`\`\`...
 `;
             messagelist.splice(index + 2, 0, { role: 'user', content: newPrompt });
             await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
@@ -191,14 +191,16 @@ ${combinedContent}
             if (!assistantMessage) return;
 
             // 正则表达式匹配文件路径和代码块
-            const codeBlockRegex = /([\s\S]*?):\n```(?:\w+)?\n([\s\S]*?)```/g;
-            let match = codeBlockRegex.exec(assistantMessage)
-            if(!match){
-                message.error('没有找到');
-            }
-            while (match !== null) {
-                const filePath = match[1].trim();
-                const codeContent = match[2];
+            const codeBlockRegex = /.*文件路径:\s*(\/[\w\/\.\-]+)\n```(\w+)?\n([\s\S]*?)```/g;
+
+            let match;
+            let replacementCount = 0;  // 替换计数器
+            const maxReplacements = 2; // 设置最多替换次数 (例如 2 个)
+
+            // 使用 while 循环遍历所有匹配项
+            while ((match = codeBlockRegex.exec(assistantMessage)) !== null && replacementCount < maxReplacements) {
+                const filePath = match[1].trim();  // 获取文件路径
+                const codeContent = match[3];      // 获取代码内容
 
                 try {
                     // 调用主进程方法替换文件内容
@@ -211,6 +213,12 @@ ${combinedContent}
                 } catch (error) {
                     message.error(`调用替换文件内容时出错: ${error.message}`);
                 }
+
+                replacementCount++;  // 增加计数器，每成功匹配一个就增加一次
+            }
+
+            if (replacementCount === 0) {
+                message.error('没有找到匹配的文件路径和代码块');
             }
         },
         async stopChat() {

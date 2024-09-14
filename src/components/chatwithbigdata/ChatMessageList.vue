@@ -15,7 +15,7 @@
               v-if="debugMode"
               :markdown="item.content"
               :debugMode="debugMode"
-              :messagelistindex="index"
+              :messageindex="index"
           />
           <div v-if="!debugMode" class="analysis-complete">
             {{ item.isAnalyzing ? '正在分析' : '分析完成' }}

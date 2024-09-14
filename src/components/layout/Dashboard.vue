@@ -7,15 +7,15 @@
       </div>
       <a-menu v-model:selectedKeys="selectedKeys">
         <a-menu-item key="ModelTable" @click="navigateTo('/ModelTable')">
-          <ToolOutlined/>
+          <RobotOutlined/>
           <span>AI模型管理</span>
         </a-menu-item>
         <a-menu-item key="ProjectTable" @click="navigateTo('/ProjectTable')">
-          <ToolOutlined/>
+          <ProjectOutlined/>
           <span>项目管理</span>
         </a-menu-item>
         <a-menu-item key="SessionWithBigData" @click="navigateTo('/SessionWithBigData')">
-          <LineChartOutlined/>
+          <CodeOutlined/>
           <span>AI代码</span>
         </a-menu-item>
       </a-menu>
@@ -31,36 +31,20 @@ import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { Layout, Menu } from 'ant-design-vue';
 import {
-  UserOutlined,
-  DatabaseOutlined,
-  TableOutlined,
-  BarChartOutlined,
-  MessageOutlined,
-  FileSearchOutlined,
-  SettingOutlined,
-  AppstoreOutlined,
-  SearchOutlined,
-  DownOutlined,
-  ToolOutlined,
-  LineChartOutlined // 新增图标用于多数据库AI分析
+  RobotOutlined, // 新增图标用于AI模型管理
+  ProjectOutlined, // 新增图标用于项目管理
+  CodeOutlined, // 新增图标用于AI代码
+  LineChartOutlined // 保留原有图标用于多数据库AI分析
 } from '@ant-design/icons-vue';
 
 export default {
   components: {
     Layout,
     Menu,
-    UserOutlined,
-    DatabaseOutlined,
-    TableOutlined,
-    BarChartOutlined,
-    MessageOutlined,
-    FileSearchOutlined,
-    SettingOutlined,
-    AppstoreOutlined,
-    SearchOutlined,
-    DownOutlined,
-    ToolOutlined,
-    LineChartOutlined // 注册新图标
+    RobotOutlined,
+    ProjectOutlined,
+    CodeOutlined,
+    LineChartOutlined
   },
   setup() {
     const collapsed = ref(false);
@@ -72,8 +56,6 @@ export default {
       router.push(route);
       selectedKeys.value = [route.split('/').pop()];
     };
-
-
 
     // 监听路由变化，更新选中的菜单项
     watch(
