@@ -36,7 +36,7 @@ export default {
       if (message.trim()) {
         messageStore.currentSession.messages.push({role: 'user', content: message})
         inputMessage.value = ''; // 清空输入框
-        await messageStore.messageSelectFileAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, false);
+        await messageStore.selectFileAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, false);
       }
     };
 

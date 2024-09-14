@@ -24,7 +24,7 @@
                   <a-menu-item @click="showRenameModal(index)">重命名</a-menu-item>
                   <a-menu-item>
                     <a-popconfirm title="确定要删除这个会话吗？" okText="确定" cancelText="取消"
-                                  @confirm="sessionDelete(index)">
+                                  @confirm="deleteSession(index)">
                       <span>删除</span>
                     </a-popconfirm>
                   </a-menu-item>
@@ -87,7 +87,7 @@ export default {
     // 创建新的会话
     const createNewSession = async () => {
       loadingProjects.value = true;
-      await messageStore.sessionCreate();
+      await messageStore.createSession();
       loadingProjects.value = false;
       router.push({query: {sessionId: messageStore.currentSession.sessionId}})
     };
@@ -105,8 +105,8 @@ export default {
     };
 
     // 删除会话
-    const sessionDelete = async (index) => {
-      await messageStore.sessionDelete(index);
+    const deleteSession = async (index) => {
+      await messageStore.deleteSession(index);
     };
 
     // 显示重命名会话的模态框
@@ -138,8 +138,8 @@ export default {
     // 组件挂载时加载会话和数据库
     onMounted(() => {
       loadingProjects.value = true;
-      messageStore.modelsLoad();
-      messageStore.projectsLoad();
+      messageStore.loadModels();
+      messageStore.loadProjects();
       locateSessionFromUrl();
       loadingProjects.value = false;
     });
@@ -147,7 +147,7 @@ export default {
     return {
       messageStore,
       selectSession,
-      sessionDelete,
+      deleteSession,
       isRenameModalVisible,
       newSessionName,
       getSessionTitle,
