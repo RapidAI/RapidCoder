@@ -185,8 +185,30 @@ ${combinedContent}
                     return acc;
                 }, '');
         },
-        messageExecuteCode(index) {
-            // 截取代码,并将代码替换掉原来的文件
+        // 在您的 actions 中添加或替换以下方法
+        async messageExecuteCode(index) {
+            const assistantMessage = this.currentSession.messages[index]?.content;
+            if (!assistantMessage) return;
+
+            // 正则表达式匹配文件路径和代码块
+            const codeBlockRegex = /([\s\S]*?):\n```(?:\w+)?\n([\s\S]*?)```/g;
+            let match;
+            while ((match = codeBlockRegex.exec(assistantMessage)) !== null) {
+                const filePath = match[1].trim();
+                const codeContent = match[2];
+
+                try {
+                    // 调用主进程方法替换文件内容
+                    const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
+                    if (result.success) {
+                        message.success(`文件 ${filePath} 已成功更新`);
+                    } else {
+                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                    }
+                } catch (error) {
+                    message.error(`调用替换文件内容时出错: ${error.message}`);
+                }
+            }
         },
         async stopChat() {
             if (this.isStreaming) {

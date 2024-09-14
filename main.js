@@ -136,3 +136,20 @@ ipcMain.handle('get-one-file', (event, filePath) => {
         content: fs.readFileSync(filePath, 'utf-8')
     };
 });
+// 添加替换文件内容的功能
+ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
+    if (typeof filePath !== 'string') {
+        throw new Error('filePath must be a string');
+    }
+
+    if (typeof newContent !== 'string') {
+        throw new Error('newContent must be a string');
+    }
+
+    try {
+        fs.writeFileSync(filePath, newContent, 'utf-8');
+        return { success: true, message: '成功' };
+    } catch (error) {
+        return { success: false, message: `失败: ${error.message}` };
+    }
+});
