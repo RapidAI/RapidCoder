@@ -84,7 +84,6 @@ export const useMessageStore = defineStore('message_store', {
             const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
             if (!jsonResponse) return;
 
-            // 使用 'need' 字段来判断是否需要获取新的文件内容
             if (jsonResponse.result.newFileContent.need) {
                 const files = jsonResponse.result.newFileContent.filepath || [];
                 if (!files.length) return;
@@ -123,6 +122,8 @@ ${combinedContent}
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
+            } else if (jsonResponse.result.continueEditingAbove.need) {
+                await this.processChat(messagelist, index, overwrite, semanticSearch);
             } else {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
             }
@@ -221,9 +222,9 @@ ${combinedContent}
                 }
 
                 // 从 JSON 响应中获取文件路径和代码内容
-                const { 思考, 反思, 再思考, 结果 } = jsonResponse;
+                const {思考, 反思, 再思考, 结果} = jsonResponse;
                 if (!结果 || !结果.filePath || !结果.code) {
-                    message.error('JSON 结果中缺少文件路径或代码内容');
+                    console.log('JSON 结果中缺少文件路径或代码内容');
                     return;
                 }
 
@@ -242,7 +243,7 @@ ${combinedContent}
                     message.error(`调用替换文件内容时出错: ${error.message}`);
                 }
             } catch (error) {
-                message.error('解析 JSON 时发生错误: ' + error.message);
+                console.log('解析 JSON 时发生错误: ' + error.message);
             }
         },
         async stopChat() {
