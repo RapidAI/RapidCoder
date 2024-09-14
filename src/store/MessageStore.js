@@ -108,7 +108,10 @@ ${combinedContent}
 4. 结果：
 提供最终的简洁答案。
 要求输出代码时候先输出对应的文件路径。
-文件路径:...\n\`\`\`...
+{
+    file:...
+}
+代码:...
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
