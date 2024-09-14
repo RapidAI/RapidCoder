@@ -85,12 +85,17 @@
      border: 1px solid #00ffcc;
      border-radius: 5px;
      padding: 10px;
-     font-family: 'Roboto Mono', monospace;
+     font-family: 'Orbitron', sans-serif;
      box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+     transition: all 0.3s ease;
+   }
+
+   .message-input:focus {
+     border-color: #00ccff;
+     box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
    }
 
    .send-button {
-     height: 42px;
      background-color: #00ffcc;
      color: #1a1a1a;
      border: none;
@@ -102,6 +107,16 @@
 
    .send-button:hover {
      background-color: #00ccff;
+     box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+   }
+
+   .send-button:active {
+     background-color: #00ccff;
+     box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+   }
+
+   .send-button:focus {
+     outline: none;
      box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
    }
    </style>

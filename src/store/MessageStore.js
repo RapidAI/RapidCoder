@@ -1,10 +1,10 @@
-import { defineStore } from 'pinia';
-import { message } from 'ant-design-vue';
-import { eventBus } from '@/eventBus.js';
-import { useModelStore } from '@/store/ModelStore';
-import { useProjectStore } from '@/store/ProjectStore';
+import {defineStore} from 'pinia';
+import {message} from 'ant-design-vue';
+import {eventBus} from '@/eventBus.js';
+import {useModelStore} from '@/store/ModelStore';
+import {useProjectStore} from '@/store/ProjectStore';
 
-const { ipcRenderer } = require('electron');
+const {ipcRenderer} = require('electron');
 
 export const useMessageStore = defineStore('message_store', {
     state: () => ({
@@ -56,12 +56,22 @@ export const useMessageStore = defineStore('message_store', {
 
             const userQuestion = messagelist[index].content;
             const prompt = `
-根据问题和 projectFileDetails 信息，确定与用户问题相关的文件，如果没有相关文件，返回空数组。
+根据问题和 projectFileDetails 信息以及上文的信息
+确定是否需要获取新的文件的内容
 返回的 JSON 数据结构为：
 {
-  "analysis": "用户意图分析...",
-  "reason": ["选择文件的原因:...", ...],
-  "filepath": ["文件路径", ...]
+    "analysis": "用户意图分析...",
+    "result": {
+        "newFileContent": {
+            "need": true/false,
+            "reason": ["选择文件的原因:...", "..."],
+            "filepath": ["文件路径", "..."]
+        },
+        "continueEditingAbove": {
+            "need": true/false,
+            "reason": ["..."]
+        }
+    }
 }
 问题如下：${userQuestion}
 `;
@@ -71,13 +81,18 @@ export const useMessageStore = defineStore('message_store', {
 
             const assistantResponse = this.currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
-            const files = matches ? JSON.parse(matches[1].trim()).filepath : [];
-            if (!files.length) return;
+            const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
+            if (!jsonResponse) return;
 
-            const combinedContent = await this.getCombinedFileContent(files);
-            if (!combinedContent) return;
+            // 使用 'need' 字段来判断是否需要获取新的文件内容
+            if (jsonResponse.result.newFileContent.need) {
+                const files = jsonResponse.result.newFileContent.filepath || [];
+                if (!files.length) return;
 
-            const newPrompt = `
+                const combinedContent = await this.getCombinedFileContent(files);
+                if (!combinedContent) return;
+
+                const newPrompt = `
 以下是相关文件的内容:
 ${combinedContent}
 请基于这些内容回答用户的问题: ${userQuestion}
@@ -95,8 +110,11 @@ ${combinedContent}
 要求输出代码时候先输出对应的文件路径。
 文件路径:...\n\`\`\`...
 `;
-            messagelist.splice(index + 2, 0, { role: 'user', content: newPrompt });
-            await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
+                messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
+                await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
+            } else {
+                await this.processChat(messagelist, index, overwrite, semanticSearch);
+            }
         },
         async getCombinedFileContent(files) {
             try {
@@ -118,7 +136,7 @@ ${combinedContent}
             const allMessages = [...messagelist];
 
             if (semanticSearch) {
-            //  todo 检索
+                //  todo 检索
             }
 
             const modelPayload = {
@@ -149,7 +167,7 @@ ${combinedContent}
             };
 
             while (true) {
-                const { done, value } = await this.currentSession.reader.read();
+                const {done, value} = await this.currentSession.reader.read();
                 if (done) break;
                 const chunk = decoder.decode(value);
                 this.currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
@@ -194,7 +212,7 @@ ${combinedContent}
                 const filePath = match[1].trim();
                 const codeContent = match[2];
 
-                console.log(filePath,codeContent)
+                console.log(filePath, codeContent)
 
                 try {
                     const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
