@@ -190,31 +190,28 @@ ${combinedContent}
             const assistantMessage = this.currentSession.messages[index]?.content;
             if (!assistantMessage) return;
 
-            // 正则表达式匹配文件路径和代码块
-            const codeBlockRegex = /.*文件路径:\s*(\/[\w\/\.\-]+)\n```(\w+)?\n([\s\S]*?)```/g;
+            // 更新正则表达式，匹配可能带有反引号的文件路径
+            const codeBlockRegex = /###\s*结果：[\s\S]*?文件路径:\s*`?(\/[\w\/\.\-]+)`?\s*\n```(\w+)?\n([\s\S]*?)```/g;
 
             let match;
-            let replacementCount = 0;  // 替换计数器
-            const maxReplacements = 2; // 设置最多替换次数 (例如 2 个)
+            let replacementCount = 0;
+            const maxReplacements = 2; // 根据需要调整最大替换次数
 
-            // 使用 while 循环遍历所有匹配项
+            // 遍历所有匹配项并进行替换
             while ((match = codeBlockRegex.exec(assistantMessage)) !== null && replacementCount < maxReplacements) {
-                const filePath = match[1].trim();  // 获取文件路径
-                const codeContent = match[3];      // 获取代码内容
+                const filePath = match[1].trim();
+                const codeContent = match[3];
 
                 try {
-                    // 调用主进程方法替换文件内容
                     const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
-                    if (result.success) {
-                        message.success(`文件 ${filePath} 已成功更新`);
-                    } else {
-                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
-                    }
+                    result.success
+                        ? message.success(`文件 ${filePath} 已成功更新`)
+                        : message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
                 } catch (error) {
                     message.error(`调用替换文件内容时出错: ${error.message}`);
                 }
 
-                replacementCount++;  // 增加计数器，每成功匹配一个就增加一次
+                replacementCount++; // 增加计数
             }
 
             if (replacementCount === 0) {
