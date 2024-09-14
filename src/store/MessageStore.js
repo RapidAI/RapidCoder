@@ -57,7 +57,7 @@ export const useMessageStore = defineStore('message_store', {
             const userQuestion = messagelist[index].content;
             const prompt = `
 根据问题和 projectFileDetails 信息以及上文的信息
-确定是否需要获取新的文件的内容
+确定是否需要获取具体文件的内容,还是继续改写
 返回的 JSON 数据结构为：
 {
     "analysis": "用户意图分析...",
@@ -107,11 +107,19 @@ ${combinedContent}
 根据你的反思做出必要的调整，提出更完善的解决方案。
 4. 结果：
 提供最终的简洁答案。
-要求输出代码时候先输出对应的文件路径。
+
+如果返回代码不是全部内容totleContent=false
+返回的 JSON 数据结构为：
 {
-    file:...
+    "思考": "...",
+    "反思": "...",
+    "再思考": "...",
+    "结果": {
+        "filePath": "...",
+        "totleContent": true/false,
+        "code": "..."
+    }
 }
-代码:...
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);

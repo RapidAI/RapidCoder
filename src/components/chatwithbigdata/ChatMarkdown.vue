@@ -114,7 +114,11 @@ export default {
 .my-markdown {
   width: 100%;
   overflow: auto;
+  white-space: normal;
+  word-wrap: break-word;
+  padding-right: 3vh;
 }
+
 
 .code-header {
   display: flex;
@@ -134,6 +138,8 @@ export default {
 }
 
 pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
   background-color: #1e1e1e;
   color: #d4d4d4;
   padding: 10px;
