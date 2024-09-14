@@ -12,24 +12,7 @@
           </div>
           <div class="message-actions">
             <a v-if="item.role === 'user'" @click="enableEditMode(index, item.content)">编辑</a>
-            <a v-if="!isNonCopyableAssistant(item)" @click="copyToClipboard(item.content)">复制</a>
-            <a-dropdown v-if="messageContainsSQLdata(item.content)">
-              <a class="ant-dropdown-link" @click.prevent>
-                转成图表
-                <ArrowDownOutlined/>
-              </a>
-              <template #overlay>
-                <a-menu @click="handleChartTypeSelect($event, index)">
-                  <a-menu-item key="bar">柱状图</a-menu-item>
-                  <a-menu-item key="pie">饼图</a-menu-item>
-                  <a-menu-item key="line">折线图</a-menu-item>
-                  <a-menu-item key="radar">雷达图</a-menu-item>
-                  <a-menu-item key="polarArea">极坐标图</a-menu-item>
-                  <a-menu-item key="scatter">散点图</a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-            <a v-if="messageContainsSQLdata(item.content)" @click="analyzeData(index)">解析数据</a>
+            <a @click="copyToClipboard(item.content)">复制</a>
           </div>
         </div>
         <div v-else class="edit-container">
@@ -101,24 +84,6 @@ export default {
       });
     };
 
-    const formatUserMessage = (content) => content.replace(/\n/g, '<br>');
-
-    const messageContainsSQLdata = (content) => content.startsWith('执行结果:');
-    const containsChartData = (content) => /```chart\n([\s\S]*?)```/.test(content);
-    const containsCodeData = (content) => /```([\s\S]*?)/.test(content) || content.startsWith('执行sql出错:');
-
-    const handleChartTypeSelect = (event, index) => {
-      const chartType = event.key;
-      messageStore.messageToChart(index, chartType);
-    };
-
-    const analyzeData = (index) => {
-      const newMessages = [
-        ...messageStore.currentSession.messages.slice(0, index + 1),
-        {role: 'user', content: `根据以上数据总结分析`}
-      ];
-      messageStore.messageInputAndChat(newMessages, index, false);
-    };
 
     const handleKeyDown = (event) => {
       if (event.key === 'Enter' && !isComposition && !event.shiftKey) {
@@ -139,9 +104,6 @@ export default {
       });
     };
 
-    const isNonCopyableAssistant = (item) => {
-      return item.role === 'assistant' && !props.debugMode && !messageContainsSQLdata(item.content);
-    };
 
 
     onMounted(() => {
@@ -163,16 +125,9 @@ export default {
       updateMessage,
       cancelEdit,
       copyToClipboard,
-      formatUserMessage,
-      messageContainsSQLdata,
-      containsCodeData,
-      containsChartData,
-      handleChartTypeSelect,
       handleKeyDown,
       handleComposition,
       messageStore,
-      analyzeData,
-      isNonCopyableAssistant,
     };
   },
 };
