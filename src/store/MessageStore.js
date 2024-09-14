@@ -126,19 +126,7 @@ ${combinedContent}
             const allMessages = [...messagelist];
 
             if (semanticSearch) {
-                const lastUserMessage =
-                    messagelist[messagelist.length - 1].role === 'user'
-                        ? messagelist[messagelist.length - 1].content
-                        : messagelist[messagelist.length - 2].content;
-                const results = await this.messagePerformSemanticSearch(lastUserMessage);
-                const content = results
-                    .map(
-                        (r) => `### 参考信息\n\n**查询问题:** ${r.queryText}\n**对应代码:** \`${r.resultText}\``
-                    )
-                    .join('\n\n');
-                if (content) {
-                    allMessages.push({ role: 'user', content });
-                }
+            //  todo 检索
             }
 
             const modelPayload = {
