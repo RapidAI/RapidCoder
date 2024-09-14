@@ -89,6 +89,17 @@ export const useMessageStore = defineStore('message_store', {
 以下是相关文件的内容:
 ${combinedContent}
 请基于这些内容回答用户的问题: ${userask}
+你是一个使用链式思维(chain of Thought，coT)方法并结合反思来回答问题的AI助手。
+输出遵循以下格式:
+1思考:
+按步骤思考并分析问题...,提出相关的解决方案...
+2反思:
+反思上面思考推理过程，检查是否有错误或改进空间...
+3再思考:
+根据你的反思做出必要的调整...,提出更完善的解决方案...
+4结果:
+提供最终的简洁答案...
+要求输出代码带有文件路径
 `;
             messagelist[index + 2] = {role: "user", content: prompt};
             await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
