@@ -30,12 +30,13 @@
 </template>
 
 <script>
-import {ref, computed, onMounted, watch} from 'vue'
-import {useMessageStore} from '@/store/MessageStore.js'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js'
-import {message, Spin} from 'ant-design-vue'
-import {StarOutlined, CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue'
+import { ref, computed, onMounted, watch } from 'vue';
+import { useMessageStore } from '@/store/MessageStore.js';
+import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
+import { message, Spin } from 'ant-design-vue';
+import { StarOutlined, CopyOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
+
 
 export default {
   props: {
@@ -50,21 +51,26 @@ export default {
     ClockCircleOutlined,
   },
   setup(props) {
-    const messageStore = useMessageStore()
-    const dataBlocks = ref([])
+    const messageStore = useMessageStore();
+    const dataBlocks = ref([]);
     const md = new MarkdownIt({
       highlight: (str, lang) => {
         if (lang && hljs.getLanguage(lang)) {
-          console.log(lang)
-          return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, {language: lang}).value}</code></pre>`
+          return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
         }
-        return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
+        if (!lang) {
+          const autoLangResult = hljs.highlightAuto(str);
+          return `<pre class="hljs"><code class="language-${autoLangResult.language}">${autoLangResult.value}</code></pre>`;
+        }
+        lang='html'
+        return `<pre class="hljs"><code class="language-${lang}">${hljs.highlight(str, { language: lang }).value}</code></pre>`;
       },
-    })
+    });
 
     // 编译后的 Markdown 内容
     const compiledMarkdown = computed(() => md.render(props.markdown))
 
+    // 解析代码块
     // 解析代码块
     const parseDataBlocks = () => {
       const tempBlocks = []
@@ -75,14 +81,16 @@ export default {
       // 处理代码块
       matches.forEach((match) => {
         const [fullMatch, language, _] = match
-        console.log(language)
         const index = match.index
 
         if (index > lastIndex) {
           tempBlocks.push({isCode: false, content: compiledMarkdown.value.slice(lastIndex, index)})
         }
 
-        tempBlocks.push({isCode: true, language: language.toUpperCase(), code: props.markdown, content: fullMatch})
+        // 如果没有语言信息，则默认设置为 'plaintext' 或调用 highlight.js 自动检测
+        const detectedLanguage = language || hljs.highlightAuto(match[2]).language || 'plaintext';
+
+        tempBlocks.push({isCode: true, language: detectedLanguage.toUpperCase(), code: match[2], content: fullMatch})
         lastIndex = index + fullMatch.length
       })
 
@@ -92,6 +100,7 @@ export default {
 
       dataBlocks.value = tempBlocks
     }
+
 
     onMounted(parseDataBlocks)
     watch(compiledMarkdown, parseDataBlocks)

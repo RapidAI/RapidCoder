@@ -76,8 +76,12 @@ export const useMessageStore = defineStore('message_store', {
             if (!files.length) return;
 
             const combinedContent = (await Promise.all(
-                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => `${file}:\n\`\`\`${info.content}\n\`\`\``))
+                files.map(file => ipcRenderer.invoke('get-one-file', file).then(info => {
+                    const fileType = file.split('.').pop(); // 提取文件扩展名
+                    return `${file}:\n\`\`\`${fileType}\n${info.content}\n\`\`\``;
+                }))
             )).join('');
+
 
             if (!combinedContent) return;
 
