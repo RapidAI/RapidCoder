@@ -191,7 +191,7 @@ ${combinedContent}
             if (!assistantMessage) return;
 
             // 更新正则表达式，匹配可能带有反引号的文件路径
-            const codeBlockRegex = /###\s*结果：[\s\S]*?文件路径:\s*`?(\/[\w\/\.\-]+)`?\s*\n```(\w+)?\n([\s\S]*?)```/g;
+            const codeBlockRegex = /文件路径:\s*`?(.+?)`?\s*```(?:\w+)?\n([\s\S]+?)```/g;
 
             let match;
             let replacementCount = 0;
@@ -200,7 +200,9 @@ ${combinedContent}
             // 遍历所有匹配项并进行替换
             while ((match = codeBlockRegex.exec(assistantMessage)) !== null && replacementCount < maxReplacements) {
                 const filePath = match[1].trim();
-                const codeContent = match[3];
+                const codeContent = match[2];
+
+                console.log(filePath,codeContent)
 
                 try {
                     const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
