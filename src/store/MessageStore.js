@@ -101,7 +101,7 @@ ${combinedContent}
 4. 结果：
 提供最终的简洁答案。
 
-要求输出代码时候先输出对应的文件路径。
+要求输出代码时候先输出对应的文件路径。例子:path\n\`\`\`...
 `;
             messagelist.splice(index + 2, 0, { role: 'user', content: newPrompt });
             await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
@@ -192,8 +192,11 @@ ${combinedContent}
 
             // 正则表达式匹配文件路径和代码块
             const codeBlockRegex = /([\s\S]*?):\n```(?:\w+)?\n([\s\S]*?)```/g;
-            let match;
-            while ((match = codeBlockRegex.exec(assistantMessage)) !== null) {
+            let match = codeBlockRegex.exec(assistantMessage)
+            if(!match){
+                message.error('没有找到');
+            }
+            while (match !== null) {
                 const filePath = match[1].trim();
                 const codeContent = match[2];
 
