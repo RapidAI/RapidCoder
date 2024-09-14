@@ -64,12 +64,12 @@ export const useMessageStore = defineStore('message_store', {
     "result": {
         "newFileContent": {
             "need": true/false,
-            "reason": ["选择文件的原因:...", "..."],
-            "filepath": ["文件路径", "..."]
+            "reason": ["选择文件的原因:...", ...],
+            "filepath": ["文件路径", ...]
         },
         "continueEditingAbove": {
             "need": true/false,
-            "reason": ["..."]
+            "reason": ...
         }
     }
 }
