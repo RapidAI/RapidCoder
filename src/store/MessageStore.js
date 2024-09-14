@@ -165,6 +165,7 @@ ${combinedContent}
             }
 
             this.currentSession.messages[assistantIndex].isAnalyzing = false;
+            this.messageExecuteCode(assistantIndex)
             this.isStreaming = false;
         },
         parseChatResponse(input) {
