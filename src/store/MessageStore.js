@@ -107,7 +107,7 @@ ${combinedContent}
 4. 结果：
 提供最终的简洁答案。
 
-如果返回代码不是全部内容totleContent=false
+如果返回代码不是全部内容totleContent=false,code为diff格式代码
 返回的 JSON 数据结构为：
 {
     "思考": "...",
