@@ -58,19 +58,22 @@ export const useMessageStore = defineStore('message_store', {
             const prompt = `
 返回的 JSON 数据结构为：
 {
-    "analysis": "用户意图分析...",
+    "analysis": "...",
     "result": {
+        "reason": ["...", "..."],
+        "filePath": ["...", "..."]
         "needContent": true/false,
-        "reason": ["选择文件的原因:...", ...],
-        "filePath": ["文件路径", ...]
     }
 }
+
 JSON结构说明:
-analysis: 根据问题和 projectFileDetails 信息以及上文的信息,确定是否需要需要获取相关文件的具体信息
-needContent: 如果上文中已经存在相关文件的内容就false, 如果不存在就true
+analysis: 用户意图分析,根据问题和上文的信息...,system中定义类每个文件的简单信息,没有相关文件的具体内容
 reason: 如果needContent=false,就不用选择文件, 如果needContent=true,就需要将关联的所有文件的原因写出来
-filePath: 是相关文件的路径
+filePath: 相关文件的路径
+needContent: 判断如果上文中已经存在相关文件的具体内容就false, 如果不存在就true, 一般为true
+
 问题如下：${userQuestion}
+
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
@@ -89,31 +92,9 @@ filePath: 是相关文件的路径
                 if (!combinedContent) return;
 
                 const newPrompt = `
-以下是相关文件的内容:
 ${combinedContent}
+
 请基于这些内容回答用户的问题: ${userQuestion}
-
-你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-输出遵循以下格式：
-1. 思考：
-按步骤思考并分析问题，提出相关的解决方案。
-2. 反思：
-反思上面的思考推理过程，检查是否有错误或改进空间。
-3. 再思考：
-根据你的反思做出必要的调整，提出更完善的解决方案。
-4. 结果：
-提供最终的简洁答案。
-
-如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
-diff格式代码的预期格式
-1. **Diff 头部信息**：
-   - 指示被修改的文件路径，例如 \`--- a/path/to/file\` 和 \`+++ b/path/to/file\`。
-2. **Hunk（块）信息**：
-   - 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
-3. **修改内容**：
-   - 以 \`-\` 开头的行表示从原始文件中删除的内容。
-   - 以 \`+\` 开头的行表示在新文件中添加的内容。
-   - 没有前缀的行表示未修改的内容。
 
 返回的 JSON 数据结构为：
 {
@@ -126,6 +107,25 @@ diff格式代码的预期格式
         "code": "..."
     }
 }
+JSON结构说明:
+你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
+思考：按步骤思考并分析问题，提出相关的解决方案。
+反思：反思上面的思考推理过程，检查是否有错误或改进空间。
+再思考：根据你的反思做出必要的调整，提出更完善的解决方案。
+结果：提供最终的简洁答案。
+
+如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
+diff格式代码的预期格式
+1. **Diff 头部信息**：
+   - 指示被修改的文件路径，例如 \`--- a/path/to/file\` 和 \`+++ b/path/to/file\`。
+2. **Hunk（块）信息**：
+   - 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
+3. **修改内容**：
+   - 以 \`-\` 开头的行表示从原始文件中删除的内容。
+   - 以 \`+\` 开头的行表示在新文件中添加的内容。
+   - 没有前缀的行表示未修改的内容。
+   
+如果代码返回全部内容totleContent=true,那么code为全部的代码
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
