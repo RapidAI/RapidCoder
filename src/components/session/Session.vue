@@ -80,7 +80,8 @@ export default {
           selectSession(session);
         }
       } else {
-        selectSession(messageStore.sessions[0]);
+        const latestSession = messageStore.sessions[messageStore.sessions.length - 1];
+        selectSession(latestSession);
       }
     };
 
