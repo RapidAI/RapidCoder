@@ -12,7 +12,7 @@
       <a-menu v-if="messageStore.sessions.length" mode="inline"
               :selectedKeys="[messageStore.currentSession?.sessionId]"
               class="custom-menu">
-        <a-menu-item v-for="(session, index) in messageStore.sessions" :key="session.sessionId">
+        <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
           <div class="menu-item-container">
             <span class="menu-item-title" @click="selectSession(session)">
               {{ getSessionTitle(session) }}

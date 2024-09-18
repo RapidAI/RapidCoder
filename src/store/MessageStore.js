@@ -108,6 +108,16 @@ ${combinedContent}
 提供最终的简洁答案。
 
 如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
+diff格式代码的预期格式
+1. **Diff 头部信息**：
+   - 指示被修改的文件路径，例如 \`--- a/path/to/file\` 和 \`+++ b/path/to/file\`。
+2. **Hunk（块）信息**：
+   - 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
+3. **修改内容**：
+   - 以 \`-\` 开头的行表示从原始文件中删除的内容。
+   - 以 \`+\` 开头的行表示在新文件中添加的内容。
+   - 没有前缀的行表示未修改的内容。
+
 返回的 JSON 数据结构为：
 {
     "思考": "...",
@@ -224,7 +234,7 @@ ${combinedContent}
                 }
             } catch (error) {
                 console.log('解析 JSON 时发生错误: ' + error.message);
-                console.log(matches[1]);
+                console.log(assistantMessage);
             }
             if (!jsonResponse) {
                 message.error('未找到有效的 JSON 响应');
