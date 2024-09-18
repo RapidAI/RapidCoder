@@ -129,7 +129,7 @@ diff格式代码的预期格式
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
-                this.messageExecuteCode(index + 2)
+                this.messageExecuteCode(index + 3)
             }
             if (!jsonResponse.result.needContent) {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
