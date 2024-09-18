@@ -14,8 +14,14 @@
             <span v-else class="check-icon">✅</span>
           </div>
           <div class="message-actions">
-            <a v-if="item.role === 'user'" @click="enableEditMode(index, item.content)">编辑</a>
-            <a @click="copyToClipboard(item.content)">复制</a>
+            <template v-if="item.role === 'user'">
+              <a @click="enableEditMode(index, item.content)">编辑</a>
+              <a @click="copyToClipboard(item.content)">复制</a>
+            </template>
+            <template v-if="item.role === 'assistant'">
+              <a @click="copyToClipboard(item.content)">复制</a>
+              <a @click="regenerateMessage(index)">重新生成</a>
+            </template>
           </div>
         </div>
         <div v-else class="edit-container">
@@ -104,6 +110,16 @@ export default {
           });
     };
 
+    const regenerateMessage = (index) => {
+      // 重新生成消息的逻辑
+      messageStore.processChat(
+          messageStore.currentSession.messages,
+          index,
+          true,
+          false
+      );
+    };
+
     const handleKeyDown = (event) => {
       if (event.key === 'Enter' && !isComposition && !event.shiftKey) {
         event.preventDefault();
@@ -142,6 +158,7 @@ export default {
       updateMessage,
       cancelEdit,
       copyToClipboard,
+      regenerateMessage,
       handleKeyDown,
       handleComposition,
       messageStore,
