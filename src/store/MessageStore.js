@@ -101,26 +101,28 @@ ${combinedContent}
     "思考": "...",
     "反思": "...",
     "再思考": "...",
-    "结果": {
-        "filePath": "...",
-        "totleContent": true/false,
-        "code": "..."
-    }
+    "结果": [
+        {
+            "filePath": "...",
+            "totleContent": true/false,
+            "code": "..."
+        }
+        ,...
+    ]
 }
+
 JSON结构说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
 思考：按步骤思考并分析问题，提出相关的解决方案。
 反思：反思上面的思考推理过程，检查是否有错误或改进空间。
 再思考：根据你的反思做出必要的调整，提出更完善的解决方案。
-结果：提供最终的简洁答案。
+结果：提供最终的简洁答案,如果是多个文件的代码就返回多个
 
 如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
 diff格式代码的预期格式
-1. **Diff 头部信息**：
-   - 指示被修改的文件路径，例如 \`--- a/path/to/file\` 和 \`+++ b/path/to/file\`。
-2. **Hunk（块）信息**：
-   - 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
-3. **修改内容**：
+**Hunk（块）信息**：
+    - 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
+**修改内容**：
    - 以 \`-\` 开头的行表示从原始文件中删除的内容。
    - 以 \`+\` 开头的行表示在新文件中添加的内容。
    - 没有前缀的行表示未修改的内容。
@@ -239,33 +241,43 @@ diff格式代码的预期格式
 
             // 从 JSON 响应中获取文件路径、代码内容和 totleContent
             const { 思考, 反思, 再思考, 结果 } = jsonResponse;
-            if (!结果 || !结果.filePath || !结果.code || typeof 结果.totleContent !== 'boolean') {
-                console.log('JSON 结果中缺少文件路径、代码内容或 totleContent');
+
+            if (!Array.isArray(结果) || 结果.length === 0) {
+                console.log('JSON 结果列表为空或无效');
                 return;
             }
 
-            const filePath = 结果.filePath;
-            const codeContent = 结果.code;
-            const totleContent = 结果.totleContent;
-
-            // 替换文件内容
-            try {
-                let result;
-                if (totleContent) {
-                    // 替换整个文件内容
-                    result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
-                } else {
-                    // 应用 git diff 补丁
-                    result = await ipcRenderer.invoke('replace-file-content-diff', filePath, codeContent);
+            // 遍历结果列表
+            for (const item of 结果) {
+                if (!item.filePath || !item.code || typeof item.totleContent !== 'boolean') {
+                    console.log('JSON 结果中缺少文件路径、代码内容或 totleContent');
+                    continue; // 跳过当前项，处理下一个
                 }
 
-                if (result.success) {
-                    message.success(`文件 ${filePath} 已成功更新`);
-                } else {
-                    message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                const filePath = item.filePath;
+                const codeContent = item.code;
+                const totleContent = item.totleContent;
+
+                // 替换文件内容
+                try {
+                    let result;
+                    if (totleContent) {
+                        // 替换整个文件内容
+                        result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
+                    } else {
+                        // 应用 git diff 补丁
+                        result = await ipcRenderer.invoke('replace-file-content-diff', filePath, codeContent);
+                    }
+
+                    if (result.success) {
+                        message.success(`文件 ${filePath} 已成功更新`);
+                    } else {
+                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                        console.log(codeContent);
+                    }
+                } catch (error) {
+                    message.error(`调用替换文件内容时出错: ${error.message}`);
                 }
-            } catch (error) {
-                message.error(`调用替换文件内容时出错: ${error.message}`);
             }
         },
         async stopChat() {

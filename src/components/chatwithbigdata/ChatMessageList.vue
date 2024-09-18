@@ -1,43 +1,30 @@
 <template>
   <div ref="messageList" class="custom-list">
-    <div
-        v-for="(item, index) in messageStore.currentSession.messages"
-        :key="index"
-        class="message-item"
-    >
-      <component
-          :is="item.role === 'user' ? UserOutlined : RobotOutlined"
-          class="role-icon"
-      />
+    <div v-for="(item, index) in messageStore.currentSession.messages" :key="index" class="message-item">
+      <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
-          <chat-markdown
-              v-if="debugMode"
-              :markdown="item.content"
-              :debugMode="debugMode"
-              :messageindex="index"
-          />
+          <chat-markdown v-if="debugMode"
+                         :markdown="item.content"
+                         :debugMode="debugMode"
+                         :messageindex="index"/>
           <div v-if="!debugMode" class="analysis-complete">
             {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
-            <a-spin v-if="item.isAnalyzing" class="loading-icon" />
+            <a-spin v-if="item.isAnalyzing" class="loading-icon"/>
             <span v-else class="check-icon">✅</span>
           </div>
           <div class="message-actions">
-            <a v-if="item.role === 'user'" @click="enableEditMode(index, item.content)"
-            >编辑</a
-            >
+            <a v-if="item.role === 'user'" @click="enableEditMode(index, item.content)">编辑</a>
             <a @click="copyToClipboard(item.content)">复制</a>
           </div>
         </div>
         <div v-else class="edit-container">
-          <a-textarea
-              v-model:value="editedMessageContent"
-              @keydown="handleKeyDown"
-              @compositionstart="handleComposition(true)"
-              @compositionend="handleComposition(false)"
-              :auto-size="{ minRows: 1, maxRows: 3 }"
-              class="edit-textarea"
-          />
+          <a-textarea v-model:value="editedMessageContent"
+                      @keydown="handleKeyDown"
+                      @compositionstart="handleComposition(true)"
+                      @compositionend="handleComposition(false)"
+                      :auto-size="{ minRows: 1, maxRows: 3 }"
+                      class="edit-textarea"/>
           <div class="edit-actions">
             <a @click="updateMessage(index, item.role)">发送</a>
             <a @click="cancelEdit">取消</a>
@@ -49,15 +36,15 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import { useMessageStore } from '@/store/MessageStore.js';
-import { message } from 'ant-design-vue';
+import {ref, onMounted, onUnmounted, nextTick} from 'vue';
+import {useMessageStore} from '@/store/MessageStore.js';
+import {message} from 'ant-design-vue';
 import {
   UserOutlined,
   RobotOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons-vue';
-import { eventBus } from '@/eventBus.js';
+import {eventBus} from '@/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
 
 export default {
@@ -132,7 +119,7 @@ export default {
       nextTick(() => {
         const messageItems =
             messageList.value?.querySelectorAll('.message-item');
-        messageItems[index].scrollIntoView({ behavior: 'instant', block: 'end' });
+        messageItems[index].scrollIntoView({behavior: 'instant', block: 'end'});
       });
     };
 
