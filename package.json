@@ -7,14 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "NODE_ENV=development electron .",
-    "electron:build": "vite build && electron-builder"
+    "electron:dev": "cross-env NODE_ENV=development electron .",
+    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "ant-design-vue": "^4.2.1",
     "better-sqlite3": "^11.2.1",
+    "diff": "^7.0.0",
     "echarts": "^5.5.1",
+    "electron": "latest",
+    "electron-builder": "latest",
     "highlight.js": "^11.9.0",
     "markdown-it": "^14.1.0",
     "mitt": "^3.0.1",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
+    "cross-env": "^7.0.3",
     "electron": "^32.0.1",
     "electron-builder": "^24.13.3",
     "fast-glob": "^3.3.2",

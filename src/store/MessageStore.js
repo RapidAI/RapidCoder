@@ -215,35 +215,44 @@ ${combinedContent}
 
             // 尝试从消息中提取 JSON 响应
             const matches = assistantMessage.match(/```json([\s\S]*?)(?:\n```|$)/);
-            let jsonResponse = ''
+            let jsonResponse = '';
             try {
                 if (matches) {
-                    jsonResponse = JSON.parse(matches[1].trim())
+                    jsonResponse = JSON.parse(matches[1].trim());
                 } else {
-                    jsonResponse = JSON.parse(assistantMessage.trim())
+                    jsonResponse = JSON.parse(assistantMessage.trim());
                 }
             } catch (error) {
                 console.log('解析 JSON 时发生错误: ' + error.message);
-                console.log(matches[1])
+                console.log(matches[1]);
             }
             if (!jsonResponse) {
                 message.error('未找到有效的 JSON 响应');
                 return;
             }
 
-            // 从 JSON 响应中获取文件路径和代码内容
-            const {思考, 反思, 再思考, 结果} = jsonResponse;
-            if (!结果 || !结果.filePath || !结果.code) {
-                console.log('JSON 结果中缺少文件路径或代码内容');
+            // 从 JSON 响应中获取文件路径、代码内容和 totleContent
+            const { 思考, 反思, 再思考, 结果 } = jsonResponse;
+            if (!结果 || !结果.filePath || !结果.code || typeof 结果.totleContent !== 'boolean') {
+                console.log('JSON 结果中缺少文件路径、代码内容或 totleContent');
                 return;
             }
 
             const filePath = 结果.filePath;
             const codeContent = 结果.code;
+            const totleContent = 结果.totleContent;
 
             // 替换文件内容
             try {
-                const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
+                let result;
+                if (totleContent) {
+                    // 替换整个文件内容
+                    result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
+                } else {
+                    // 应用 git diff 补丁
+                    result = await ipcRenderer.invoke('replace-file-content-diff', filePath, codeContent);
+                }
+
                 if (result.success) {
                     message.success(`文件 ${filePath} 已成功更新`);
                 } else {
@@ -252,7 +261,6 @@ ${combinedContent}
             } catch (error) {
                 message.error(`调用替换文件内容时出错: ${error.message}`);
             }
-
         },
         async stopChat() {
             if (this.isStreaming) {
