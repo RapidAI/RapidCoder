@@ -8,9 +8,11 @@
                          :markdown="item.content"
                          :debugMode="debugMode"
                          :messageindex="index"/>
-          <div v-if="!debugMode" class="analysis-complete">
-            {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
-            <a-spin v-if="item.isAnalyzing" class="loading-icon"/>
+          <div v-if="!debugMode" class="analysis-status">
+            <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
+              {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
+            </span>
+            <CustomLoading v-if="item.isAnalyzing" class="loading-icon"/>
             <span v-else class="check-icon">✅</span>
           </div>
           <div class="message-actions">
@@ -52,9 +54,11 @@ import {
 } from '@ant-design/icons-vue';
 import {eventBus} from '@/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
+import CustomLoading from "@/components/common/CustomLoading.vue";
 
 export default {
   components: {
+    CustomLoading,
     ChatMarkdown,
     UserOutlined,
     RobotOutlined,
@@ -218,9 +222,16 @@ export default {
   color: black;
 }
 
-.analysis-complete {
+.analysis-status {
   color: gray;
-  font-style: italic;
+}
+
+.status-text {
+  font-weight: bold;
+}
+
+.status-text.analyzing {
+  color: #1890ff; /* 蓝色 */
 }
 
 .loading-icon {
@@ -229,5 +240,6 @@ export default {
 
 .check-icon {
   margin-left: 8px;
+  color: green;
 }
 </style>
