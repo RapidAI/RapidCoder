@@ -80,9 +80,7 @@ export default {
 
     const updateMessage = (index, role) => {
       if (role === 'user' && editedMessageContent.value.trim()) {
-        messageStore.currentSession.messages[index].content =
-            editedMessageContent.value;
-        messageStore.currentSession.messages[index].retryCount = 0; // 重置
+        messageStore.currentSession.messages[index].content = editedMessageContent.value;
         messageStore.currentSession.messages.splice(index + 1);
         messageStore.selectFileAndChat(
             messageStore.currentSession.messages,
@@ -111,7 +109,7 @@ export default {
     };
 
     const regenerateMessage = (index) => {
-      // 重新生成消息的逻辑
+      messageStore.currentSession.messages.splice(index + 1);
       messageStore.processChat(
           messageStore.currentSession.messages,
           index,
