@@ -56,23 +56,20 @@ export const useMessageStore = defineStore('message_store', {
 
             const userQuestion = messagelist[index].content;
             const prompt = `
-根据问题和 projectFileDetails 信息以及上文的信息
-确定是否需要获取具体文件的内容,还是继续改写
 返回的 JSON 数据结构为：
 {
     "analysis": "用户意图分析...",
     "result": {
-        "newFileContent": {
-            "need": true/false,
-            "reason": ["选择文件的原因:...", ...],
-            "filepath": ["文件路径", ...]
-        },
-        "continueEditingAbove": {
-            "need": true/false,
-            "reason": ...
-        }
+        "needContent": true/false,
+        "reason": ["选择文件的原因:...", ...],
+        "filePath": ["文件路径", ...]
     }
 }
+JSON结构说明:
+analysis: 根据问题和 projectFileDetails 信息以及上文的信息,确定是否需要需要获取相关文件的具体信息
+needContent: 如果上文中已经存在相关文件的内容就false, 如果不存在就true
+reason: 如果needContent=false,就不用选择文件, 如果needContent=true,就需要将关联的所有文件的原因写出来
+filePath: 是相关文件的路径
 问题如下：${userQuestion}
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
@@ -84,8 +81,8 @@ export const useMessageStore = defineStore('message_store', {
             const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
             if (!jsonResponse) return;
 
-            if (jsonResponse.result.newFileContent.need) {
-                const files = jsonResponse.result.newFileContent.filepath || [];
+            if (jsonResponse.result.needContent) {
+                const files = jsonResponse.result.filePath || [];
                 if (!files.length) return;
 
                 const combinedContent = await this.getCombinedFileContent(files);
@@ -133,11 +130,10 @@ diff格式代码的预期格式
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
                 this.messageExecuteCode(index + 2)
-            } else if (jsonResponse.result.continueEditingAbove.need) {
+            }
+            if (!jsonResponse.result.needContent) {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
                 this.messageExecuteCode(index)
-            } else {
-                await this.processChat(messagelist, index, overwrite, semanticSearch);
             }
         },
         async getCombinedFileContent(files) {
