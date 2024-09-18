@@ -42,7 +42,7 @@
           <a-input v-model:value="ignoredPatterns" placeholder="请输入需要忽略的文件或文件夹（用逗号分隔）"/>
         </a-form-item>
       </a-form>
-      <a-spin v-if="isAnalyzing" tip="AI解析中..."/>
+      <CustomLoading v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
 
     <a-modal v-model:open="isDescriptionModalVisible" title="项目解析" :footer="null" :width="800">
@@ -58,11 +58,12 @@ import { useModelStore } from '@/store/ModelStore';
 import ProjectForm from './ProjectForm.vue';
 import { message } from 'ant-design-vue';
 import MarkdownIt from 'markdown-it';
+import CustomLoading from "@/components/common/CustomLoading.vue";
 
 const { ipcRenderer } = require('electron');
 
 export default {
-  components: { ProjectForm },
+  components: {CustomLoading, ProjectForm },
   setup() {
     const projectStore = useProjectStore();
     const modelStore = useModelStore();

@@ -4,7 +4,7 @@
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <a-spin v-if="block.isLoading" />
+          <CustomLoading v-if="block.isLoading" />
           <a-tooltip placement="bottom" title="复制代码">
             <a @click="copyCode(block.code)">
               <CopyOutlined />
