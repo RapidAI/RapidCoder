@@ -107,7 +107,7 @@ ${combinedContent}
 4. 结果：
 提供最终的简洁答案。
 
-如果返回代码不是全部内容totleContent=false,code为diff格式代码
+如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
 返回的 JSON 数据结构为：
 {
     "思考": "...",
@@ -122,8 +122,10 @@ ${combinedContent}
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
+                this.messageExecuteCode(index + 2)
             } else if (jsonResponse.result.continueEditingAbove.need) {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
+                this.messageExecuteCode(index)
             } else {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
             }
@@ -187,7 +189,6 @@ ${combinedContent}
             }
 
             this.currentSession.messages[assistantIndex].isAnalyzing = false;
-            this.messageExecuteCode(assistantIndex)
             this.isStreaming = false;
         },
         parseChatResponse(input) {
@@ -213,38 +214,45 @@ ${combinedContent}
             if (!assistantMessage) return;
 
             // 尝试从消息中提取 JSON 响应
+            const matches = assistantMessage.match(/```json([\s\S]*?)(?:\n```|$)/);
+            let jsonResponse = ''
             try {
-                const matches = assistantMessage.match(/```json([\s\S]*?)```/);
-                const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
-                if (!jsonResponse) {
-                    message.error('未找到有效的 JSON 响应');
-                    return;
-                }
-
-                // 从 JSON 响应中获取文件路径和代码内容
-                const {思考, 反思, 再思考, 结果} = jsonResponse;
-                if (!结果 || !结果.filePath || !结果.code) {
-                    console.log('JSON 结果中缺少文件路径或代码内容');
-                    return;
-                }
-
-                const filePath = 结果.filePath;
-                const codeContent = 结果.code;
-
-                // 替换文件内容
-                try {
-                    const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
-                    if (result.success) {
-                        message.success(`文件 ${filePath} 已成功更新`);
-                    } else {
-                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
-                    }
-                } catch (error) {
-                    message.error(`调用替换文件内容时出错: ${error.message}`);
+                if (matches) {
+                    jsonResponse = JSON.parse(matches[1].trim())
+                } else {
+                    jsonResponse = JSON.parse(assistantMessage.trim())
                 }
             } catch (error) {
                 console.log('解析 JSON 时发生错误: ' + error.message);
+                console.log(matches[1])
             }
+            if (!jsonResponse) {
+                message.error('未找到有效的 JSON 响应');
+                return;
+            }
+
+            // 从 JSON 响应中获取文件路径和代码内容
+            const {思考, 反思, 再思考, 结果} = jsonResponse;
+            if (!结果 || !结果.filePath || !结果.code) {
+                console.log('JSON 结果中缺少文件路径或代码内容');
+                return;
+            }
+
+            const filePath = 结果.filePath;
+            const codeContent = 结果.code;
+
+            // 替换文件内容
+            try {
+                const result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
+                if (result.success) {
+                    message.success(`文件 ${filePath} 已成功更新`);
+                } else {
+                    message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
+                }
+            } catch (error) {
+                message.error(`调用替换文件内容时出错: ${error.message}`);
+            }
+
         },
         async stopChat() {
             if (this.isStreaming) {
