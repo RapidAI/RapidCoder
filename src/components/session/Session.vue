@@ -1,7 +1,7 @@
 <template>
   <a-layout class="full-height">
     <!-- 侧边栏 -->
-    <a-layout-sider theme="light">
+    <a-layout-sider theme="light" width="300">
       <!-- 新建对话 -->
       <div class="fixed-button-container">
         <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
@@ -18,9 +18,6 @@
                 class="custom-menu">
           <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
             <div class="menu-item-container">
-              <span class="menu-item-title" @click="selectSession(session)">
-                {{ getSessionTitle(session) }}
-              </span>
               <a-dropdown class="menu-item-dropdown">
                 <EllipsisOutlined />
                 <template #overlay>
@@ -35,6 +32,9 @@
                   </a-menu>
                 </template>
               </a-dropdown>
+              <span class="menu-item-title" @click="selectSession(session)">
+                {{ getSessionTitle(session) }}
+              </span>
             </div>
           </a-menu-item>
         </a-menu>
@@ -242,9 +242,6 @@ export default {
 }
 
 .menu-item-title {
-  display: inline-block;
-  max-width: 120px;
-  min-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -258,3 +255,4 @@ export default {
   padding: 20px;
 }
 </style>
+
