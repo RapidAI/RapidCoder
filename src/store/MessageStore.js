@@ -224,7 +224,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 console.log(assistantMessage);
             }
             if (!jsonResponse) {
-                message.error('未找到有效的 JSON 响应');
+                message.success('不是代码无需运行');
                 return;
             }
 
