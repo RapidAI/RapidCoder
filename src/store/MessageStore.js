@@ -60,8 +60,8 @@ export const useMessageStore = defineStore('message_store', {
 {
     "analysis": "...",
     "result": {
-        "reason": ["...", "..."],
-        "filePath": ["...", "..."]
+        "reason": ["选择文件的原因...", "..."],
+        "filePath": ["文件路径...", "..."]
         "needContent": true/false,
     }
 }
