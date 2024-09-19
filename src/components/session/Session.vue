@@ -89,7 +89,7 @@ export default {
     // 创建新的会话
     const createNewSession = async () => {
       loadingProjects.value = true;
-      await messageStore.createSession();
+      await messageStore.createSession(models,projects);
       loadingProjects.value = false;
       router.push({query: {sessionId: messageStore.currentSession.sessionId}})
     };

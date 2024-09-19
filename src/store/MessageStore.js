@@ -30,14 +30,14 @@ export const useMessageStore = defineStore('message_store', {
         loadProjects() {
             this.projects = useProjectStore().projects;
         },
-        createSession() {
+        createSession(models,projects) {
             const newSession = {
                 sessionId: Date.now(),
-                currentModel: this.models[0],
+                currentModel: models,
                 messages: [
                     {
                         role: 'system',
-                        content: `\`\`\`json\n${JSON.stringify(this.projects, null, 2)}\n\`\`\``,
+                        content: `\`\`\`json\n${JSON.stringify(projects, null, 2)}\n\`\`\``,
                         isAnalyzing: false,
                     },
                 ],
