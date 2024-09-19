@@ -1,14 +1,14 @@
 <template>
   <div class="chat-container">
     <div class="top-bar">
-      {{messageStore.currentSession.currentModel.modelName}}
+      {{ messageStore.currentSession.currentModel.modelName }}
+      <a-switch
+          v-model:checked="debugMode"
+          class="debug-switch"
+          checked-children="调试模式"
+          un-checked-children="普通模式"
+      />
     </div>
-    <a-switch
-        v-model:checked="debugMode"
-        class="debug-switch"
-        checked-children="调试模式"
-        un-checked-children="普通模式"
-    />
     <chat-message-list class="message-list" :debugMode="debugMode"/>
     <chat-message-input class="message-input"/>
   </div>
@@ -44,14 +44,9 @@ export default {
 }
 
 .top-bar {
+  margin: 10px;
   display: flex;
   align-items: center;
-}
-
-.session-info {
-  margin-left: 20px;
-  display: flex;
-  gap: 10px;
 }
 
 .message-list {
@@ -67,7 +62,6 @@ export default {
 
 .debug-switch {
   position: absolute;
-  top: 10px;
   right: 10px;
 }
 </style>
