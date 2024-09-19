@@ -4,10 +4,9 @@
       <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
-          <chat-markdown v-if="debugMode"
-                         :markdown="item.content"
-                         :debugMode="debugMode"
-                         :messageindex="index"/>
+          <template v-if="debugMode">
+            <chat-markdown :markdown="item.content"  :messageindex="index"/>
+          </template>
           <div v-if="!debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
               {{ item.isAnalyzing ? '正在分析' : '分析完成' }}

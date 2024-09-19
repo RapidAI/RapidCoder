@@ -1,18 +1,18 @@
 <template>
   <div class="my-markdown">
-    <div v-if="debugMode" v-for="(block, index) in dataBlocks" :key="index">
+    <div v-for="(block, index) in dataBlocks" :key="index">
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <custom-loading v-if="block.isLoading" />
+          <custom-loading v-if="block.isLoading"/>
           <a-tooltip placement="bottom" title="复制代码">
             <a @click="copyCode(block.code)">
-              <CopyOutlined />
+              <CopyOutlined/>
             </a>
           </a-tooltip>
           <a-tooltip placement="bottom" title="再次运行">
             <a @click="executeCode()">
-              <ClockCircleOutlined />
+              <ClockCircleOutlined/>
             </a>
           </a-tooltip>
         </div>
@@ -23,18 +23,18 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
-import { useMessageStore } from '@/store/MessageStore.js';
+import {ref, watch} from 'vue';
+import {useMessageStore} from '@/store/MessageStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import { message } from 'ant-design-vue';
-import { CopyOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
+import {message} from 'ant-design-vue';
+import {CopyOutlined, ClockCircleOutlined} from '@ant-design/icons-vue';
 import CustomLoading from "@/components/common/CustomLoading.vue";
+
 export default {
   props: {
-    markdown: { type: String, default: '' },
-    debugMode: { type: Boolean, default: true },
-    messageindex: { type: Number, default: 0 },
+    markdown: {type: String, default: ''},
+    messageindex: {type: Number, default: 0},
   },
   components: {
     CopyOutlined,
@@ -48,7 +48,7 @@ export default {
     const md = new MarkdownIt({
       highlight: (str, lang) => {
         if (lang && hljs.getLanguage(lang)) {
-          return hljs.highlight(str, { language: lang }).value;
+          return hljs.highlight(str, {language: lang}).value;
         }
         return hljs.highlightAuto(str).value;
       },
@@ -88,7 +88,7 @@ export default {
       dataBlocks.value = tempBlocks;
     };
 
-    watch(() => props.markdown, parseDataBlocks, { immediate: true });
+    watch(() => props.markdown, parseDataBlocks, {immediate: true});
 
     const copyCode = (code) => {
       navigator.clipboard
@@ -98,7 +98,7 @@ export default {
     };
 
     const executeCode = () => {
-      const { messages } = messageStore.currentSession;
+      const {messages} = messageStore.currentSession;
       messageStore.messageExecuteCode(props.messageindex);
     };
 
