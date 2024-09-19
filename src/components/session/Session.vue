@@ -54,6 +54,7 @@ import {useMessageStore} from '@/store/MessageStore.js';
 import {DatabaseOutlined, EditOutlined, EllipsisOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
 import {useRoute, useRouter} from 'vue-router';
+import {eventBus} from "@/eventBus";
 
 export default {
   components: {
@@ -100,7 +101,7 @@ export default {
 
     // 选择会话
     const selectSession = (session) => {
-      console.log(session)
+      eventBus.emit('messageUpdated',messageStore.currentSession.messages.length - 1);
       messageStore.currentSession = session;
       router.push({query: {sessionId: session.sessionId}});
     };

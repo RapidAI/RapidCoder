@@ -143,7 +143,7 @@ diff格式代码的预期格式
                     files.map(async (file) => {
                         const info = await ipcRenderer.invoke('get-one-file', file);
                         const fileType = file.split('.').pop();
-                        return `${file}:\`\`\`${fileType}\n${info.content}\n\`\`\`\n`;
+                        return `${file}:\n\`\`\`${fileType} \n${info.content}\n\`\`\` \n`;
                     })
                 );
                 return contents.join('');

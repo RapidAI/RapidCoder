@@ -129,14 +129,27 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
 // 获取单个文件
 ipcMain.handle('get-one-file', (event, filePath) => {
     const stats = fs.statSync(filePath);
+    const content = fs.readFileSync(filePath, 'utf-8').split('\n');
+
+    // 获取最大行号长度，用于对齐
+    const maxLineNumberLength = String(content.length).length;
+
+    // 将行号与内容合并，行号左侧对齐
+    const contentWithLineNumbers = content.map((line, index) => {
+        const lineNumber = (index + 1).toString().padStart(maxLineNumberLength, ' ');
+        return `${lineNumber} | ${line}`;  // 行号与内容通过 '|' 分隔
+    }).join('\n');  // 将行内容合并成单个字符串
+
     return {
         path: filePath,
         size: stats.size,
         createdAt: stats.birthtime,
         modifiedAt: stats.mtime,
-        content: fs.readFileSync(filePath, 'utf-8')
+        content: contentWithLineNumbers
     };
 });
+
+
 // 添加替换文件内容的功能
 ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
     if (typeof filePath !== 'string') {
@@ -156,7 +169,6 @@ ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
 });
 
 
-
 ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent) => {
     if (typeof filePath !== 'string') {
         throw new Error('filePath must be a string');
@@ -169,6 +181,8 @@ ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent)
     try {
         // 读取原始文件内容
         const originalContent = fs.readFileSync(filePath, 'utf-8');
+        console.log('Original Content:', originalContent);
+        console.log('Diff Content:', diffContent);
 
         // 应用 git diff 补丁
         const patchedContent = applyPatch(originalContent, diffContent);
@@ -181,6 +195,7 @@ ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent)
 
         return { success: true, message: '文件已成功更新（使用 git diff）' };
     } catch (error) {
+        console.error('Error applying patch:', error);
         return { success: false, message: `更新文件失败: ${error.message}` };
     }
 });
