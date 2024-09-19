@@ -16,6 +16,9 @@
             <span v-else class="check-icon">✅</span>
           </div>
           <div class="message-actions">
+            <template v-if="item.role === 'system'">
+              <a @click="copyToClipboard(item.content)">复制</a>
+            </template>
             <template v-if="item.role === 'user'">
               <a @click="enableEditMode(index, item.content)">编辑</a>
               <a @click="copyToClipboard(item.content)">复制</a>
