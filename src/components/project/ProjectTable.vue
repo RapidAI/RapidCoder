@@ -42,7 +42,7 @@
           <a-input v-model:value="ignoredPatterns" placeholder="请输入需要忽略的文件或文件夹（用逗号分隔）"/>
         </a-form-item>
       </a-form>
-      <CustomLoading v-if="isAnalyzing" tip="AI解析中..."/>
+      <custom-loading v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
 
     <a-modal v-model:open="isDescriptionModalVisible" title="项目解析" :footer="null" :width="800">

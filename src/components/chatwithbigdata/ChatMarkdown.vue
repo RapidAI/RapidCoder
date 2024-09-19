@@ -4,7 +4,7 @@
       <div v-if="block.isCode" class="code-header">
         <span>{{ block.language }}</span>
         <div class="code-actions">
-          <CustomLoading v-if="block.isLoading" />
+          <custom-loading v-if="block.isLoading" />
           <a-tooltip placement="bottom" title="复制代码">
             <a @click="copyCode(block.code)">
               <CopyOutlined />
@@ -29,7 +29,7 @@ import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import { message } from 'ant-design-vue';
 import { CopyOutlined, ClockCircleOutlined } from '@ant-design/icons-vue';
-
+import CustomLoading from "@/components/common/CustomLoading.vue";
 export default {
   props: {
     markdown: { type: String, default: '' },
@@ -38,6 +38,7 @@ export default {
   },
   components: {
     CopyOutlined,
+    CustomLoading,
     ClockCircleOutlined,
   },
   setup(props) {

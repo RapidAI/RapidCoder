@@ -117,6 +117,16 @@ JSON结构说明:
 反思：反思上面的思考推理过程，检查是否有错误或改进空间。
 再思考：根据你的反思做出必要的调整，提出更完善的解决方案。
 结果：提供最终的简洁答案,如果是多个文件的代码就返回多个
+
+如果代码返回全部内容totleContent=true,那么code为全部的代码
+如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
+diff格式代码的预期格式
+**Hunk（块）信息**：
+- 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
+**修改内容**：
+- 以 \`-\` 开头的行表示从原始文件中删除的内容。
+- 以 \`+\` 开头的行表示在新文件中添加的内容。
+- 没有前缀的行表示未修改的内容。
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
@@ -133,7 +143,7 @@ JSON结构说明:
                     files.map(async (file) => {
                         const info = await ipcRenderer.invoke('get-one-file', file);
                         const fileType = file.split('.').pop();
-                        return `${file}:\n\`\`\`${fileType}\n${info.content}\n\`\`\``;
+                        return `${file}:\`\`\`${fileType}\n${info.content}\n\`\`\`\n`;
                     })
                 );
                 return contents.join('');

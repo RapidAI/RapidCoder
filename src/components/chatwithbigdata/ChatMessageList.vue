@@ -12,7 +12,7 @@
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
               {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
             </span>
-            <CustomLoading v-if="item.isAnalyzing" class="loading-icon"/>
+            <custom-loading v-if="item.isAnalyzing" class="loading-icon"/>
             <span v-else class="check-icon">✅</span>
           </div>
           <div class="message-actions">
@@ -116,7 +116,7 @@ export default {
     };
 
     const regenerateMessage = (index) => {
-      messageStore.currentSession.messages.splice(index + 1);
+      messageStore.currentSession.messages.splice(index);
       messageStore.processChat(
           messageStore.currentSession.messages,
           index,
