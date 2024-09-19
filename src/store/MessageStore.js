@@ -1,8 +1,6 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
-import {useModelStore} from '@/store/ModelStore';
-import {useProjectStore} from '@/store/ProjectStore';
 
 const {ipcRenderer} = require('electron');
 
@@ -10,8 +8,6 @@ export const useMessageStore = defineStore('message_store', {
     state: () => ({
         sessions: [],
         currentSession: {},
-        projects: [],
-        models: [],
         isStreaming: false,
     }),
     persist: {
@@ -24,12 +20,6 @@ export const useMessageStore = defineStore('message_store', {
         ],
     },
     actions: {
-        loadModels() {
-            this.models = useModelStore().models;
-        },
-        loadProjects() {
-            this.projects = useProjectStore().projects;
-        },
         createSession(models,projects) {
             const newSession = {
                 sessionId: Date.now(),

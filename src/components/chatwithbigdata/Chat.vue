@@ -1,20 +1,7 @@
 <template>
   <div class="chat-container">
     <div class="top-bar">
-      <a-select
-          v-model:value="messageStore.currentSession.currentModel.modelId"
-          placeholder="请选择一个模型"
-          :allow-clear="true"
-          @change="updateCurrentModel"
-      >
-        <a-select-option
-            v-for="model in messageStore.models"
-            :key="model.modelId"
-            :value="model.modelId"
-        >
-          {{ model.modelName }}
-        </a-select-option>
-      </a-select>
+      {{messageStore.currentSession.currentModel.modelName}}
     </div>
     <a-switch
         v-model:checked="debugMode"
@@ -41,13 +28,7 @@ export default {
   setup() {
     const messageStore = useMessageStore();
     const debugMode = ref(true);
-    // 更新当前模型
-    const updateCurrentModel = (modelId) => {
-      const model = messageStore.models.find((model) => model.modelId === modelId);
-      messageStore.currentSession.currentModel = model || null;
-    };
     return {
-      updateCurrentModel,
       debugMode,
       messageStore,
     };
