@@ -263,10 +263,10 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                     } else {
                         message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
                         console.log(codeContent);
+                        console.log(`调用替换文件内容时出错: ${result.message}`);
                     }
                 } catch (error) {
                     message.error(`调用替换文件内容时出错: ${error.message}`);
-                    console.log(`调用替换文件内容时出错: ${error.toString()}`);
                 }
             }
         },
