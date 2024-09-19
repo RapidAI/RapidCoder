@@ -3,38 +3,42 @@
     <!-- 侧边栏 -->
     <a-layout-sider theme="light">
       <!-- 新建对话 -->
-      <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
-        <template #icon>
-          <EditOutlined />
-        </template>
-        新对话
-      </a-button>
+      <div class="fixed-button-container">
+        <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
+          <template #icon>
+            <EditOutlined />
+          </template>
+          新对话
+        </a-button>
+      </div>
       <!-- 对话列表 -->
-      <a-menu v-if="messageStore.sessions.length" mode="inline"
-              :selectedKeys="[messageStore.currentSession?.sessionId]"
-              class="custom-menu">
-        <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
-          <div class="menu-item-container">
-            <span class="menu-item-title" @click="selectSession(session)">
-              {{ getSessionTitle(session) }}
-            </span>
-            <a-dropdown class="menu-item-dropdown">
-              <EllipsisOutlined />
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item @click="showRenameModal(index)">重命名</a-menu-item>
-                  <a-menu-item>
-                    <a-popconfirm title="确定要删除这个会话吗？" okText="确定" cancelText="取消"
-                                  @confirm="deleteSession(index)">
-                      <span>删除</span>
-                    </a-popconfirm>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-        </a-menu-item>
-      </a-menu>
+      <div class="scrollable-menu-container">
+        <a-menu v-if="messageStore.sessions.length" mode="inline"
+                :selectedKeys="[messageStore.currentSession?.sessionId]"
+                class="custom-menu">
+          <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
+            <div class="menu-item-container">
+              <span class="menu-item-title" @click="selectSession(session)">
+                {{ getSessionTitle(session) }}
+              </span>
+              <a-dropdown class="menu-item-dropdown">
+                <EllipsisOutlined />
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item @click="showRenameModal(index)">重命名</a-menu-item>
+                    <a-menu-item>
+                      <a-popconfirm title="确定要删除这个会话吗？" okText="确定" cancelText="取消"
+                                    @confirm="deleteSession(index)">
+                        <span>删除</span>
+                      </a-popconfirm>
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </div>
+          </a-menu-item>
+        </a-menu>
+      </div>
     </a-layout-sider>
 
     <!-- 对话内容区域 -->
@@ -220,9 +224,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.fixed-button-container {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  padding: 10px 0;
+}
+
+.scrollable-menu-container {
+  max-height: calc(100vh - 60px); /* 60px 是按钮容器的高度 */
+  overflow-y: auto;
+}
+
 .new_session_button {
   width: 100%;
-  margin-top: 10px;
 }
 
 .menu-item-title {
@@ -242,4 +258,3 @@ export default {
   padding: 20px;
 }
 </style>
-
