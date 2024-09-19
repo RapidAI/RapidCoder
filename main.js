@@ -186,9 +186,6 @@ ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent)
 
         // 应用 git diff 补丁
         const patchedContent = applyPatch(originalContent, diffContent);
-        if (patchedContent === false) {
-            throw new Error('Failed to apply git diff patch');
-        }
 
         // 将更新后的内容写回文件
         fs.writeFileSync(filePath, patchedContent, 'utf-8');

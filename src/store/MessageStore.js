@@ -60,7 +60,7 @@ export const useMessageStore = defineStore('message_store', {
 {
     "analysis": "...",
     "result": {
-        "reason": ["选择文件的原因...", "..."],
+        "reason": ["选择...文件的原因...", "..."],
         "filePath": ["文件路径...", "..."]
         "needContent": true/false,
     }
@@ -118,15 +118,15 @@ JSON结构说明:
 再思考：根据你的反思做出必要的调整，提出更完善的解决方案。
 结果：提供最终的简洁答案,如果是多个文件的代码就返回多个
 
-如果代码返回全部内容totleContent=true,那么code为全部的代码
-如果返回代码不是全部内容totleContent=false,那么code为git diff格式代码
-diff格式代码的预期格式
-**Hunk（块）信息**：
-- 指示具体在哪些行进行了修改，例如 \`@@ -start,lineCount +start,lineCount @@\`。
-**修改内容**：
-- 以 \`-\` 开头的行表示从原始文件中删除的内容。
-- 以 \`+\` 开头的行表示在新文件中添加的内容。
-- 没有前缀的行表示未修改的内容。
+- **当 \`totleContent=true\`**：返回完整的代码内容。
+- **当 \`totleContent=false\`**：返回 Git diff 格式的部分修改内容，格式如下：
+@@ -startLine,numberOfOriginalLines +startLine,numberOfNewLines @@
+ context lines (unchanged lines)
+-deleted line
++added line
+startLine 是修改起始行号。
+numberOfOriginalLines 是原始文件中显示的上下文加上被修改的行数。
+numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行数。
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
                 await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
