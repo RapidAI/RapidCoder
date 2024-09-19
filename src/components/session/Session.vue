@@ -157,9 +157,9 @@ export default {
     };
 
     const selectSession = (session) => {
-      eventBus.emit('messageUpdated', session.messages.length - 1);
       messageStore.currentSession = session;
       router.push({ query: { sessionId: session.sessionId } });
+      eventBus.emit('messageUpdated', session.messages.length - 1);
     };
 
     const deleteSession = async (index) => {
