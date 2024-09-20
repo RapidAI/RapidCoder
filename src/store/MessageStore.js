@@ -2,7 +2,6 @@ import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
 import { Modal } from 'ant-design-vue';
-import {computed} from "vue";  // 引入 Modal 组件
 
 const {ipcRenderer} = require('electron');
 
