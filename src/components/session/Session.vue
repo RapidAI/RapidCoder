@@ -65,6 +65,7 @@ import {useModelStore} from "@/store/ModelStore";
 import {useRoute, useRouter} from 'vue-router';
 import {EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
+import {eventBus} from "@/eventBus";
 
 export default {
   components: {Chat, EditOutlined, DeleteOutlined},
@@ -127,6 +128,7 @@ export default {
     const selectSession = (session) => {
       selectedSessionId.value = session.sessionId;
       router.push({query: {sessionId: session.sessionId}});
+      eventBus.emit('messageUpdated', session.messages.length-1);
     };
 
     const deleteSession = (session) => {
