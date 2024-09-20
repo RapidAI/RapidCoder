@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
+import { Modal } from 'ant-design-vue';  // 引入 Modal 组件
 
 const {ipcRenderer} = require('electron');
 
@@ -261,9 +262,19 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                     if (result.success) {
                         message.success(`文件 ${filePath} 已成功更新`);
                     } else {
-                        message.error(`更新文件 ${filePath} 时出错: ${result.message}`);
-                        console.log(codeContent);
-                        console.log(`调用替换文件内容时出错: ${result.message}`);
+                        Modal.info({
+                            title: `更新文件 ${filePath} 时出错`,
+                            content: codeContent,
+                            width: 800,
+                            okText: '复制',
+                            cancelText: '关闭',
+                            maskClosable: true,
+                            onOk() {
+                                navigator.clipboard.writeText(codeContent).then(() => {
+                                    message.success('代码已复制到剪贴板');
+                                });
+                            }
+                        });
                     }
                 } catch (error) {
                     message.error(`调用替换文件内容时出错: ${error.message}`);
