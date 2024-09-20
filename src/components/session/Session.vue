@@ -13,14 +13,14 @@
       </div>
       <!-- 对话列表 -->
       <div class="scrollable-menu-container">
-        <a-menu v-if="messageStore.sessions.length" mode="inline" inlineIndent="0"
+        <a-menu v-if="messageStore.sessions.length" mode="inline" :inlineIndent="0"
                 :selectedKeys="[messageStore.currentSession?.sessionId]"
                 class="custom-menu">
           <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
             <div class="menu-item-container">
               <a-button type="link" @click="deleteSession(session)">
                 <template #icon>
-                  <DeleteOutlined />
+                  <DeleteOutlined/>
                 </template>
               </a-button>
               <span class="menu-item-title" @click="selectSession(session)">
@@ -140,7 +140,7 @@ export default {
     };
 
     const deleteSession = async (session) => {
-      this.messageStore.sessions = this.messageStore.sessions.filter();
+      messageStore.sessions = messageStore.sessions.filter(s => s.sessionId !== session.sessionId);
     };
 
     onMounted(() => {
