@@ -64,9 +64,8 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
 
 `;
 
-            console.log(currentSession)
             const clonedCurrentSession = JSON.parse(JSON.stringify(currentSession));
-            clonedCurrentSession[index].content = prompt;
+            clonedCurrentSession.messages[index].content = prompt;
             await this.processChat(clonedCurrentSession, index, overwrite, semanticSearch);
 
             const assistantResponse = currentSession.messages[index + 1]?.content || '';
