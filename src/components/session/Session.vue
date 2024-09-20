@@ -128,7 +128,6 @@ export default {
     const selectSession = (session) => {
       selectedSessionId.value = session.sessionId;
       router.push({query: {sessionId: session.sessionId}});
-      eventBus.emit('messageUpdated', session.messages.length-1);
     };
 
     const deleteSession = (session) => {

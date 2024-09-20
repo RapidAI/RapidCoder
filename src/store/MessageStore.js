@@ -45,32 +45,38 @@ export const useMessageStore = defineStore('message_store', {
             const prompt = `
 返回的 JSON 数据结构为：
 {
-    "analysis": "...",
-    "result": {
-        "reason": ["选择...文件的原因...", "..."],
-        "filePath": ["文件路径...", "..."]
+    "thinking": "...",
+    "reflection": "...",
+    "rethinking": "...",
+    "finalResult": {
         "needContent": true/false,
+        "filePath": ["文件路径...", "..."]
     }
 }
 
 JSON结构说明:
-analysis: 用户意图分析,根据问题和上文的信息...,system中定义类每个文件的简单信息,没有相关文件的具体内容
-filePath: 相关文件的路径
+你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
+thinking：按步骤思考并分析问题，提出相关的解决方案。
+reflection：反思上面的思考推理过程，检查是否有错误或改进空间。
+rethinking：根据你的反思做出必要的调整，提出更完善的解决方案。
+finalResult：提供最终的简洁答案
 
-问题如下：${userQuestion}
-
+用户的问题：${userQuestion} ,与哪些文件相关?
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
             await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
 
-            const assistantResponse = currentSession.messages[index + 1]?.content || '';
-            const matches = assistantResponse.match(/```json([\s\S]*?)```/);
-            const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
-            if (!jsonResponse) return;
 
-            if (jsonResponse.result.needContent) {
-                const files = jsonResponse.result.filePath || [];
+            const assistantMessage = currentSession.messages[index + 1]?.content || '';
+            const finalResult = await this.parseAssistantMessage(assistantMessage);
+            console.log(finalResult)
+            if (!finalResult) {
+                return;
+            }
+
+            if (finalResult.needContent) {
+                const files = finalResult.filePath || [];
                 if (!files.length) return;
 
                 const combinedContent = await this.getCombinedFileContent(files);
@@ -83,13 +89,13 @@ ${combinedContent}
 
 返回的 JSON 数据结构为：
 {
-    "思考": "...",
-    "反思": "...",
-    "再思考": "...",
-    "结果": [
+    "thinking": "...",
+    "reflection": "...",
+    "rethinking": "...",
+    "finalResult": [
         {
             "filePath": "...",
-            "totleContent": true,
+            "totalContent": true,
             "code": "..."
         }
         ,...
@@ -98,10 +104,10 @@ ${combinedContent}
 
 JSON结构说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-思考：按步骤思考并分析问题，提出相关的解决方案。
-反思：反思上面的思考推理过程，检查是否有错误或改进空间。
-再思考：根据你的反思做出必要的调整，提出更完善的解决方案。
-结果：提供最终的简洁答案,如果是多个文件的代码就返回多个
+thinking：按步骤思考并分析问题，提出相关的解决方案。
+reflection：反思上面的思考推理过程，检查是否有错误或改进空间。
+rethinking：根据你的反思做出必要的调整，提出更完善的解决方案。
+finalResult：提供最终的简洁答案,如果是多个文件的代码就返回多个
 
 - **当 \`totleContent=true\`**：返回完整的代码内容。
 - **当 \`totleContent=false\`**：返回 Git diff 格式的部分修改内容，格式如下：
@@ -117,7 +123,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
                 this.messageExecuteCode(index + 3)
             }
-            if (!jsonResponse.result.needContent) {
+            if (!finalResult.needContent) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId, index)
             }
@@ -197,76 +203,52 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                     return acc;
                 }, '');
         },
-        // 在您的 actions 中添加或替换以下方法
         async messageExecuteCode(selectedSessionId, index) {
-            const currentSession = this.sessions.find(s => s.sessionId === selectedSessionId)
+            const currentSession = this.sessions.find(s => s.sessionId === selectedSessionId);
             const assistantMessage = currentSession.messages[index]?.content;
             if (!assistantMessage) return;
-
-            // 尝试从消息中提取 JSON 响应
-            const matches = assistantMessage.match(/```json([\s\S]*?)(?:\n```|$)/);
-            let jsonResponse = '';
-            try {
-                if (matches) {
-                    jsonResponse = JSON.parse(matches[1].trim());
-                } else {
-                    jsonResponse = JSON.parse(assistantMessage.trim());
-                }
-            } catch (error) {
-                console.log('解析 JSON 时发生错误: ' + error.message);
-                console.log(assistantMessage);
-            }
-            if (!jsonResponse) {
+            const finalResult = await this.parseAssistantMessage(assistantMessage);
+            if (!finalResult) {
                 message.success('不是代码无需运行');
                 return;
             }
-
-            // 从 JSON 响应中获取文件路径、代码内容和 totleContent
-            const {思考, 反思, 再思考, 结果} = jsonResponse;
-
-            if (!Array.isArray(结果) || 结果.length === 0) {
-                console.log('JSON 结果列表为空或无效');
-                return;
+            await this.processResults(finalResult);
+        },
+        async parseAssistantMessage(assistantMessage) {
+            try {
+                const matches = assistantMessage.match(/```json([\s\S]*?)```/);
+                const jsonString = matches ? matches[1].trim() : assistantMessage.trim();
+                const jsonResponse = JSON.parse(jsonString);
+                return jsonResponse.finalResult;
+            } catch (error) {
+                console.error('解析 JSON 时发生错误:', error.message);
+                console.error(assistantMessage);
+                return null;
             }
-
-            // 遍历结果列表
-            for (const item of 结果) {
-                if (!item.filePath || !item.code || typeof item.totleContent !== 'boolean') {
-                    console.log('JSON 结果中缺少文件路径、代码内容或 totleContent');
-                    continue; // 跳过当前项，处理下一个
+        },
+        async processResults(finalResult) {
+            for (const { filePath, code, totleContent } of finalResult) {
+                if (!filePath || !code || typeof totleContent !== 'boolean') {
+                    console.log('JSON finalResult中缺少文件路径、代码内容或 totleContent');
+                    continue;
                 }
 
-                const filePath = item.filePath;
-                let codeContent = item.code;
-                const totleContent = item.totleContent;
-
-                // 替换文件内容
                 try {
-                    let result;
-                    if (totleContent) {
-                        // 替换整个文件内容
-                        result = await ipcRenderer.invoke('replace-file-content', filePath, codeContent);
-                    } else {
-                        // 应用 git diff 补丁
-                        result = await ipcRenderer.invoke('replace-file-content-diff', filePath, codeContent);
-                    }
+                    const result = await ipcRenderer.invoke(totleContent ? 'replace-file-content' : 'replace-file-content-diff', filePath, code);
 
                     if (result.success) {
                         message.success(`文件 ${filePath} 已成功更新`);
                     } else {
-                        codeContent = codeContent
-                            .split('\n')
-                            .map(line => line.startsWith('-') || line.startsWith('+') ? line.slice(1) : line) // 移除 `-` 和 `+`
-                            .join('\n');
+                        const cleanCode = code.split('\n').map(line => (line.startsWith('-') || line.startsWith('+')) ? line.slice(1) : line).join('\n');
                         Modal.info({
                             title: `更新文件 ${filePath} 时出错:${result.message}`,
-                            content: codeContent,
+                            content: cleanCode,
                             width: 800,
                             okText: '复制',
                             cancelText: '关闭',
                             maskClosable: true,
                             onOk() {
-                                navigator.clipboard.writeText(codeContent).then(() => {
+                                navigator.clipboard.writeText(cleanCode).then(() => {
                                     message.success('代码已复制到剪贴板');
                                 });
                             }

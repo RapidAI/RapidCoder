@@ -148,6 +148,7 @@ export default {
 
     onMounted(() => {
       eventBus.on('messageUpdated', scrollToCurrentMessage);
+      scrollToCurrentMessage(currentSession.value.messages.length-1)
     });
 
     onUnmounted(() => {
