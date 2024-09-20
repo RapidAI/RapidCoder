@@ -37,7 +37,7 @@
                       class="edit-textarea"/>
           <div class="edit-actions">
             <a @click="updateMessage(index, item.role)">发送</a>
-            <a @click="cancelEdit">取消</a>
+            <a @click="resetEdit">取消</a>
           </div>
         </div>
       </div>
@@ -95,17 +95,12 @@ export default {
       if (role === 'user' && editedMessageContent.value.trim()) {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index + 1);
-        messageStore.selectFileAndChat(
-            currentSession.value,
-            index,
-            false,
-            false
-        );
-        cancelEdit();
+        messageStore.selectFileAndChat(currentSession.value, index, false, false);
+        resetEdit();
       }
     };
 
-    const cancelEdit = () => {
+    const resetEdit = () => {
       editedMessageIndex.value = null;
       editedMessageContent.value = '';
     };
@@ -167,7 +162,7 @@ export default {
       RobotOutlined,
       UserOutlined,
       updateMessage,
-      cancelEdit,
+      resetEdit,
       copyToClipboard,
       regenerateMessage,
       handleKeyDown,

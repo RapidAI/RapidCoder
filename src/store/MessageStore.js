@@ -63,9 +63,11 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
 问题如下：${userQuestion}
 
 `;
-            const clonedMessages = JSON.parse(JSON.stringify(messagelist));
-            clonedMessages[index].content = prompt;
-            await this.processChat(clonedMessages, index, overwrite, semanticSearch);
+
+            console.log(currentSession)
+            const clonedCurrentSession = JSON.parse(JSON.stringify(currentSession));
+            clonedCurrentSession[index].content = prompt;
+            await this.processChat(clonedCurrentSession, index, overwrite, semanticSearch);
 
             const assistantResponse = currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
@@ -117,11 +119,11 @@ numberOfOriginalLines 是原始文件中显示的上下文加上被修改的行�
 numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行数。
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-                await this.processChat(messagelist, index + 2, overwrite, semanticSearch);
+                await this.processChat(currentSession, index + 2, overwrite, semanticSearch);
                 this.messageExecuteCode(index + 3)
             }
             if (!jsonResponse.result.needContent) {
-                await this.processChat(messagelist, index, overwrite, semanticSearch);
+                await this.processChat(currentSession, index, overwrite, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId,index)
             }
         },
