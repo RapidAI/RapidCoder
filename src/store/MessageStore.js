@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
-import { Modal } from 'ant-design-vue';
+import {Modal} from 'ant-design-vue';
 
 const {ipcRenderer} = require('electron');
 
@@ -19,7 +19,7 @@ export const useMessageStore = defineStore('message_store', {
         ],
     },
     actions: {
-        createSession(models,projects) {
+        createSession(models, projects) {
             const newSession = {
                 sessionId: Date.now(),
                 currentModel: models,
@@ -40,7 +40,7 @@ export const useMessageStore = defineStore('message_store', {
                 return;
             }
 
-            const messagelist=currentSession.messages
+            const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
             const prompt = `
 返回的 JSON 数据结构为：
@@ -64,7 +64,7 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
-            await this.processChat(currentSession,clonedMessages, index, overwrite, semanticSearch);
+            await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
 
             const assistantResponse = currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
@@ -116,12 +116,12 @@ numberOfOriginalLines 是原始文件中显示的上下文加上被修改的行�
 numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行数。
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-                await this.processChat(currentSession, index + 2, overwrite, semanticSearch);
+                await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
                 this.messageExecuteCode(index + 3)
             }
             if (!jsonResponse.result.needContent) {
-                await this.processChat(currentSession, index, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId,index)
+                await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
+                this.messageExecuteCode(currentSession.sessionId, index)
             }
         },
         async getCombinedFileContent(files) {
@@ -139,7 +139,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 return '';
             }
         },
-        async processChat(currentSession,messagelist, index, overwrite, semanticSearch = false) {
+        async processChat(currentSession, messagelist, index, overwrite, semanticSearch = false) {
             currentSession.isStreaming = true;
             if (semanticSearch) {
                 //  todo 检索
@@ -200,7 +200,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 }, '');
         },
         // 在您的 actions 中添加或替换以下方法
-        async messageExecuteCode(selectedSessionId,index) {
+        async messageExecuteCode(selectedSessionId, index) {
             const currentSession = this.sessions.find(s => s.sessionId === selectedSessionId)
             const assistantMessage = currentSession.messages[index]?.content;
             if (!assistantMessage) return;
@@ -224,7 +224,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
 
             // 从 JSON 响应中获取文件路径、代码内容和 totleContent
-            const { 思考, 反思, 再思考, 结果 } = jsonResponse;
+            const {思考, 反思, 再思考, 结果} = jsonResponse;
 
             if (!Array.isArray(结果) || 结果.length === 0) {
                 console.log('JSON 结果列表为空或无效');
