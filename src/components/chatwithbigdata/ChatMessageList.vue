@@ -23,6 +23,7 @@
               <a @click="copyToClipboard(item.content)">复制</a>
             </template>
             <template v-if="item.role === 'assistant'">
+              <a @click="enableEditMode(index, item.content)">编辑</a>
               <a @click="copyToClipboard(item.content)">复制</a>
               <a @click="regenerateMessage(index)">重新生成</a>
             </template>
@@ -96,6 +97,10 @@ export default {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index + 1);
         messageStore.selectFileAndChat(currentSession.value, index, false, false);
+        resetEdit();
+      }
+      if (role === 'assistant' && editedMessageContent.value.trim()) {
+        currentSession.value.messages[index].content = editedMessageContent.value;
         resetEdit();
       }
     };
