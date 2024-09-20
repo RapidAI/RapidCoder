@@ -4,28 +4,22 @@
     <a-layout-sider theme="light" width="300">
       <!-- 新建对话 -->
       <div class="fixed-button-container">
-        <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
-          <template #icon>
-            <EditOutlined/>
-          </template>
+        <a-button class="new_session_button" type="primary" :loading="loadingProjects"
+                  @click="isSessionCreationModalVisible = true">
+          <EditOutlined/>
           新对话
         </a-button>
       </div>
       <!-- 对话列表 -->
       <div class="scrollable-menu-container">
         <a-menu v-if="messageStore.sessions.length" mode="inline" :inlineIndent="0"
-                :selectedKeys="[messageStore.currentSession?.sessionId]"
-                class="custom-menu">
-          <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
+                :selectedKeys="[messageStore.currentSession?.sessionId]" class="custom-menu">
+          <a-menu-item v-for="session in [...messageStore.sessions].reverse()" :key="session.sessionId">
             <div class="menu-item-container">
               <a-button type="link" @click="deleteSession(session)">
-                <template #icon>
-                  <DeleteOutlined/>
-                </template>
+                <DeleteOutlined/>
               </a-button>
-              <span class="menu-item-title" @click="selectSession(session)">
-                {{ getSessionTitle(session) }}
-              </span>
+              <span class="menu-item-title" @click="selectSession(session)">{{ sessionTitle(session) }}</span>
             </div>
           </a-menu-item>
         </a-menu>
@@ -34,46 +28,32 @@
 
     <!-- 对话内容区域 -->
     <a-layout-content class="custom-content">
-      <Chat v-if="messageStore.currentSession.sessionId"/>
+      <Chat v-if="messageStore.currentSession?.sessionId"/>
     </a-layout-content>
 
     <!-- 新建对话选择模型和项目模态框 -->
     <a-modal v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
-             @ok="handleCreateSession" @cancel="handleCancelCreateSession">
-      <a-select
-          v-model:value="selectedModelId"
-          placeholder="请选择模型"
-          style="width: 100%; margin-bottom: 20px"
-          :options="modelStore.models.map(model => ({ label: model.modelName, value: model.modelId }))"
-      />
-      <a-select
-          v-model:value="selectedProjectId"
-          mode="multiple"
-          placeholder="请选择项目"
-          style="width: 100%"
-          :options="projectStore.projects.map(project => ({ label: project.projectDescription, value: project.projectId }))"
-      />
+             @ok="createSession" @cancel="resetModal">
+      <a-select v-model:value="selectedModelId" placeholder="请选择模型" style="width: 100%; margin-bottom: 20px"
+                :options="modelOptions"/>
+      <a-select v-model:value="selectedProjectId" mode="multiple" placeholder="请选择项目" style="width: 100%"
+                :options="projectOptions"/>
     </a-modal>
   </a-layout>
 </template>
+
 <script>
 import {ref, onMounted} from 'vue';
 import Chat from '../chatwithbigdata/Chat.vue';
 import {useMessageStore} from '@/store/MessageStore.js';
-import {DatabaseOutlined, EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
-import {message} from 'ant-design-vue';
-import {useRoute, useRouter} from 'vue-router';
-import {eventBus} from "@/eventBus";
 import {useProjectStore} from "@/store/ProjectStore";
 import {useModelStore} from "@/store/ModelStore";
+import {useRoute, useRouter} from 'vue-router';
+import {EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
+import {message} from 'ant-design-vue';
 
 export default {
-  components: {
-    DatabaseOutlined,
-    Chat,
-    EditOutlined,
-    DeleteOutlined,
-  },
+  components: {Chat, EditOutlined, DeleteOutlined},
   setup() {
     const messageStore = useMessageStore();
     const projectStore = useProjectStore();
@@ -83,8 +63,14 @@ export default {
     const selectedModelId = ref(null);
     const selectedProjectId = ref([]);
 
-    const route = useRoute();
     const router = useRouter();
+    const route = useRoute();
+
+    const modelOptions = modelStore.models.map(({modelName, modelId}) => ({label: modelName, value: modelId}));
+    const projectOptions = projectStore.projects.map(({projectDescription, projectId}) => ({
+      label: projectDescription,
+      value: projectId
+    }));
 
     const locateSessionFromUrl = async () => {
       const sessionId = route.query.sessionId;
@@ -98,72 +84,53 @@ export default {
       }
     };
 
-    const createNewSession = () => {
-      isSessionCreationModalVisible.value = true;
-    };
 
-    const handleCancelCreateSession = () => {
+    const resetModal = () => {
       isSessionCreationModalVisible.value = false;
       selectedModelId.value = null;
       selectedProjectId.value = [];
     };
 
-    const handleCreateSession = async () => {
+    const createSession = async () => {
+      if (!selectedModelId.value) return message.error('请选择模型');
+      loadingProjects.value = true;
       try {
-        loadingProjects.value = true;
-        const selectedModel = modelStore.models.find(model => model.modelId === selectedModelId.value);
-        const selectedProjects = projectStore.projects.filter(project => selectedProjectId.value.includes(project.projectId));
-
-        if (!selectedModel) {
-          message.error('模型不存在');
-          return;
-        }
-
-        await messageStore.createSession(selectedModel, selectedProjects);
+        const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
+        const projects = projectStore.projects.filter(p => selectedProjectId.value.includes(p.projectId));
+        await messageStore.createSession(model, projects);
         router.push({query: {sessionId: messageStore.currentSession.sessionId}});
-      } catch (error) {
-        message.error('创建会话失败，请稍后再试');
+      } catch (e) {
+        message.error('创建会话失败');
       } finally {
         loadingProjects.value = false;
-        isSessionCreationModalVisible.value = false;
+        resetModal();
       }
     };
 
-    const getSessionTitle = (session) => {
-      return session.messages[1]?.content || '新对话';
-    };
+    const sessionTitle = (session) => session.messages[1]?.content || '新对话';
 
     const selectSession = (session) => {
       messageStore.currentSession = session;
       router.push({query: {sessionId: session.sessionId}});
-      eventBus.emit('messageUpdated', session.messages.length - 1);
     };
 
-    const deleteSession = async (session) => {
+    const deleteSession = (session) => {
       messageStore.sessions = messageStore.sessions.filter(s => s.sessionId !== session.sessionId);
     };
 
-    onMounted(() => {
+    onMounted(async () => {
       loadingProjects.value = true;
-      locateSessionFromUrl().finally(() => {
+      try {
+        await locateSessionFromUrl();
+      } finally {
         loadingProjects.value = false;
-      });
+      }
     });
 
+
     return {
-      messageStore,
-      selectSession,
-      deleteSession,
-      getSessionTitle,
-      projectStore,
-      modelStore,
-      createNewSession,
-      handleCreateSession,
-      handleCancelCreateSession,
-      selectedModelId,
-      selectedProjectId,
-      isSessionCreationModalVisible,
-      loadingProjects,
+      messageStore, isSessionCreationModalVisible, loadingProjects, selectedModelId, selectedProjectId,
+      modelOptions, projectOptions, sessionTitle, createSession, resetModal, deleteSession, selectSession
     };
   },
 };
@@ -179,7 +146,7 @@ export default {
 }
 
 .scrollable-menu-container {
-  max-height: calc(100vh - 60px); /* 60px 是按钮容器的高度 */
+  max-height: calc(100vh - 60px);
   overflow-y: auto;
 }
 
