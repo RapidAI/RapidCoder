@@ -34,7 +34,7 @@ export const useMessageStore = defineStore('message_store', {
             this.sessions.push(newSession);
             return newSession
         },
-        async selectFileAndChat(currentSession, index, overwrite, semanticSearch = false) {
+        async selectFileAndChat(currentSession, index, semanticSearch = false) {
             if (!currentSession.currentModel) {
                 message.error('请选择一个模型');
                 return;
@@ -64,7 +64,7 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
-            await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
+            await this.processChat(currentSession, clonedMessages, index, semanticSearch);
 
             const assistantResponse = currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
@@ -116,11 +116,11 @@ numberOfOriginalLines 是原始文件中显示的上下文加上被修改的行�
 numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行数。
 `;
                 messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-                await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
+                await this.processChat(currentSession, currentSession.messages, index + 2, semanticSearch);
                 this.messageExecuteCode(index + 3)
             }
             if (!jsonResponse.result.needContent) {
-                await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
+                await this.processChat(currentSession, currentSession.messages, index, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId, index)
             }
         },
@@ -139,7 +139,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 return '';
             }
         },
-        async processChat(currentSession, messagelist, index, overwrite, semanticSearch = false) {
+        async processChat(currentSession, messagelist, index, semanticSearch = false) {
             currentSession.isStreaming = true;
             if (semanticSearch) {
                 //  todo 检索
@@ -164,7 +164,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
 
             currentSession.reader = response.body.getReader();
             const decoder = new TextDecoder();
-            const assistantIndex = overwrite ? index : index + 1;
+            const assistantIndex = index + 1;
             currentSession.messages[assistantIndex] = {
                 role: 'assistant',
                 content: '',
