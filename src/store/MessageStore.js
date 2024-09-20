@@ -39,6 +39,12 @@ export const useMessageStore = defineStore('message_store', {
                 message.error('请选择一个模型');
                 return;
             }
+            console.log(index)
+            if(index>2){
+                await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
+                this.messageExecuteCode(currentSession.sessionId, index+1)
+                return
+            }
 
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
@@ -125,7 +131,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
             if (!finalResult.needFileContent) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId, index)
+                this.messageExecuteCode(currentSession.sessionId, index+1)
             }
         },
         async getCombinedFileContent(files) {
@@ -221,8 +227,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 const jsonResponse = JSON.parse(jsonString);
                 return jsonResponse.finalResult;
             } catch (error) {
-                console.error('解析 JSON 时发生错误:', error.message);
-                console.error(assistantMessage);
+                console.log('解析 JSON 时发生错误:', assistantMessage);
                 return null;
             }
         },
