@@ -1,11 +1,11 @@
 <template>
   <div ref="messageList" class="custom-list">
-    <div v-for="(item, index) in messageStore.currentSession.messages" :key="index" class="message-item">
+    <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
       <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
           <template v-if="debugMode">
-            <chat-markdown :markdown="item.content"  :messageindex="index"/>
+            <chat-markdown :markdown="item.content" :messageindex="index"/>
           </template>
           <div v-if="!debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import {ref, onMounted, onUnmounted, nextTick} from 'vue';
+import {ref, onMounted, onUnmounted, nextTick, computed} from 'vue';
 import {useMessageStore} from '@/store/MessageStore.js';
 import {message} from 'ant-design-vue';
 import {
@@ -71,6 +71,9 @@ export default {
       type: Boolean,
       default: false,
     },
+    selectedSessionId: {
+      required: true,
+    },
   },
   setup(props) {
     const messageStore = useMessageStore();
@@ -79,6 +82,10 @@ export default {
     const editedMessageContent = ref('');
     let isComposition = false;
 
+    const currentSession = computed(() => {
+      return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+    });
+
     const enableEditMode = (index, content) => {
       editedMessageIndex.value = index;
       editedMessageContent.value = content;
@@ -86,10 +93,10 @@ export default {
 
     const updateMessage = (index, role) => {
       if (role === 'user' && editedMessageContent.value.trim()) {
-        messageStore.currentSession.messages[index].content = editedMessageContent.value;
-        messageStore.currentSession.messages.splice(index + 1);
+        currentSession.messages[index].content = editedMessageContent.value;
+        currentSession.messages.splice(index + 1);
         messageStore.selectFileAndChat(
-            messageStore.currentSession.messages,
+            currentSession.messages,
             index,
             false,
             false
@@ -115,9 +122,9 @@ export default {
     };
 
     const regenerateMessage = (index) => {
-      messageStore.currentSession.messages.splice(index);
+      currentSession.messages.splice(index);
       messageStore.processChat(
-          messageStore.currentSession.messages,
+          currentSession.messages,
           index,
           true,
           false
@@ -144,7 +151,6 @@ export default {
     };
 
     onMounted(() => {
-      scrollToCurrentMessage(messageStore.currentSession.messages.length - 1);
       eventBus.on('messageUpdated', scrollToCurrentMessage);
     });
 
@@ -154,6 +160,7 @@ export default {
 
     return {
       messageList,
+      currentSession,
       editedMessageIndex,
       editedMessageContent,
       enableEditMode,

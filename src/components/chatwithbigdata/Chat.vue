@@ -1,7 +1,7 @@
 <template>
   <div class="chat-container">
     <div class="top-bar">
-      {{ messageStore.currentSession.currentModel.modelName }}
+      {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
       <a-switch
           v-model:checked="debugMode"
           class="debug-switch"
@@ -9,13 +9,22 @@
           un-checked-children="普通模式"
       />
     </div>
-    <chat-message-list class="message-list" :debugMode="debugMode"/>
-    <chat-message-input class="message-input"/>
+    <chat-message-list
+        class="message-list"
+        :debugMode="debugMode"
+        v-if="selectedSessionId"
+        :selectedSessionId="selectedSessionId"
+    />
+    <chat-message-input
+        class="message-input"
+        v-if="selectedSessionId"
+        :selectedSessionId="selectedSessionId"
+    />
   </div>
 </template>
 
 <script>
-import {ref} from 'vue';
+import {ref, computed} from 'vue';
 import {useMessageStore} from '@/store/MessageStore.js';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatMessageInput from './ChatMessageInput.vue';
@@ -25,12 +34,22 @@ export default {
     ChatMessageList,
     ChatMessageInput,
   },
-  setup() {
+  props: {
+    selectedSessionId: {
+      required: true,
+    },
+  },
+  setup(props) {
     const messageStore = useMessageStore();
     const debugMode = ref(true);
+
+    const currentSession = computed(() => {
+      return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+    });
+
     return {
       debugMode,
-      messageStore,
+      currentSession,
     };
   },
 };
