@@ -6,32 +6,23 @@
       <div class="fixed-button-container">
         <a-button class="new_session_button" type="primary" :loading="loadingProjects" @click="createNewSession">
           <template #icon>
-            <EditOutlined />
+            <EditOutlined/>
           </template>
           新对话
         </a-button>
       </div>
       <!-- 对话列表 -->
       <div class="scrollable-menu-container">
-        <a-menu v-if="messageStore.sessions.length" mode="inline"
+        <a-menu v-if="messageStore.sessions.length" mode="inline" inlineIndent="0"
                 :selectedKeys="[messageStore.currentSession?.sessionId]"
                 class="custom-menu">
           <a-menu-item v-for="(session, index) in messageStore.sessions.slice().reverse()" :key="session.sessionId">
             <div class="menu-item-container">
-              <a-dropdown class="menu-item-dropdown">
-                <EllipsisOutlined />
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item @click="showRenameModal(index)">重命名</a-menu-item>
-                    <a-menu-item>
-                      <a-popconfirm title="确定要删除这个会话吗？" okText="确定" cancelText="取消"
-                                    @confirm="deleteSession(index)">
-                        <span>删除</span>
-                      </a-popconfirm>
-                    </a-menu-item>
-                  </a-menu>
+              <a-button type="link" @click="deleteSession(session)">
+                <template #icon>
+                  <DeleteOutlined />
                 </template>
-              </a-dropdown>
+              </a-button>
               <span class="menu-item-title" @click="selectSession(session)">
                 {{ getSessionTitle(session) }}
               </span>
@@ -45,12 +36,6 @@
     <a-layout-content class="custom-content">
       <Chat v-if="messageStore.currentSession.sessionId"/>
     </a-layout-content>
-
-    <!-- 重命名会话模态框 -->
-    <a-modal v-model:open="isRenameModalVisible" title="重命名会话" okText="确定" cancelText="取消" @ok="handleRename"
-             @cancel="handleCancelRename">
-      <a-input v-model:value="newSessionName" placeholder="输入新的会话名称"/>
-    </a-modal>
 
     <!-- 新建对话选择模型和项目模态框 -->
     <a-modal v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
@@ -72,30 +57,27 @@
   </a-layout>
 </template>
 <script>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted} from 'vue';
 import Chat from '../chatwithbigdata/Chat.vue';
-import { useMessageStore } from '@/store/MessageStore.js';
-import { DatabaseOutlined, EditOutlined, EllipsisOutlined } from '@ant-design/icons-vue';
-import { message } from 'ant-design-vue';
-import { useRoute, useRouter } from 'vue-router';
-import { eventBus } from "@/eventBus";
-import { useProjectStore } from "@/store/ProjectStore";
-import { useModelStore } from "@/store/ModelStore";
+import {useMessageStore} from '@/store/MessageStore.js';
+import {DatabaseOutlined, EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
+import {message} from 'ant-design-vue';
+import {useRoute, useRouter} from 'vue-router';
+import {eventBus} from "@/eventBus";
+import {useProjectStore} from "@/store/ProjectStore";
+import {useModelStore} from "@/store/ModelStore";
 
 export default {
   components: {
     DatabaseOutlined,
     Chat,
-    EllipsisOutlined,
     EditOutlined,
+    DeleteOutlined,
   },
   setup() {
     const messageStore = useMessageStore();
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
-    const isRenameModalVisible = ref(false);
-    const newSessionName = ref('');
-    const sessionToRename = ref(null);
     const loadingProjects = ref(false);
     const isSessionCreationModalVisible = ref(false);
     const selectedModelId = ref(null);
@@ -138,7 +120,7 @@ export default {
         }
 
         await messageStore.createSession(selectedModel, selectedProjects);
-        router.push({ query: { sessionId: messageStore.currentSession.sessionId } });
+        router.push({query: {sessionId: messageStore.currentSession.sessionId}});
       } catch (error) {
         message.error('创建会话失败，请稍后再试');
       } finally {
@@ -153,38 +135,12 @@ export default {
 
     const selectSession = (session) => {
       messageStore.currentSession = session;
-      router.push({ query: { sessionId: session.sessionId } });
+      router.push({query: {sessionId: session.sessionId}});
       eventBus.emit('messageUpdated', session.messages.length - 1);
     };
 
-    const deleteSession = async (index) => {
-      await messageStore.deleteSession(index);
-    };
-
-    const showRenameModal = (index) => {
-      const session = messageStore.sessions[index];
-      sessionToRename.value = session;
-      newSessionName.value = session?.title || '';
-      isRenameModalVisible.value = true;
-    };
-
-    const handleCancelRename = () => {
-      isRenameModalVisible.value = false;
-      sessionToRename.value = null;
-    };
-
-    const handleRename = async () => {
-      if (!newSessionName.value) {
-        message.error('会话名称不能为空');
-        return;
-      }
-
-      try {
-        await messageStore.sessionRename(sessionToRename.value, newSessionName.value);
-        isRenameModalVisible.value = false;
-      } catch (error) {
-        message.error('重命名失败，请稍后再试');
-      }
+    const deleteSession = async (session) => {
+      this.messageStore.sessions = this.messageStore.sessions.filter();
     };
 
     onMounted(() => {
@@ -198,14 +154,9 @@ export default {
       messageStore,
       selectSession,
       deleteSession,
+      getSessionTitle,
       projectStore,
       modelStore,
-      isRenameModalVisible,
-      newSessionName,
-      getSessionTitle,
-      handleRename,
-      handleCancelRename,
-      showRenameModal,
       createNewSession,
       handleCreateSession,
       handleCancelCreateSession,
@@ -242,12 +193,7 @@ export default {
   text-overflow: ellipsis;
 }
 
-.menu-item-dropdown {
-  margin-left: auto;
-}
-
 .custom-content {
   padding: 20px;
 }
 </style>
-

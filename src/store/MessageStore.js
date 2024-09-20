@@ -36,9 +36,6 @@ export const useMessageStore = defineStore('message_store', {
             this.sessions.push(newSession);
             this.currentSession = newSession;
         },
-        deleteSession(index) {
-            this.sessions.splice(index, 1);
-        },
         async selectFileAndChat(messagelist, index, overwrite, semanticSearch = false) {
             if (!this.currentSession.currentModel) {
                 message.error('请选择一个模型');
