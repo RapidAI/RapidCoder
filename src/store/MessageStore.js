@@ -1,15 +1,14 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
 import {eventBus} from '@/eventBus.js';
-import { Modal } from 'ant-design-vue';  // 引入 Modal 组件
+import { Modal } from 'ant-design-vue';
+import {computed} from "vue";  // 引入 Modal 组件
 
 const {ipcRenderer} = require('electron');
 
 export const useMessageStore = defineStore('message_store', {
     state: () => ({
         sessions: [],
-        currentSession: {},
-        isStreaming: false,
     }),
     persist: {
         enabled: true,
@@ -34,14 +33,15 @@ export const useMessageStore = defineStore('message_store', {
                 ],
             };
             this.sessions.push(newSession);
-            this.currentSession = newSession;
+            return newSession
         },
-        async selectFileAndChat(messagelist, index, overwrite, semanticSearch = false) {
-            if (!this.currentSession.currentModel) {
+        async selectFileAndChat(currentSession, index, overwrite, semanticSearch = false) {
+            if (!currentSession.currentModel) {
                 message.error('请选择一个模型');
                 return;
             }
 
+            const messagelist=currentSession.messages
             const userQuestion = messagelist[index].content;
             const prompt = `
 返回的 JSON 数据结构为：
@@ -67,7 +67,7 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
             clonedMessages[index].content = prompt;
             await this.processChat(clonedMessages, index, overwrite, semanticSearch);
 
-            const assistantResponse = this.currentSession.messages[index + 1]?.content || '';
+            const assistantResponse = currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
             const jsonResponse = matches ? JSON.parse(matches[1].trim()) : null;
             if (!jsonResponse) return;
@@ -122,7 +122,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
             if (!jsonResponse.result.needContent) {
                 await this.processChat(messagelist, index, overwrite, semanticSearch);
-                this.messageExecuteCode(index)
+                this.messageExecuteCode(currentSession.sessionId,index)
             }
         },
         async getCombinedFileContent(files) {
@@ -140,8 +140,9 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 return '';
             }
         },
-        async processChat(messagelist, index, overwrite, semanticSearch = false) {
-            this.isStreaming = true;
+        async processChat(currentSession, index, overwrite, semanticSearch = false) {
+            const messagelist=currentSession.messages
+            this.currentSession.isStreaming = true;
             const allMessages = [...messagelist];
 
             if (semanticSearch) {
@@ -149,7 +150,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
 
             const modelPayload = {
-                ...this.currentSession.currentModel,
+                ...currentSession.currentModel,
                 stream: true,
                 messages: allMessages,
             };
@@ -166,25 +167,25 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 }
             );
 
-            this.currentSession.reader = response.body.getReader();
+            currentSession.reader = response.body.getReader();
             const decoder = new TextDecoder();
             const assistantIndex = overwrite ? index : index + 1;
-            this.currentSession.messages[assistantIndex] = {
+            currentSession.messages[assistantIndex] = {
                 role: 'assistant',
                 content: '',
                 isAnalyzing: true,
             };
 
             while (true) {
-                const {done, value} = await this.currentSession.reader.read();
+                const {done, value} = await currentSession.reader.read();
                 if (done) break;
                 const chunk = decoder.decode(value);
-                this.currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
+                currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
                 eventBus.emit('messageUpdated', assistantIndex);
             }
 
-            this.currentSession.messages[assistantIndex].isAnalyzing = false;
-            this.isStreaming = false;
+            currentSession.messages[assistantIndex].isAnalyzing = false;
+            this.currentSession.isStreaming = false;
         },
         parseChatResponse(input) {
             return input
@@ -204,8 +205,9 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 }, '');
         },
         // 在您的 actions 中添加或替换以下方法
-        async messageExecuteCode(index) {
-            const assistantMessage = this.currentSession.messages[index]?.content;
+        async messageExecuteCode(selectedSessionId,index) {
+            const currentSession = this.sessions.find(s => s.sessionId === selectedSessionId)
+            const assistantMessage = currentSession.messages[index]?.content;
             if (!assistantMessage) return;
 
             // 尝试从消息中提取 JSON 响应
@@ -282,10 +284,10 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 }
             }
         },
-        async stopChat() {
-            if (this.isStreaming) {
-                await this.currentSession.reader?.cancel();
-                this.isStreaming = false;
+        async stopChat(currentSession) {
+            if (currentSession.isStreaming) {
+                await currentSession.reader?.cancel();
+                currentSession.isStreaming = false;
                 eventBus.emit('messageUpdated', null);
                 message.success('请求已终止');
             } else {

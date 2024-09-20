@@ -98,7 +98,8 @@ export default {
       try {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
         const projects = projectStore.projects.filter(p => selectedProjectId.value.includes(p.projectId));
-        await messageStore.createSession(model, projects);
+        const newSession = await messageStore.createSession(model, projects);
+        selectedSessionId.value = newSession.sessionId
         router.push({query: {sessionId: selectedSessionId.value}});
       } catch (e) {
         message.error('创建会话失败');

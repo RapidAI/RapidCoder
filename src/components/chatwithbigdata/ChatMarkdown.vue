@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import {ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
 import {useMessageStore} from '@/store/MessageStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
@@ -35,6 +35,9 @@ export default {
   props: {
     markdown: {type: String, default: ''},
     messageindex: {type: Number, default: 0},
+    selectedSessionId: {
+      required: true,
+    },
   },
   components: {
     CopyOutlined,
@@ -97,8 +100,9 @@ export default {
           .catch((err) => console.error('复制失败', err));
     };
 
+
     const executeCode = () => {
-      messageStore.messageExecuteCode(props.messageindex);
+      messageStore.messageExecuteCode(props.selectedSessionId, props.messageindex);
     };
 
     return {

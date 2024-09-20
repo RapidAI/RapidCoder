@@ -5,7 +5,7 @@
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
           <template v-if="debugMode">
-            <chat-markdown :markdown="item.content" :messageindex="index"/>
+            <chat-markdown :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
           </template>
           <div v-if="!debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
@@ -93,10 +93,10 @@ export default {
 
     const updateMessage = (index, role) => {
       if (role === 'user' && editedMessageContent.value.trim()) {
-        currentSession.messages[index].content = editedMessageContent.value;
-        currentSession.messages.splice(index + 1);
+        currentSession.value.messages[index].content = editedMessageContent.value;
+        currentSession.value.messages.splice(index + 1);
         messageStore.selectFileAndChat(
-            currentSession.messages,
+            currentSession.value,
             index,
             false,
             false
@@ -122,9 +122,9 @@ export default {
     };
 
     const regenerateMessage = (index) => {
-      currentSession.messages.splice(index);
+      currentSession.value.messages.splice(index);
       messageStore.processChat(
-          currentSession.messages,
+          currentSession.value.messages,
           index,
           true,
           false

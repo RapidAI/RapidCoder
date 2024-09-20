@@ -9,7 +9,7 @@
         class="message-input"
         :auto-size="{ minRows: 1, maxRows: 3 }"
     />
-    <a-button @click="handleSendOrStop" class="send-button" :disabled="isSending">{{ messageStore.isStreaming ? '终止' : '发送' }}</a-button>
+    <a-button @click="handleSendOrStop" class="send-button" :disabled="isSending">{{ currentSession.isStreaming ? '终止' : '发送' }}</a-button>
   </div>
 </template>
 
@@ -34,8 +34,8 @@ export default {
     });
 
     const handleSendOrStop = async () => {
-      if (messageStore.isStreaming) {
-        await messageStore.stopChat();
+      if (currentSession.value.isStreaming) {
+        await messageStore.stopChat(currentSession);
       } else {
         if (isSending.value) return; // 防止重复发送
         handleSend(inputMessage.value);
@@ -48,7 +48,7 @@ export default {
           isSending.value = true;
           currentSession.value.messages.push({role: 'user', content: message});
           inputMessage.value = ''; // 清空输入框
-          await messageStore.selectFileAndChat(currentSession.value.messages, currentSession.value.messages.length-1, false, false);
+          await messageStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length-1, false, false);
         } catch (error) {
           console.error('消息发送失败:', error);
           alert('发送消息时出现问题，请稍后再试。');
@@ -76,6 +76,7 @@ export default {
     return {
       inputMessage,
       handleSendOrStop,
+      currentSession,
       handleKeyDown,
       handleCompositionStart,
       handleCompositionEnd,
