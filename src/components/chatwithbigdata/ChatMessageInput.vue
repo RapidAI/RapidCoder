@@ -48,7 +48,7 @@ export default {
           isSending.value = true;
           currentSession.value.messages.push({role: 'user', content: message});
           inputMessage.value = ''; // 清空输入框
-          await messageStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length-1,  false);
+          await messageStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length-1, false, false);
         } catch (error) {
           console.error('消息发送失败:', error);
           alert('发送消息时出现问题，请稍后再试。');

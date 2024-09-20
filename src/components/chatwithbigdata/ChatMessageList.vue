@@ -95,7 +95,7 @@ export default {
       if (role === 'user' && editedMessageContent.value.trim()) {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index + 1);
-        messageStore.selectFileAndChat(currentSession.value, index, false);
+        messageStore.selectFileAndChat(currentSession.value, index, false, false);
         resetEdit();
       }
     };
@@ -120,6 +120,7 @@ export default {
       currentSession.value.messages.splice(index);
       messageStore.processChat(
           currentSession.value,
+          currentSession.value.messages,
           index,
           true,
           false
