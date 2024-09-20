@@ -267,7 +267,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                             .map(line => line.startsWith('-') || line.startsWith('+') ? line.slice(1) : line) // 移除 `-` 和 `+`
                             .join('\n');
                         Modal.info({
-                            title: `更新文件 ${filePath} 时出错`,
+                            title: `更新文件 ${filePath} 时出错:${result.message}`,
                             content: codeContent,
                             width: 800,
                             okText: '复制',

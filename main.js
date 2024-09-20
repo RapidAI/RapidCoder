@@ -170,29 +170,12 @@ ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
 
 
 ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent) => {
-    if (typeof filePath !== 'string') {
-        throw new Error('filePath must be a string');
-    }
-
-    if (typeof diffContent !== 'string') {
-        throw new Error('diffContent must be a string');
-    }
-
     try {
-        // 读取原始文件内容
         const originalContent = fs.readFileSync(filePath, 'utf-8');
-        console.log('Original Content:', originalContent);
-        console.log('Diff Content:', diffContent);
-
-        // 应用 git diff 补丁
         const patchedContent = applyPatch(originalContent, diffContent);
-
-        // 将更新后的内容写回文件
         fs.writeFileSync(filePath, patchedContent, 'utf-8');
-
         return { success: true, message: '文件已成功更新（使用 git diff）' };
     } catch (error) {
-        console.error('Error applying patch:', error);
         return { success: false, message: `更新文件失败: ${error.message}` };
     }
 });
