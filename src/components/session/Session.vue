@@ -34,10 +34,24 @@
     <!-- 新建对话选择模型和项目模态框 -->
     <a-modal v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
              @ok="createSession" @cancel="resetModal">
-      <a-select v-model:value="selectedModelId" placeholder="请选择模型" style="width: 100%; margin-bottom: 20px"
-                :options="modelOptions"/>
-      <a-select v-model:value="selectedProjectId" mode="multiple" placeholder="请选择项目" style="width: 100%"
-                :options="projectOptions"/>
+      <div>
+        <p><strong>请选择一个模型：</strong><span style="color: red;">*</span></p>
+        <a-radio-group v-model:value="selectedModelId" style="width: 100%">
+          <a-radio v-for="model in modelOptions" :key="model.value" :value="model.value">
+            {{ model.label }}
+          </a-radio>
+        </a-radio-group>
+        <p v-if="!selectedModelId" style="color: #f5222d; margin-top: 5px;">请选择一个模型以继续。</p>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <p><strong>请选择项目：</strong></p>
+        <a-checkbox-group v-model:value="selectedProjectId" style="width: 100%">
+          <a-checkbox v-for="project in projectOptions" :key="project.value" :value="project.value">
+            {{ project.label }}
+          </a-checkbox>
+        </a-checkbox-group>
+      </div>
     </a-modal>
   </a-layout>
 </template>
@@ -85,7 +99,6 @@ export default {
       }
     };
 
-
     const resetModal = () => {
       isSessionCreationModalVisible.value = false;
       selectedModelId.value = null;
@@ -128,7 +141,6 @@ export default {
         loadingProjects.value = false;
       }
     });
-
 
     return {
       messageStore,

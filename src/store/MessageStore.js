@@ -55,9 +55,7 @@ export const useMessageStore = defineStore('message_store', {
 
 JSON结构说明:
 analysis: 用户意图分析,根据问题和上文的信息...,system中定义类每个文件的简单信息,没有相关文件的具体内容
-reason: 如果needContent=false,就不用选择文件, 如果needContent=true,就需要将关联的所有文件的原因写出来
 filePath: 相关文件的路径
-needContent: 判断如果上文中已经存在相关文件的具体内容就false, 如果不存在就true, 一般为true
 
 问题如下：${userQuestion}
 

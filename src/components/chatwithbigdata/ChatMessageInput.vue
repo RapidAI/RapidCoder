@@ -35,7 +35,7 @@ export default {
 
     const handleSendOrStop = async () => {
       if (currentSession.value.isStreaming) {
-        await messageStore.stopChat(currentSession);
+        await messageStore.stopChat(currentSession.value);
       } else {
         if (isSending.value) return; // 防止重复发送
         handleSend(inputMessage.value);
