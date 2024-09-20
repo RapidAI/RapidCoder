@@ -13,7 +13,7 @@
       <!-- 对话列表 -->
       <div class="scrollable-menu-container">
         <a-menu v-if="messageStore.sessions.length" mode="inline" :inlineIndent="0"
-                :selectedKeys="[messageStore.currentSession?.sessionId]" class="custom-menu">
+                :selectedKeys="[selectedSessionId]" class="custom-menu">
           <a-menu-item v-for="session in [...messageStore.sessions].reverse()" :key="session.sessionId">
             <div class="menu-item-container">
               <a-button type="link" @click="deleteSession(session)">
@@ -28,7 +28,7 @@
 
     <!-- 对话内容区域 -->
     <a-layout-content class="custom-content">
-      <Chat v-if="messageStore.currentSession?.sessionId"/>
+      <Chat v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
     </a-layout-content>
 
     <!-- 新建对话选择模型和项目模态框 -->
@@ -60,6 +60,7 @@ export default {
     const modelStore = useModelStore();
     const loadingProjects = ref(false);
     const isSessionCreationModalVisible = ref(false);
+    const selectedSessionId = ref(null);
     const selectedModelId = ref(null);
     const selectedProjectId = ref([]);
 
@@ -98,7 +99,7 @@ export default {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
         const projects = projectStore.projects.filter(p => selectedProjectId.value.includes(p.projectId));
         await messageStore.createSession(model, projects);
-        router.push({query: {sessionId: messageStore.currentSession.sessionId}});
+        router.push({query: {sessionId: selectedSessionId.value}});
       } catch (e) {
         message.error('创建会话失败');
       } finally {
@@ -110,7 +111,7 @@ export default {
     const sessionTitle = (session) => session.messages[1]?.content || '新对话';
 
     const selectSession = (session) => {
-      messageStore.currentSession = session;
+      selectedSessionId.value = session.sessionId;
       router.push({query: {sessionId: session.sessionId}});
     };
 
@@ -129,8 +130,19 @@ export default {
 
 
     return {
-      messageStore, isSessionCreationModalVisible, loadingProjects, selectedModelId, selectedProjectId,
-      modelOptions, projectOptions, sessionTitle, createSession, resetModal, deleteSession, selectSession
+      messageStore,
+      isSessionCreationModalVisible,
+      loadingProjects,
+      selectedModelId,
+      selectedProjectId,
+      selectedSessionId,
+      modelOptions,
+      projectOptions,
+      sessionTitle,
+      createSession,
+      resetModal,
+      deleteSession,
+      selectSession
     };
   },
 };
