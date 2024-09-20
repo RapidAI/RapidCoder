@@ -127,18 +127,13 @@ export default {
     };
 
     const handleCreateSession = async () => {
-      if (!selectedModelId.value || !selectedProjectId.value.length) {
-        message.error('请同时选择模型和项目');
-        return;
-      }
-
       try {
         loadingProjects.value = true;
         const selectedModel = modelStore.models.find(model => model.modelId === selectedModelId.value);
         const selectedProjects = projectStore.projects.filter(project => selectedProjectId.value.includes(project.projectId));
 
-        if (!selectedModel || !selectedProjects.length) {
-          message.error('模型或项目不存在');
+        if (!selectedModel) {
+          message.error('模型不存在');
           return;
         }
 
