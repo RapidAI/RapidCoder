@@ -63,10 +63,9 @@ needContent: 判断如果上文中已经存在相关文件的具体内容就fals
 问题如下：${userQuestion}
 
 `;
-
-            const clonedCurrentSession = JSON.parse(JSON.stringify(currentSession));
-            clonedCurrentSession.messages[index].content = prompt;
-            await this.processChat(clonedCurrentSession, index, overwrite, semanticSearch);
+            const clonedMessages = JSON.parse(JSON.stringify(messagelist));
+            clonedMessages[index].content = prompt;
+            await this.processChat(currentSession,clonedMessages, index, overwrite, semanticSearch);
 
             const assistantResponse = currentSession.messages[index + 1]?.content || '';
             const matches = assistantResponse.match(/```json([\s\S]*?)```/);
@@ -141,20 +140,15 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 return '';
             }
         },
-        async processChat(currentSession, index, overwrite, semanticSearch = false) {
-            console.log(currentSession)
-            const messagelist=currentSession.messages
+        async processChat(currentSession,messagelist, index, overwrite, semanticSearch = false) {
             currentSession.isStreaming = true;
-            const allMessages = [...messagelist];
-
             if (semanticSearch) {
                 //  todo 检索
             }
-
             const modelPayload = {
                 ...currentSession.currentModel,
                 stream: true,
-                messages: allMessages,
+                messages: messagelist,
             };
 
             const response = await fetch(
