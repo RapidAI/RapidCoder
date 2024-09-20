@@ -141,8 +141,9 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
         },
         async processChat(currentSession, index, overwrite, semanticSearch = false) {
+            console.log(currentSession)
             const messagelist=currentSession.messages
-            this.currentSession.isStreaming = true;
+            currentSession.isStreaming = true;
             const allMessages = [...messagelist];
 
             if (semanticSearch) {
@@ -185,7 +186,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             }
 
             currentSession.messages[assistantIndex].isAnalyzing = false;
-            this.currentSession.isStreaming = false;
+            currentSession.isStreaming = false;
         },
         parseChatResponse(input) {
             return input

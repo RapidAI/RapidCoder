@@ -34,6 +34,7 @@ export default {
     });
 
     const handleSendOrStop = async () => {
+      console.log(currentSession)
       if (currentSession.value.isStreaming) {
         await messageStore.stopChat(currentSession);
       } else {

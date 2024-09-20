@@ -124,7 +124,7 @@ export default {
     const regenerateMessage = (index) => {
       currentSession.value.messages.splice(index);
       messageStore.processChat(
-          currentSession.value.messages,
+          currentSession.value,
           index,
           true,
           false
