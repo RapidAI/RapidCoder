@@ -245,7 +245,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 }
 
                 const filePath = item.filePath;
-                const codeContent = item.code;
+                let codeContent = item.code;
                 const totleContent = item.totleContent;
 
                 // 替换文件内容
@@ -262,6 +262,10 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                     if (result.success) {
                         message.success(`文件 ${filePath} 已成功更新`);
                     } else {
+                        codeContent = codeContent
+                            .split('\n')
+                            .map(line => line.startsWith('-') || line.startsWith('+') ? line.slice(1) : line) // 移除 `-` 和 `+`
+                            .join('\n');
                         Modal.info({
                             title: `更新文件 ${filePath} 时出错`,
                             content: codeContent,
