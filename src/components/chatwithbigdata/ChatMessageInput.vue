@@ -18,11 +18,25 @@
    import {useMessageStore} from '@/store/MessageStore.js';
 
    export default {
+     props: {
+       debugMode: {
+         type: Boolean,
+         default: false,
+       },
+       selectedSessionId: {
+         required: true,
+       },
+     },
      setup() {
        const messageStore = useMessageStore();
        const inputMessage = ref('');
        const isComposition = ref(false);
 
+       const currentSession = computed(() => {
+         return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+       });
+
+       
        const handleSendOrStop = async () => {
          if (messageStore.isStreaming) {
            await messageStore.stopChat();
@@ -33,9 +47,9 @@
 
        const handleSend = async (message) => {
          if (message.trim()) {
-           messageStore.currentSession.messages.push({role: 'user', content: message})
+           currentSession.messages.push({role: 'user', content: message})
            inputMessage.value = ''; // 清空输入框
-           await messageStore.selectFileAndChat(messageStore.currentSession.messages, messageStore.currentSession.messages.length-1, false, false);
+           await messageStore.selectFileAndChat(currentSession.messages, currentSession.messages.length-1, false, false);
          }
        };
 

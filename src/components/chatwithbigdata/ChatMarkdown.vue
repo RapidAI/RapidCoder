@@ -98,7 +98,6 @@ export default {
     };
 
     const executeCode = () => {
-      const {messages} = messageStore.currentSession;
       messageStore.messageExecuteCode(props.messageindex);
     };
 
