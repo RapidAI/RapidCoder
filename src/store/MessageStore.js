@@ -49,7 +49,7 @@ export const useMessageStore = defineStore('message_store', {
     "reflection": "...",
     "rethinking": "...",
     "finalResult": {
-        "needContent": true/false,
+        "needFileContent": true,
         "filePath": ["文件路径...", "..."]
     }
 }
@@ -75,7 +75,7 @@ finalResult：提供最终的简洁答案
                 return;
             }
 
-            if (finalResult.needContent) {
+            if (finalResult.needFileContent) {
                 const files = finalResult.filePath || [];
                 if (!files.length) return;
 
@@ -123,7 +123,7 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
                 this.messageExecuteCode(index + 3)
             }
-            if (!finalResult.needContent) {
+            if (!finalResult.needFileContent) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId, index)
             }
