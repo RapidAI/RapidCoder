@@ -113,7 +113,7 @@ ${combinedContent}
 `;
             messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
             await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
-            this.messageExecuteCode(currentSession.sessionId,index + 3)
+            this.messageExecuteCode(currentSession.sessionId, index + 3)
         },
         async getCombinedFileContent(files) {
             try {
@@ -213,39 +213,14 @@ ${combinedContent}
             }
         },
         async parseParenthesesMessage(assistantMessage) {
-            try {
-                // 使用正则表达式提取 (finalResult) 部分
-                const finalResultMatch = assistantMessage.match(/\(finalResult\)([^()]+)\(\/finalResult\)/);
-                if (!finalResultMatch) {
-                    return null; // 如果没有找到 finalResult，返回 null
-                }
-
-                const finalResultContent = finalResultMatch[1].trim(); // 提取 finalResult 中的内容
-
-                // 在 finalResult 中分别提取 code 和 filePath
-                const codeMatch = finalResultContent.match(/\(code\)([^()]+)\(\/code\)/);
-                const filePathMatch = finalResultContent.match(/\(filePath\)([^()]+)\(\/filePath\)/);
-
-                // 提取并清理匹配到的内容
-                const code = codeMatch ? codeMatch[1].trim() : null;
-                const filePath = filePathMatch ? filePathMatch[1].trim() : null;
-
-                // 如果 code 或 filePath 缺失，返回 null
-                if (!code || !filePath) {
-                    return null;
-                }
-
-                // 返回结构化的结果，包括 finalResult，code 和 filePath
-                return {
-                    finalResult: {
-                        code,
-                        filePath
-                    }
-                };
-            } catch (error) {
-                console.log('解析括号数据时发生错误:', error);
-                return null;
-            }
+            const finalResultMatches = [...assistantMessage.matchAll(/\(finalResult\)([\s\S]*?)\(finalResult\)/g)];
+            if (!finalResultMatches.length) return null;
+            return finalResultMatches.map(match => {
+                const finalResultContent = match[1].trim();
+                const code = finalResultContent.match(/\(code\)([\s\S]*?)\(code\)/)?.[1].trim();
+                const filePath = finalResultContent.match(/\(filePath\)([\s\S]*?)\(filePath\)/)?.[1].trim();
+                return code && filePath ? {code, filePath, "totleContent": true} : null;
+            });
         },
         async processResults(finalResult) {
             for (const {filePath, code, totleContent} of finalResult) {
