@@ -39,10 +39,10 @@ export const useMessageStore = defineStore('message_store', {
                 message.error('请选择一个模型');
                 return;
             }
-            console.log(index)
-            if(index>2){
+            console.log(index) //从第2次对话开始就不再联系文件内容
+            if (index > 2) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId, index+1)
+                this.messageExecuteCode(currentSession.sessionId, index + 1)
                 return
             }
 
@@ -55,7 +55,6 @@ export const useMessageStore = defineStore('message_store', {
     "reflection": "...",
     "rethinking": "...",
     "finalResult": {
-        "needFileContent": true,
         "filePath": ["文件路径...", "..."]
     }
 }
@@ -75,64 +74,46 @@ finalResult：提供最终的简洁答案
 
 
             const assistantMessage = currentSession.messages[index + 1]?.content || '';
-            const finalResult = await this.parseAssistantMessage(assistantMessage);
-            console.log(finalResult)
+            const finalResult = await this.parseJsonMessage(assistantMessage);
             if (!finalResult) {
                 return;
             }
 
-            if (finalResult.needFileContent) {
-                const files = finalResult.filePath || [];
-                if (!files.length) return;
+            const files = finalResult.filePath || [];
+            if (!files.length) return;
 
-                const combinedContent = await this.getCombinedFileContent(files);
-                if (!combinedContent) return;
+            const combinedContent = await this.getCombinedFileContent(files);
+            if (!combinedContent) return;
 
-                const newPrompt = `
+            const newPrompt = `
 ${combinedContent}
 
-请基于这些内容回答用户的问题: ${userQuestion}
+请基于以上内容回答用户的问题: ${userQuestion}
+返回的数据格式为：
+(thinking)"..."(thinking)
+(reflection)"..."(reflection)
+(rethinking)"..."(rethinking)
+(finalResult)
+(filePath)"..."(filePath)
+(code)
+\`\`\`
+...
+\`\`\`
+(code)
+(finalResult),...
 
-返回的 JSON 数据结构为：
-{
-    "thinking": "...",
-    "reflection": "...",
-    "rethinking": "...",
-    "finalResult": [
-        {
-            "filePath": "...",
-            "totalContent": true,
-            "code": "..."
-        }
-        ,...
-    ]
-}
-
-JSON结构说明:
+数据格式说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-thinking：按步骤思考并分析问题，提出相关的解决方案。
-reflection：反思上面的思考推理过程，检查是否有错误或改进空间。
-rethinking：根据你的反思做出必要的调整，提出更完善的解决方案。
-finalResult：提供最终的简洁答案,如果是多个文件的代码就返回多个
-
-- **当 \`totleContent=true\`**：返回完整的代码内容。
-- **当 \`totleContent=false\`**：返回 Git diff 格式的部分修改内容，格式如下：
-@@ -startLine,numberOfOriginalLines +startLine,numberOfNewLines @@
- context lines (unchanged lines)
--deleted line
-+added line
-startLine 是修改起始行号。
-numberOfOriginalLines 是原始文件中显示的上下文加上被修改的行数。
-numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行数。
+(thinking)：按步骤思考并分析问题，提出相关的解决方案。
+(reflection)：反思上面的思考推理过程，检查是否有错误或改进空间。
+(rethinking)：根据你的反思做出必要的调整，提出更完善的解决方案。
+(finalResult)：提供最终的简洁答案,如果是多个文件的代码就返回多个
+(code)：代码内容,markdown格式
+(filePath)：：代码对应的文件路径
 `;
-                messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-                await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
-                this.messageExecuteCode(index + 3)
-            }
-            if (!finalResult.needFileContent) {
-                await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId, index+1)
-            }
+            messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
+            await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
+            this.messageExecuteCode(currentSession.sessionId,index + 3)
         },
         async getCombinedFileContent(files) {
             try {
@@ -213,14 +194,14 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
             const currentSession = this.sessions.find(s => s.sessionId === selectedSessionId);
             const assistantMessage = currentSession.messages[index]?.content;
             if (!assistantMessage) return;
-            const finalResult = await this.parseAssistantMessage(assistantMessage);
+            const finalResult = await this.parseParenthesesMessage(assistantMessage);
             if (!finalResult) {
                 message.success('不是代码无需运行');
                 return;
             }
             await this.processResults(finalResult);
         },
-        async parseAssistantMessage(assistantMessage) {
+        async parseJsonMessage(assistantMessage) {
             try {
                 const matches = assistantMessage.match(/```json([\s\S]*?)```/);
                 const jsonString = matches ? matches[1].trim() : assistantMessage.trim();
@@ -231,8 +212,43 @@ numberOfNewLines 是修改后的文件中显示的上下文加上被修改的行
                 return null;
             }
         },
+        async parseParenthesesMessage(assistantMessage) {
+            try {
+                // 使用正则表达式提取 (finalResult) 部分
+                const finalResultMatch = assistantMessage.match(/\(finalResult\)([^()]+)\(\/finalResult\)/);
+                if (!finalResultMatch) {
+                    return null; // 如果没有找到 finalResult，返回 null
+                }
+
+                const finalResultContent = finalResultMatch[1].trim(); // 提取 finalResult 中的内容
+
+                // 在 finalResult 中分别提取 code 和 filePath
+                const codeMatch = finalResultContent.match(/\(code\)([^()]+)\(\/code\)/);
+                const filePathMatch = finalResultContent.match(/\(filePath\)([^()]+)\(\/filePath\)/);
+
+                // 提取并清理匹配到的内容
+                const code = codeMatch ? codeMatch[1].trim() : null;
+                const filePath = filePathMatch ? filePathMatch[1].trim() : null;
+
+                // 如果 code 或 filePath 缺失，返回 null
+                if (!code || !filePath) {
+                    return null;
+                }
+
+                // 返回结构化的结果，包括 finalResult，code 和 filePath
+                return {
+                    finalResult: {
+                        code,
+                        filePath
+                    }
+                };
+            } catch (error) {
+                console.log('解析括号数据时发生错误:', error);
+                return null;
+            }
+        },
         async processResults(finalResult) {
-            for (const { filePath, code, totleContent } of finalResult) {
+            for (const {filePath, code, totleContent} of finalResult) {
                 if (!filePath || !code || typeof totleContent !== 'boolean') {
                     console.log('JSON finalResult中缺少文件路径、代码内容或 totleContent');
                     continue;
