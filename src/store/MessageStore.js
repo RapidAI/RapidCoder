@@ -167,7 +167,7 @@ ${combinedContent}
                 if (done) break;
                 const chunk = decoder.decode(value);
                 currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
-                eventBus.emit('messageUpdated', assistantIndex);
+                eventBus.emit('messageUpdated',currentSession.sessionId, assistantIndex);
             }
 
             currentSession.messages[assistantIndex].isAnalyzing = false;
@@ -264,7 +264,6 @@ ${combinedContent}
             if (currentSession.isStreaming) {
                 await currentSession.reader?.cancel();
                 currentSession.isStreaming = false;
-                eventBus.emit('messageUpdated', null);
                 message.success('请求已终止');
             } else {
                 message.info('当前没有正在进行的流式请求');
