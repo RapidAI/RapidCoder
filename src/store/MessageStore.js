@@ -213,12 +213,17 @@ ${combinedContent}
             }
         },
         async parseParenthesesMessage(assistantMessage) {
+            const removeQuotes = str => str.replace(/^['"]|['"]$/g, '');
+            const removeCodeBlock = str => str.replace(/^```.*?\n|```$/g, '');
             const finalResultMatches = [...assistantMessage.matchAll(/\(finalResult\)([\s\S]*?)\(finalResult\)/g)];
             if (!finalResultMatches.length) return null;
             return finalResultMatches.map(match => {
                 const finalResultContent = match[1].trim();
-                const code = finalResultContent.match(/\(code\)([\s\S]*?)\(code\)/)?.[1].trim();
-                const filePath = finalResultContent.match(/\(filePath\)([\s\S]*?)\(filePath\)/)?.[1].trim();
+                let code = finalResultContent.match(/\(code\)([\s\S]*?)\(code\)/)?.[1].trim();
+                code = removeQuotes(code);
+                code = removeCodeBlock(code);
+                let filePath = finalResultContent.match(/\(filePath\)([\s\S]*?)\(filePath\)/)?.[1].trim();
+                filePath = removeQuotes(filePath);
                 return code && filePath ? {code, filePath, "totleContent": true} : null;
             });
         },
