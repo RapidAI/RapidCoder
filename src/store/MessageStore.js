@@ -90,17 +90,17 @@ ${combinedContent}
 
 请基于以上内容回答用户的问题: ${userQuestion}
 返回的数据格式为：
-(thinking)"..."(thinking)
-(reflection)"..."(reflection)
-(rethinking)"..."(rethinking)
+(thinking)"..."(/thinking)
+(reflection)"..."(/reflection)
+(rethinking)"..."(/rethinking)
 (finalResult)
-(filePath)"..."(filePath)
+(filePath)"..."(/filePath)
 (code)
 \`\`\`
 ...
 \`\`\`
-(code)
-(finalResult),...
+(/code)
+(/finalResult),...
 
 数据格式说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
@@ -109,7 +109,7 @@ ${combinedContent}
 (rethinking)：根据你的反思做出必要的调整，提出更完善的解决方案。
 (finalResult)：提供最终的简洁答案,如果是多个文件的代码就返回多个
 (code)：代码内容,markdown格式
-(filePath)：：代码对应的文件路径
+(filePath)：代码对应的文件路径
 `;
             messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
             await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
@@ -215,14 +215,14 @@ ${combinedContent}
         async parseParenthesesMessage(assistantMessage) {
             const removeQuotes = str => str.replace(/^['"]|['"]$/g, '');
             const removeCodeBlock = str => str.replace(/^```.*?\n|```$/g, '');
-            const finalResultMatches = [...assistantMessage.matchAll(/\(finalResult\)([\s\S]*?)\(finalResult\)/g)];
+            const finalResultMatches = [...assistantMessage.matchAll(/\(finalResult\)([\s\S]*?)\(\/finalResult\)/g)];
             if (!finalResultMatches.length) return null;
             return finalResultMatches.map(match => {
                 const finalResultContent = match[1].trim();
-                let code = finalResultContent.match(/\(code\)([\s\S]*?)\(code\)/)?.[1].trim();
+                let code = finalResultContent.match(/\(code\)([\s\S]*?)\(\/code\)/)?.[1].trim();
                 code = removeQuotes(code);
                 code = removeCodeBlock(code);
-                let filePath = finalResultContent.match(/\(filePath\)([\s\S]*?)\(filePath\)/)?.[1].trim();
+                let filePath = finalResultContent.match(/\(filePath\)([\s\S]*?)\(\/filePath\)/)?.[1].trim();
                 filePath = removeQuotes(filePath);
                 return code && filePath ? {code, filePath, "totleContent": true} : null;
             });
