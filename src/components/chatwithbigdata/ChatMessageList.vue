@@ -16,16 +16,16 @@
           </div>
           <div class="message-actions">
             <template v-if="item.role === 'system'">
-              <a @click="copyToClipboard(item.content)">复制</a>
+              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
             </template>
             <template v-if="item.role === 'user'">
-              <a @click="enableEditMode(index, item.content)">编辑</a>
-              <a @click="copyToClipboard(item.content)">复制</a>
+              <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
+              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
             </template>
             <template v-if="item.role === 'assistant'">
-              <a @click="enableEditMode(index, item.content)">编辑</a>
-              <a @click="copyToClipboard(item.content)">复制</a>
-              <a @click="regenerateMessage(index)">重新生成</a>
+              <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
+              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
+              <a-button type="primary" size="small" @click="regenerateMessage(index)">重新生成</a-button>
             </template>
           </div>
         </div>
@@ -37,8 +37,8 @@
                       :auto-size="{ minRows: 1, maxRows: 3 }"
                       class="edit-textarea"/>
           <div class="edit-actions">
-            <a @click="updateMessage(index, item.role)">发送</a>
-            <a @click="resetEdit">取消</a>
+            <a-button type="primary" size="small" @click="updateMessage(index, item.role)">发送</a-button>
+            <a-button type="primary" size="small" @click="resetEdit">取消</a-button>
           </div>
         </div>
       </div>
@@ -143,9 +143,9 @@ export default {
       isComposition = status;
     };
 
-    const scrollToCurrentMessage = (seesionId, index) => {
+    const scrollToCurrentMessage = (sessionId, index) => {
       nextTick(() => {
-        if (currentSession.seesionId === seesionId) {
+        if (currentSession.value.sessionId === sessionId) {
           const messageItems = messageList.value?.querySelectorAll('.message-item');
           messageItems[index].scrollIntoView({behavior: 'instant', block: 'end'});
         }
@@ -153,8 +153,10 @@ export default {
     };
 
     onMounted(() => {
-      eventBus.on('messageUpdated', scrollToCurrentMessage);
-      scrollToCurrentMessage(currentSession.value.messages.length - 1)
+      eventBus.on('messageUpdated', ({sessionId, index}) => {
+        scrollToCurrentMessage(sessionId, index);
+      });
+      scrollToCurrentMessage(currentSession.value.sessionId, currentSession.value.messages.length - 1)
     });
 
     onUnmounted(() => {

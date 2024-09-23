@@ -104,12 +104,12 @@ ${combinedContent}
 
 数据格式说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-(thinking)：按步骤思考并分析问题，提出相关的解决方案。
-(reflection)：反思上面的思考推理过程，检查是否有错误或改进空间。
-(rethinking)：根据你的反思做出必要的调整，提出更完善的解决方案。
-(finalResult)：提供最终的简洁答案,如果是多个文件的代码就返回多个
-(code)：代码内容,markdown格式
-(filePath)：代码对应的文件路径
+(thinking)"..."(/thinking)：按步骤思考并分析问题，提出相关的解决方案。
+(reflection)"..."(/reflection)：反思上面的思考推理过程，检查是否有错误或改进空间。
+(rethinking)"..."(/rethinking)：根据你的反思做出必要的调整，提出更完善的解决方案。
+(finalResult)(/finalResult)：提供最终的简洁答案,如果是多个文件的代码就返回多个
+(code)(/code)：代码内容,markdown格式
+(filePath)(/filePath)：代码对应的文件路径
 `;
             messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
             await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
@@ -167,7 +167,7 @@ ${combinedContent}
                 if (done) break;
                 const chunk = decoder.decode(value);
                 currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
-                eventBus.emit('messageUpdated',currentSession.sessionId, assistantIndex);
+                eventBus.emit('messageUpdated', {sessionId: currentSession.sessionId, index: assistantIndex},);
             }
 
             currentSession.messages[assistantIndex].isAnalyzing = false;
