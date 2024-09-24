@@ -2,9 +2,8 @@
   <div>
     <a-tree
         :treeData="treeData"
-        checkable
-        @check="checkedKeys = $event"
-        :checkedKeys="checkedKeys"
+        :expandedKeys="expandedKeys"
+        @expand="onExpand"
         :defaultExpandAll="false"
         :showLine="{ showLeafIcon: false }"
     >
@@ -25,7 +24,7 @@
           >
             删除
           </button>
-          <custom-loading v-if="data.isAnalyzing" tip="AI解析中..." />
+          <custom-loading v-if="data.isAnalyzing" tip="AI解析中..."/>
         </div>
       </template>
     </a-tree>
@@ -33,12 +32,13 @@
 </template>
 
 <script>
-import { ref, watch, computed } from 'vue';
-import { useSessionStore } from '@/store/SessionStore.js';
-import { useModelStore } from '@/store/ModelStore.js';
-import { message } from 'ant-design-vue';
+import {ref, watch, computed} from 'vue';
+import {useSessionStore} from '@/store/SessionStore.js';
+import {useModelStore} from '@/store/ModelStore.js';
+import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
-const { ipcRenderer } = require('electron');
+
+const {ipcRenderer} = require('electron');
 
 export default {
   props: {
@@ -50,6 +50,11 @@ export default {
     CustomLoading,
   },
   setup(props) {
+    const expandedKeys = ref([]); // Initialize with keys you want expanded by default
+
+    const onExpand = (keys) => {
+      expandedKeys.value = keys;
+    };
     const messageStore = useSessionStore();
     const modelStore = useModelStore();
 
@@ -69,7 +74,7 @@ export default {
           const match = newContent.match(/```json\n([\s\S]*?)\n```/);
           jsonData.value = match ? JSON.parse(match[1]) : null;
         },
-        { immediate: true }
+        {immediate: true}
     );
 
     const treeData = computed(() => {
@@ -119,7 +124,7 @@ export default {
             const isFile = index === pathParts.length - 1;
             node = {
               title: part,
-              key: `project-${projectIndex}-file-${filePath}-${index}`,
+              key: `project-${projectIndex}-file-${filePath}`, // Stable key
               type: isFile ? 'file' : 'folder',
               projectId: project.projectId,
               path: isFile ? filePath : null,
@@ -253,6 +258,8 @@ ${fileContent}
     };
 
     return {
+      expandedKeys,
+      onExpand,
       treeData,
       checkedKeys,
       updateFileAnalysis,

@@ -19,7 +19,9 @@
               <a-button type="link" @click="deleteSession(session)">
                 <DeleteOutlined/>
               </a-button>
-              <span class="menu-item-title" @click="selectSession(session)">{{ sessionTitle(session) }}</span>
+              <div class="menu-item-title" @click="selectSession(session)">
+                {{ sessionTitle(session) }}
+              </div>
             </div>
           </a-menu-item>
         </a-menu>
@@ -180,10 +182,18 @@ export default {
   width: 100%;
 }
 
+.menu-item-container {
+  display: flex;
+  align-items: center;
+}
+
 .menu-item-title {
+  flex-grow: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* 移除背景颜色 */
+  /* background-color: red; */
 }
 
 .custom-content {
