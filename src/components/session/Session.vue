@@ -60,7 +60,7 @@
 
 <script>
 import {ref, onMounted} from 'vue';
-import Chat from '../chatwithbigdata/Chat.vue';
+import Chat from '../chat/Chat.vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useProjectStore} from "@/store/ProjectStore";
 import {useModelStore} from "@/store/ModelStore";

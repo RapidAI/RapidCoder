@@ -59,7 +59,7 @@ import {
 import {eventBus} from '@/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
 import CustomLoading from "@/components/common/CustomLoading.vue";
-import ChatSystem from "@/components/chatwithbigdata/ChatSystem.vue";
+import ChatSystem from "@/components/chat/ChatSystem.vue";
 
 export default {
   components: {
