@@ -32,13 +32,12 @@
 </template>
 
 <script>
-import {ref, watch, computed} from 'vue';
-import {useSessionStore} from '@/store/SessionStore.js';
-import {useModelStore} from '@/store/ModelStore.js';
-import {message} from 'ant-design-vue';
+import { ref, watch, computed } from 'vue';
+import { useSessionStore } from '@/store/SessionStore.js';
+import { useModelStore } from '@/store/ModelStore.js';
+import { message } from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
-
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
 
 export default {
   props: {
@@ -50,20 +49,20 @@ export default {
     CustomLoading,
   },
   setup(props) {
-    const expandedKeys = ref([]); // Initialize with keys you want expanded by default
+    const messageStore = useSessionStore();
+    const modelStore = useModelStore();
+
+    const expandedKeys = ref([]);
 
     const onExpand = (keys) => {
       expandedKeys.value = keys;
     };
-    const messageStore = useSessionStore();
-    const modelStore = useModelStore();
 
-    const checkedKeys = ref([]);
-
-    const currentSession = computed(() =>
-        messageStore.sessions.find(
-            (session) => session.sessionId === props.selectedSessionId
-        ) || null
+    const currentSession = computed(
+        () =>
+            messageStore.sessions.find(
+                (session) => session.sessionId === props.selectedSessionId
+            ) || null
     );
 
     const jsonData = ref(null);
@@ -74,7 +73,7 @@ export default {
           const match = newContent.match(/```json\n([\s\S]*?)\n```/);
           jsonData.value = match ? JSON.parse(match[1]) : null;
         },
-        {immediate: true}
+        { immediate: true }
     );
 
     const treeData = computed(() => {
@@ -116,15 +115,17 @@ export default {
       filePaths.forEach((filePath) => {
         const pathParts = filePath.split('/');
         let currentLevel = root;
+        let nodePath = '';
 
         pathParts.forEach((part, index) => {
-          let node = currentLevel.find((item) => item.title === part);
+          nodePath = nodePath ? `${nodePath}/${part}` : part;
+          let node = currentLevel.find((item) => item.key === nodePath);
 
           if (!node) {
             const isFile = index === pathParts.length - 1;
             node = {
               title: part,
-              key: `project-${projectIndex}-file-${filePath}`, // Stable key
+              key: nodePath, // 使用累积的路径作为 key
               type: isFile ? 'file' : 'folder',
               projectId: project.projectId,
               path: isFile ? filePath : null,
@@ -241,6 +242,15 @@ ${fileContent}
       try {
         updateProjectFileDetails(nodeData, null, true);
         message.success('文件已删除');
+
+        // 获取父节点的 key
+        const parentKey = nodeData.key.substring(
+            0,
+            nodeData.key.lastIndexOf('/')
+        );
+        if (parentKey && !expandedKeys.value.includes(parentKey)) {
+          expandedKeys.value.push(parentKey);
+        }
       } catch (error) {
         console.error(error);
         message.error('文件删除失败');
@@ -257,13 +267,31 @@ ${fileContent}
       }
     };
 
+    // 初始展开所有节点
+    watch(
+        treeData,
+        (newTreeData) => {
+          const collectKeys = (nodes) => {
+            let keys = [];
+            nodes.forEach((node) => {
+              if (node.children && node.children.length > 0) {
+                keys.push(node.key);
+                keys = keys.concat(collectKeys(node.children));
+              }
+            });
+            return keys;
+          };
+          expandedKeys.value = collectKeys(newTreeData);
+        },
+        { immediate: true }
+    );
+
     return {
-      expandedKeys,
-      onExpand,
       treeData,
-      checkedKeys,
       updateFileAnalysis,
       deleteFile,
+      expandedKeys,
+      onExpand,
     };
   },
 };
