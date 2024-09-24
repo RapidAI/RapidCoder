@@ -11,20 +11,20 @@
         <div class="custom-tree-node">
           <span>{{ data.title }}</span>
           <button
-              v-if="data.type === 'file' && !data.isAnalyzing"
+              v-if="data.type === 'file' && !analyzingStates.get(data.key)"
               @click.stop="updateFileAnalysis(data)"
               class="action-button"
           >
             更新
           </button>
           <button
-              v-if="data.type === 'file' && !data.isAnalyzing"
+              v-if="data.type === 'file' && !analyzingStates.get(data.key)"
               @click.stop="deleteFile(data)"
               class="action-button"
           >
             删除
           </button>
-          <custom-loading v-if="data.isAnalyzing" />
+          <custom-loading v-if="analyzingStates.get(data.key)" />
         </div>
       </template>
     </a-tree>
@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { ref, watch, computed } from 'vue';
+import { ref, watch,reactive, computed } from 'vue';
 import { useSessionStore } from '@/store/SessionStore.js';
 import { useModelStore } from '@/store/ModelStore.js';
 import { message } from 'ant-design-vue';
@@ -45,6 +45,7 @@ export default {
   },
   components: { CustomLoading },
   setup(props) {
+    const analyzingStates = reactive(new Map());
     const messageStore = useSessionStore();
     const modelStore = useModelStore();
 
@@ -162,7 +163,9 @@ export default {
     };
 
     const updateFileAnalysis = async (nodeData) => {
+      analyzingStates.set(nodeData.key, true);
       nodeData.isAnalyzing = true;
+      console.log(nodeData)
       try {
         const model = currentSession.value?.currentModel;
         const fileContent = await ipcRenderer.invoke(
@@ -214,6 +217,7 @@ ${fileContent}
         message.error('文件解析失败');
       } finally {
         nodeData.isAnalyzing = false;
+        analyzingStates.set(nodeData.key, false);
       }
     };
 
@@ -259,6 +263,7 @@ ${fileContent}
       treeData,
       updateFileAnalysis,
       deleteFile,
+      analyzingStates,
       expandedKeys,
       onExpand,
     };
