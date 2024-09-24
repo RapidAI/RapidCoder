@@ -53,7 +53,6 @@ export default {
     const messageStore = useSessionStore();
     const modelStore = useModelStore();
 
-    const treeData = ref([]);
     const checkedKeys = ref([]);
 
     const currentSession = computed(() =>
@@ -62,20 +61,24 @@ export default {
         ) || null
     );
 
-    const parseSessionContent = () => {
-      const content = currentSession.value?.messages[0]?.content || '';
-      const match = content.match(/```json\n([\s\S]*?)\n```/);
-      return match ? JSON.parse(match[1]) : null;
-    };
+    const jsonData = ref(null);
 
-    const formatTreeData = () => {
-      const jsonData = parseSessionContent();
-      if (!Array.isArray(jsonData)) {
+    watch(
+        () => currentSession.value?.messages[0]?.content,
+        (newContent) => {
+          const match = newContent.match(/```json\n([\s\S]*?)\n```/);
+          jsonData.value = match ? JSON.parse(match[1]) : null;
+        },
+        { immediate: true }
+    );
+
+    const treeData = computed(() => {
+      if (!Array.isArray(jsonData.value)) {
         console.error('JSON 数据错误');
-        return;
+        return [];
       }
 
-      treeData.value = jsonData.map((project, index) => ({
+      return jsonData.value.map((project, index) => ({
         title: project.projectName || `项目${index + 1}`,
         key: `project-${project.projectId || index}`,
         children: [
@@ -90,28 +93,71 @@ export default {
           {
             title: '项目文件',
             key: `project-${index}-fileDetails`,
-            children: Object.keys(project.projectFileDetails || {}).map(
-                (filePath) => ({
-                  title: filePath,
-                  key: `project-${index}-file-${filePath}`,
-                  type: 'file',
-                  projectId: project.projectId,
-                  path: filePath,
-                  isAnalyzing: false,
-                })
+            children: optimizeTree(
+                buildTreeFromPaths(
+                    Object.keys(project.projectFileDetails || {}),
+                    project,
+                    index
+                )
             ),
           },
         ],
       }));
+    });
+
+    const buildTreeFromPaths = (filePaths, project, projectIndex) => {
+      const root = [];
+
+      filePaths.forEach((filePath) => {
+        const pathParts = filePath.split('/');
+        let currentLevel = root;
+
+        pathParts.forEach((part, index) => {
+          let node = currentLevel.find((item) => item.title === part);
+
+          if (!node) {
+            const isFile = index === pathParts.length - 1;
+            node = {
+              title: part,
+              key: `project-${projectIndex}-file-${filePath}-${index}`,
+              type: isFile ? 'file' : 'folder',
+              projectId: project.projectId,
+              path: isFile ? filePath : null,
+              isAnalyzing: false,
+              children: [],
+            };
+            currentLevel.push(node);
+          }
+
+          currentLevel = node.children;
+        });
+      });
+
+      return root;
     };
 
-    watch(currentSession, formatTreeData, { immediate: true });
+    const optimizeTree = (nodes) => {
+      return nodes.map((node) => {
+        if (node.type === 'folder') {
+          while (
+              node.children.length === 1 &&
+              node.children[0].type === 'folder'
+              ) {
+            const child = node.children[0];
+            node.title = `${node.title}/${child.title}`;
+            node.key = child.key;
+            node.children = child.children;
+          }
+          node.children = optimizeTree(node.children);
+        }
+        return node;
+      });
+    };
 
     const updateProjectFileDetails = (nodeData, newData, isDelete = false) => {
-      const jsonData = parseSessionContent();
-      if (!jsonData) return;
+      if (!jsonData.value) return;
 
-      const project = jsonData.find(
+      const project = jsonData.value.find(
           (proj) => proj.projectId === nodeData.projectId
       );
       if (!project) return;
@@ -124,11 +170,10 @@ export default {
       }
 
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(
-          jsonData,
+          jsonData.value,
           null,
           2
       )}\n\`\`\``;
-      formatTreeData();
     };
 
     const updateFileAnalysis = async (nodeData) => {
