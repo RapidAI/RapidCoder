@@ -24,7 +24,7 @@
           >
             删除
           </button>
-          <custom-loading v-if="data.isAnalyzing" tip="AI解析中..."/>
+          <custom-loading v-if="data.isAnalyzing" />
         </div>
       </template>
     </a-tree>
@@ -41,28 +41,20 @@ const { ipcRenderer } = require('electron');
 
 export default {
   props: {
-    selectedSessionId: {
-      required: true,
-    },
+    selectedSessionId: { required: true },
   },
-  components: {
-    CustomLoading,
-  },
+  components: { CustomLoading },
   setup(props) {
     const messageStore = useSessionStore();
     const modelStore = useModelStore();
 
     const expandedKeys = ref([]);
+    const onExpand = (keys) => (expandedKeys.value = keys);
 
-    const onExpand = (keys) => {
-      expandedKeys.value = keys;
-    };
-
-    const currentSession = computed(
-        () =>
-            messageStore.sessions.find(
-                (session) => session.sessionId === props.selectedSessionId
-            ) || null
+    const currentSession = computed(() =>
+        messageStore.sessions.find(
+            (session) => session.sessionId === props.selectedSessionId
+        ) || null
     );
 
     const jsonData = ref(null);
@@ -77,11 +69,7 @@ export default {
     );
 
     const treeData = computed(() => {
-      if (!Array.isArray(jsonData.value)) {
-        console.error('JSON 数据错误');
-        return [];
-      }
-
+      if (!Array.isArray(jsonData.value)) return [];
       return jsonData.value.map((project, index) => ({
         title: project.projectName || `项目${index + 1}`,
         key: `project-${project.projectId || index}`,
@@ -100,7 +88,7 @@ export default {
             children: optimizeTree(
                 buildTreeFromPaths(
                     Object.keys(project.projectFileDetails || {}),
-                    project,
+                    project.projectId,
                     index
                 )
             ),
@@ -109,72 +97,63 @@ export default {
       }));
     });
 
-    const buildTreeFromPaths = (filePaths, project, projectIndex) => {
+    const buildTreeFromPaths = (filePaths, projectId) => {
       const root = [];
-
       filePaths.forEach((filePath) => {
         const pathParts = filePath.split('/');
         let currentLevel = root;
         let nodePath = '';
-
-        pathParts.forEach((part, index) => {
+        pathParts.forEach((part, idx) => {
           nodePath = nodePath ? `${nodePath}/${part}` : part;
           let node = currentLevel.find((item) => item.key === nodePath);
-
           if (!node) {
-            const isFile = index === pathParts.length - 1;
+            const isFile = idx === pathParts.length - 1;
             node = {
               title: part,
-              key: nodePath, // 使用累积的路径作为 key
+              key: nodePath,
               type: isFile ? 'file' : 'folder',
-              projectId: project.projectId,
+              projectId,
               path: isFile ? filePath : null,
               isAnalyzing: false,
               children: [],
             };
             currentLevel.push(node);
           }
-
           currentLevel = node.children;
         });
       });
-
       return root;
     };
 
-    const optimizeTree = (nodes) => {
-      return nodes.map((node) => {
-        if (node.type === 'folder') {
-          while (
-              node.children.length === 1 &&
-              node.children[0].type === 'folder'
-              ) {
-            const child = node.children[0];
-            node.title = `${node.title}/${child.title}`;
-            node.key = child.key;
-            node.children = child.children;
+    const optimizeTree = (nodes) =>
+        nodes.map((node) => {
+          if (node.type === 'folder') {
+            while (
+                node.children.length === 1 &&
+                node.children[0].type === 'folder'
+                ) {
+              const child = node.children[0];
+              node.title = `${node.title}/${child.title}`;
+              node.key = child.key;
+              node.children = child.children;
+            }
+            node.children = optimizeTree(node.children);
           }
-          node.children = optimizeTree(node.children);
-        }
-        return node;
-      });
-    };
+          return node;
+        });
 
     const updateProjectFileDetails = (nodeData, newData, isDelete = false) => {
       if (!jsonData.value) return;
-
       const project = jsonData.value.find(
           (proj) => proj.projectId === nodeData.projectId
       );
       if (!project) return;
-
       if (isDelete) {
         delete project.projectFileDetails[nodeData.path];
       } else {
         project.projectFileDetails[nodeData.path] =
             newData[nodeData.path] || {};
       }
-
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(
           jsonData.value,
           null,
@@ -242,15 +221,6 @@ ${fileContent}
       try {
         updateProjectFileDetails(nodeData, null, true);
         message.success('文件已删除');
-
-        // 获取父节点的 key
-        const parentKey = nodeData.key.substring(
-            0,
-            nodeData.key.lastIndexOf('/')
-        );
-        if (parentKey && !expandedKeys.value.includes(parentKey)) {
-          expandedKeys.value.push(parentKey);
-        }
       } catch (error) {
         console.error(error);
         message.error('文件删除失败');
@@ -267,7 +237,6 @@ ${fileContent}
       }
     };
 
-    // 初始展开所有节点
     watch(
         treeData,
         (newTreeData) => {
@@ -298,20 +267,13 @@ ${fileContent}
 </script>
 
 <style scoped>
-.ant-tree {
-  background: #f5f5f5;
-  padding: 20px;
-}
-
 .custom-tree-node {
   display: flex;
   align-items: center;
 }
-
 .action-button {
   margin-left: 8px;
 }
-
 .custom-loading {
   margin-left: 8px;
 }
