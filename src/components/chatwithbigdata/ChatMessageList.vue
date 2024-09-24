@@ -49,7 +49,7 @@
 
 <script>
 import {ref, onMounted, onUnmounted, nextTick, computed} from 'vue';
-import {useMessageStore} from '@/store/MessageStore.js';
+import {useSessionStore} from '@/store/SessionStore.js';
 import {message} from 'ant-design-vue';
 import {
   UserOutlined,
@@ -80,7 +80,7 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const messageList = ref([]);
     const editedMessageIndex = ref(null);
     const editedMessageContent = ref('');

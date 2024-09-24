@@ -25,7 +25,7 @@
 
 <script>
 import {ref, computed} from 'vue';
-import {useMessageStore} from '@/store/MessageStore.js';
+import {useSessionStore} from '@/store/SessionStore.js';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatMessageInput from './ChatMessageInput.vue';
 
@@ -40,7 +40,7 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const debugMode = ref(true);
 
     const currentSession = computed(() => {

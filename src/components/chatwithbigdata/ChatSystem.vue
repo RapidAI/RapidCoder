@@ -34,7 +34,7 @@
 
 <script>
 import { ref, watch, computed } from 'vue';
-import { useMessageStore } from '@/store/MessageStore.js';
+import { useSessionStore } from '@/store/SessionStore.js';
 import { useModelStore } from '@/store/ModelStore.js';
 import { message } from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
@@ -51,7 +51,7 @@ export default {
     CustomLoading,
   },
   setup(props) {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const modelStore = useModelStore();
 
     const treeData = ref([]);

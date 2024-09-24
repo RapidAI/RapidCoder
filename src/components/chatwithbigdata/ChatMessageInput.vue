@@ -15,7 +15,7 @@
 
 <script>
 import {ref, computed} from 'vue';
-import {useMessageStore} from '@/store/MessageStore.js';
+import {useSessionStore} from '@/store/SessionStore.js';
 
 export default {
   props: {
@@ -24,7 +24,7 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const inputMessage = ref('');
     const isComposition = ref(false);
     const isSending = ref(false);

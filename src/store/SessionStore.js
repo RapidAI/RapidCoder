@@ -5,7 +5,7 @@ import {Modal} from 'ant-design-vue';
 
 const {ipcRenderer} = require('electron');
 
-export const useMessageStore = defineStore('message_store', {
+export const useSessionStore = defineStore('session_store', {
     state: () => ({
         sessions: [],
     }),
@@ -13,7 +13,7 @@ export const useMessageStore = defineStore('message_store', {
         enabled: true,
         strategies: [
             {
-                key: 'message_store',
+                key: 'session_store',
                 storage: localStorage,
             },
         ],

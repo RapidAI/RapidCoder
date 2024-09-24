@@ -24,7 +24,7 @@
 
 <script>
 import {computed, ref, watch} from 'vue';
-import {useMessageStore} from '@/store/MessageStore.js';
+import {useSessionStore} from '@/store/SessionStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import {message} from 'ant-design-vue';
@@ -45,7 +45,7 @@ export default {
     ClockCircleOutlined,
   },
   setup(props) {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const dataBlocks = ref([]);
 
     const md = new MarkdownIt({

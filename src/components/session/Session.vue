@@ -59,7 +59,7 @@
 <script>
 import {ref, onMounted} from 'vue';
 import Chat from '../chatwithbigdata/Chat.vue';
-import {useMessageStore} from '@/store/MessageStore.js';
+import {useSessionStore} from '@/store/SessionStore.js';
 import {useProjectStore} from "@/store/ProjectStore";
 import {useModelStore} from "@/store/ModelStore";
 import {useRoute, useRouter} from 'vue-router';
@@ -70,7 +70,7 @@ import {eventBus} from "@/eventBus";
 export default {
   components: {Chat, EditOutlined, DeleteOutlined},
   setup() {
-    const messageStore = useMessageStore();
+    const messageStore = useSessionStore();
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
     const loadingProjects = ref(false);
