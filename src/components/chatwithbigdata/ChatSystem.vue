@@ -1,32 +1,45 @@
 <template>
   <div>
-    <a-tree :treeData="treeData"
-            checkable
-            @check="checkedKeys = $event"
-            :checkedKeys="checkedKeys"
-            :defaultExpandAll="false"
-            :showLine="{ showLeafIcon: false }">
+    <a-tree
+        :treeData="treeData"
+        checkable
+        @check="checkedKeys = $event"
+        :checkedKeys="checkedKeys"
+        :defaultExpandAll="false"
+        :showLine="{ showLeafIcon: false }"
+    >
       <template #title="{ data }">
         <div class="custom-tree-node">
           <span>{{ data.title }}</span>
-          <button v-if="data.type === 'file' && !data.isAnalyzing"
-                  @click.stop="updateFileAnalysis(data)"
-                  class="update-button"> 更新
+          <button
+              v-if="data.type === 'file' && !data.isAnalyzing"
+              @click.stop="updateFileAnalysis(data)"
+              class="update-button"
+          >
+            更新
           </button>
-          <custom-loading v-if="data.isAnalyzing" tip="AI解析中..."/>
+          <button
+              v-if="data.type === 'file' && !data.isAnalyzing"
+              @click.stop="deleteFile(data)"
+              class="delete-button"
+          >
+            删除
+          </button>
+          <custom-loading v-if="data.isAnalyzing" tip="AI解析中..." />
         </div>
       </template>
     </a-tree>
   </div>
 </template>
-<script>
-import {ref, watch, computed} from 'vue';
-import {useMessageStore} from '@/store/MessageStore.js';
-import {useModelStore} from '@/store/ModelStore.js';
-import {message} from 'ant-design-vue';
-import CustomLoading from "@/components/common/CustomLoading.vue";
 
-const {ipcRenderer} = require('electron');
+<script>
+import { ref, watch, computed } from 'vue';
+import { useMessageStore } from '@/store/MessageStore.js';
+import { useModelStore } from '@/store/ModelStore.js';
+import { message } from 'ant-design-vue';
+import CustomLoading from '@/components/common/CustomLoading.vue';
+
+const { ipcRenderer } = require('electron');
 
 export default {
   props: {
@@ -44,9 +57,12 @@ export default {
     const treeData = ref([]);
     const checkedKeys = ref([]);
 
-    const currentSession = computed(() => messageStore.sessions.find(
-        (session) => session.sessionId === props.selectedSessionId
-    ) || null);
+    const currentSession = computed(
+        () =>
+            messageStore.sessions.find(
+                (session) => session.sessionId === props.selectedSessionId
+            ) || null
+    );
 
     const formatTreeData = () => {
       const content = currentSession.value?.messages[0]?.content;
@@ -60,9 +76,8 @@ export default {
         children: [
           {title: `项目路径: ${project.projectPath}`, key: `project-${index}-path`},
           {title: `项目描述: ${project.projectDescription}`, key: `project-${index}-description`},
-          {title: `项目ID: ${project.projectId}`, key: `project-${index}-id`},
           {
-            title: '项目文件详情',
+            title: '项目文件',
             key: `project-${index}-fileDetails`,
             children: Object.keys(project.projectFileDetails || {}).map((filePath) => ({
               title: filePath,
@@ -71,7 +86,7 @@ export default {
               projectId: project.projectId,
               path: filePath,
               projectPath: project.projectPath,
-              isAnalyzing: false, // 添加此行
+              isAnalyzing: false,
             })),
           },
         ],
@@ -102,7 +117,23 @@ export default {
 
         if (res) {
           const analysisResult = extractJsonFromResponse(res.content);
-          updateProjectFileDetails(nodeData.projectId, nodeData.path, analysisResult);
+
+          // 直接在此处更新项目文件详情
+          const content = currentSession.value?.messages[0]?.content;
+          const match = content?.match(/```json\n([\s\S]*?)\n```/);
+          let jsonData = match ? JSON.parse(match[1]) : null;
+          if (!jsonData) return;
+
+          const project = jsonData.find((proj) => proj.projectId === nodeData.projectId);
+          if (!project) return;
+
+          project.projectFileDetails[nodeData.path] = analysisResult[nodeData.path];
+
+          const updatedContent = `\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\``;
+          currentSession.value.messages[0].content = updatedContent;
+
+          formatTreeData();
+
           message.success('文件解析成功');
         } else {
           console.error('AI解析失败');
@@ -113,6 +144,33 @@ export default {
         message.error('文件解析失败');
       } finally {
         nodeData.isAnalyzing = false; // 结束加载
+      }
+    };
+
+    const deleteFile = (nodeData) => {
+      try {
+        const content = currentSession.value?.messages[0]?.content;
+        const match = content?.match(/```json\n([\s\S]*?)\n```/);
+        let jsonData = match ? JSON.parse(match[1]) : null;
+        if (!jsonData) return;
+
+        const project = jsonData.find((proj) => proj.projectId === nodeData.projectId);
+        if (!project) return;
+
+        // 删除文件
+        delete project.projectFileDetails[nodeData.path];
+
+        // 更新会话内容
+        const updatedContent = `\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\``;
+        currentSession.value.messages[0].content = updatedContent;
+
+        // 刷新树形数据
+        formatTreeData();
+
+        message.success('文件已删除');
+      } catch (error) {
+        console.error('删除文件过程中出现错误:', error);
+        message.error('文件删除失败');
       }
     };
 
@@ -145,31 +203,16 @@ ${fileContent}
       }
     };
 
-    const updateProjectFileDetails = (projectId, filePath, analysisResult) => {
-      const content = currentSession.value?.messages[0]?.content;
-      const match = content?.match(/```json\n([\s\S]*?)\n```/);
-      let jsonData = match ? JSON.parse(match[1]) : null;
-      if (!jsonData) return;
-
-      const project = jsonData.find((proj) => proj.projectId === projectId);
-      if (!project) return;
-
-      project.projectFileDetails[filePath] = analysisResult[filePath];
-
-      const updatedContent = `\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\``;
-      currentSession.value.messages[0].content = updatedContent;
-
-      formatTreeData();
-    };
-
     return {
       treeData,
       checkedKeys,
       updateFileAnalysis,
+      deleteFile,
     };
   },
 };
 </script>
+
 <style scoped>
 .ant-tree {
   background: #f5f5f5;
@@ -182,6 +225,10 @@ ${fileContent}
 }
 
 .update-button {
+  margin-left: 8px;
+}
+
+.delete-button {
   margin-left: 8px;
 }
 
