@@ -274,13 +274,12 @@ ${combinedContent}
             }
         },
         async stopChat(currentSession) {
-            if (currentSession.isStreaming) {
+            try {
                 await currentSession.reader?.cancel();
-                currentSession.isStreaming = false;
+            } finally {
                 message.success('请求已终止');
-            } else {
-                message.info('当前没有正在进行的流式请求');
+                currentSession.isStreaming = false;
             }
-        },
+        }
     },
 });
