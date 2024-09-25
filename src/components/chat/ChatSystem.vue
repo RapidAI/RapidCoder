@@ -18,8 +18,15 @@
             更新
           </button>
           <button
-              v-if="data.type === 'file' && !analyzingStates.get(data.key)"
-              @click.stop="deleteFile(data)"
+              v-if="data.type === 'folder' && !analyzingStates.get(data.key)"
+              @click.stop="updateFolderAnalysis(data)"
+              class="action-button"
+          >
+            更新目录
+          </button>
+          <button
+              v-if="!analyzingStates.get(data.key)"
+              @click.stop="deleteItem(data)"
               class="action-button"
           >
             删除
@@ -105,7 +112,9 @@ export default {
         let currentLevel = root;
         let nodePath = '';
         pathParts.forEach((part, idx) => {
+          // 如果 nodePath 为空，直接使用 part，否则才加 '/'
           nodePath = nodePath ? `${nodePath}/${part}` : part;
+
           let node = currentLevel.find((item) => item.key === nodePath);
           if (!node) {
             const isFile = idx === pathParts.length - 1;
@@ -114,7 +123,7 @@ export default {
               key: nodePath,
               type: isFile ? 'file' : 'folder',
               projectId,
-              path: isFile ? filePath : null,
+              path: isFile ? filePath : nodePath,  // 对文件和目录都设置 path
               isAnalyzing: false,
               children: [],
             };
@@ -125,6 +134,8 @@ export default {
       });
       return root;
     };
+
+
 
     const optimizeTree = (nodes) =>
         nodes.map((node) => {
@@ -221,6 +232,83 @@ ${fileContent}
       }
     };
 
+    const updateFolderAnalysis = async (nodeData) => {
+      analyzingStates.set(nodeData.key, true);
+      nodeData.isAnalyzing = true;
+      try {
+        const model = currentSession.value?.currentModel;
+        const allFiles = await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
+        for (const filePath of allFiles) {
+          const fileContent = await ipcRenderer.invoke('get-one-file', filePath);
+          const prompt = `
+### ${filePath}
+\`\`\`
+${fileContent}
+\`\`\`
+要求详细说明文件的功能和与其他文件的关联关系，输出标准的json，格式如下:
+{
+  "${filePath}": {
+    "components": ["..."],
+    "external": ["..."],
+    "comment": "中文解释...",
+    "functions": {
+      "函数名字": "函数解释",
+      "...": "..."
+    }
+  }
+}
+`;
+          const res = await modelStore.chatCompletions({
+            ...model,
+            messages: [
+              {
+                role: 'system',
+                content:
+                    '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+          });
+
+          const analysisResult = extractJsonFromResponse(res.content);
+          if (!analysisResult) throw new Error('解析AI响应失败');
+
+          updateProjectFileDetails({ ...nodeData, path: filePath }, analysisResult);
+        }
+        message.success('目录文件解析成功');
+      } catch (error) {
+        console.error(error);
+        message.error('目录文件解析失败');
+      } finally {
+        nodeData.isAnalyzing = false;
+        analyzingStates.set(nodeData.key, false);
+      }
+    };
+    const deleteItem = (nodeData) => {
+      try {
+        if (nodeData.type === 'folder') {
+          const deleteRecursively = (nodes) => {
+            nodes.forEach((node) => {
+              if (node.type === 'folder') {
+                deleteRecursively(node.children);
+              }
+              deleteFile(node); // 复用已有的deleteFile逻辑
+            });
+          };
+          deleteRecursively(nodeData.children);
+        } else {
+          deleteFile(nodeData);
+        }
+        message.success('项目已删除');
+      } catch (error) {
+        console.error(error);
+        message.error('删除失败');
+      }
+    };
+
     const deleteFile = (nodeData) => {
       try {
         updateProjectFileDetails(nodeData, null, true);
@@ -262,7 +350,8 @@ ${fileContent}
     return {
       treeData,
       updateFileAnalysis,
-      deleteFile,
+      updateFolderAnalysis,
+      deleteItem,
       analyzingStates,
       expandedKeys,
       onExpand,

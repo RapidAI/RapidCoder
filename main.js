@@ -47,15 +47,7 @@ ipcMain.handle('select-directory', async () => {
 
 ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
     // 确保dirPath是字符串
-    if (typeof dirPath !== 'string') {
-        throw new Error('dirPath must be a string');
-    }
-
-    // 确保ignoredPatterns是字符串
-    if (typeof ignoredPatterns !== 'string') {
-        throw new Error('ignoredPatterns must be a string');
-    }
-
+    console.log(dirPath)
     // 将ignoredPatterns字符串分割为数组
     const ignoredPatternsArray = ignoredPatterns.split(',').map(pattern => pattern.trim());
 
@@ -179,3 +171,4 @@ ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent)
         return { success: false, message: `更新文件失败: ${error.message}` };
     }
 });
+
