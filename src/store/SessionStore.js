@@ -100,7 +100,15 @@ ${combinedContent}
 ...
 \`\`\`
 (/code)
-(/finalResult),...
+(/finalResult)
+(finalResult)
+(filePath)"..."(/filePath)
+(code)
+\`\`\`
+...
+\`\`\`
+(/code)
+(/finalResult)
 
 数据格式说明:
 你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
@@ -132,46 +140,51 @@ ${combinedContent}
         },
         async processChat(currentSession, messagelist, index, overwrite, semanticSearch = false) {
             currentSession.isStreaming = true;
-            if (semanticSearch) {
-                //  todo 检索
-            }
-            const modelPayload = {
-                ...currentSession.currentModel,
-                stream: true,
-                messages: messagelist,
-            };
-
-            const response = await fetch(
-                `${modelPayload.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${modelPayload.apiKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(modelPayload),
+            try {
+                if (semanticSearch) {
+                    //  todo 检索
                 }
-            );
+                const modelPayload = {
+                    ...currentSession.currentModel,
+                    stream: true,
+                    messages: messagelist,
+                };
 
-            currentSession.reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            const assistantIndex = overwrite ? index : index + 1;
-            currentSession.messages[assistantIndex] = {
-                role: 'assistant',
-                content: '',
-                isAnalyzing: true,
-            };
+                const response = await fetch(
+                    `${modelPayload.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${modelPayload.apiKey}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(modelPayload),
+                    }
+                );
 
-            while (true) {
-                const {done, value} = await currentSession.reader.read();
-                if (done) break;
-                const chunk = decoder.decode(value);
-                currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
-                eventBus.emit('messageUpdated', {sessionId: currentSession.sessionId, index: assistantIndex},);
+                currentSession.reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                const assistantIndex = overwrite ? index : index + 1;
+                currentSession.messages[assistantIndex] = {
+                    role: 'assistant',
+                    content: '',
+                    isAnalyzing: true,
+                };
+
+                while (true) {
+                    const {done, value} = await currentSession.reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    currentSession.messages[assistantIndex].content += this.parseChatResponse(chunk);
+                    eventBus.emit('messageUpdated', {sessionId: currentSession.sessionId, index: assistantIndex},);
+                }
+
+                currentSession.messages[assistantIndex].isAnalyzing = false;
+            } catch (error) {
+                console.error('Error during chat process:', error);
+            } finally {
+                currentSession.isStreaming = false;
             }
-
-            currentSession.messages[assistantIndex].isAnalyzing = false;
-            currentSession.isStreaming = false;
         },
         parseChatResponse(input) {
             return input
