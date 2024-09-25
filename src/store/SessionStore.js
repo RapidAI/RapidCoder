@@ -27,7 +27,6 @@ export const useSessionStore = defineStore('session_store', {
                     {
                         role: 'system',
                         content: `\`\`\`json\n${JSON.stringify(projects, null, 2)}\n\`\`\``,
-                        isAnalyzing: false,
                     },
                 ],
             };
