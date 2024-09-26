@@ -126,9 +126,14 @@ ${combinedContent}
             try {
                 const contents = await Promise.all(
                     files.map(async (file) => {
-                        const info = await ipcRenderer.invoke('get-one-file', file);
-                        const fileType = file.split('.').pop();
-                        return `${file}:\n\`\`\`${fileType} \n${info.content}\n\`\`\` \n`;
+                        try {
+                            const info = await ipcRenderer.invoke('get-one-file', file);
+                            const fileType = file.split('.').pop();
+                            return `${file}:\n\`\`\`${fileType} \n${info.content}\n\`\`\` \n`;
+                        } catch (error) {
+                            const fileType = file.split('.').pop();
+                            return `${file}:\n\`\`\`${fileType} \n文件不存在\n\`\`\` \n`;
+                        }
                     })
                 );
                 return contents.join('');
