@@ -251,30 +251,27 @@ ${combinedContent}
                     continue;
                 }
 
-                try {
-                    const result = await ipcRenderer.invoke(totleContent ? 'replace-file-content' : 'replace-file-content-diff', filePath, code);
+                const result = await ipcRenderer.invoke(totleContent ? 'replace-file-content' : 'replace-file-content-diff', filePath, code);
 
-                    if (result.success) {
-                        message.success(`文件 ${filePath} 已成功更新`);
-                    } else {
-                        const cleanCode = code.split('\n').map(line => (line.startsWith('-') || line.startsWith('+')) ? line.slice(1) : line).join('\n');
-                        Modal.info({
-                            title: `更新文件 ${filePath} 时出错:${result.message}`,
-                            content: cleanCode,
-                            width: 800,
-                            okText: '复制',
-                            cancelText: '关闭',
-                            maskClosable: true,
-                            onOk() {
-                                navigator.clipboard.writeText(cleanCode).then(() => {
-                                    message.success('代码已复制到剪贴板');
-                                });
-                            }
-                        });
-                    }
-                } catch (error) {
-                    message.error(`调用替换文件内容时出错: ${error.message}`);
+                if (result.success) {
+                    message.success(`文件 ${filePath} 已成功更新`);
+                } else {
+                    const cleanCode = code.split('\n').map(line => (line.startsWith('-') || line.startsWith('+')) ? line.slice(1) : line).join('\n');
+                    Modal.info({
+                        title: `更新文件 ${filePath} 时出错:${result.message}`,
+                        content: cleanCode,
+                        width: 800,
+                        okText: '复制',
+                        cancelText: '关闭',
+                        maskClosable: true,
+                        onOk() {
+                            navigator.clipboard.writeText(cleanCode).then(() => {
+                                message.success('代码已复制到剪贴板');
+                            });
+                        }
+                    });
                 }
+
             }
         },
         async stopChat(currentSession) {

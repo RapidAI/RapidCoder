@@ -153,12 +153,15 @@ ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
     }
 
     try {
-        fs.writeFileSync(filePath, newContent, 'utf-8');
+        const dir = path.dirname(filePath);
+        fs.mkdirSync(dir, { recursive: true }); // 创建缺失的目录
+        fs.writeFileSync(filePath, newContent, { encoding: 'utf-8' });
         return { success: true, message: '成功' };
     } catch (error) {
         return { success: false, message: `失败: ${error.message}` };
     }
 });
+
 
 
 ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent) => {
