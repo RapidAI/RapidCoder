@@ -190,9 +190,10 @@ ${content}
 
     const isAnalyzing = (key) => analyzingStates.get(key);
 
-    const onCheck = (checkedKeysValue, {checkedNodes}) => {
+    const onCheck = (checkedKeysValue, { checkedNodes }) => {
       currentSession.value.currentSelectNode = checkedKeysValue;
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(checkedNodes, null, 2)}\n\`\`\``
+      const fileNodes = checkedNodes.filter(node => node.type === 'file');
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 
     return {
