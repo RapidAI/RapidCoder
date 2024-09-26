@@ -3,7 +3,6 @@
     <a-tree
         :treeData="treeData"
         :expandedKeys="expandedKeys"
-        @expand="onExpand"
         :defaultExpandAll="false"
         :showLine="{ showLeafIcon: false }"
     >
@@ -11,27 +10,27 @@
         <div class="custom-tree-node">
           <span>{{ data.title }}</span>
           <button
-              v-if="data.type === 'file' && !analyzingStates.get(data.key)"
-              @click.stop="updateFileAnalysis(data)"
+              v-if="data.type === 'file' && !isAnalyzing(data.key)"
+              @click.stop="analyzeNode(data)"
               class="action-button"
           >
             更新
           </button>
           <button
-              v-if="data.type === 'folder' && !analyzingStates.get(data.key)"
-              @click.stop="updateFolderAnalysis(data)"
+              v-if="data.type === 'folder' && !isAnalyzing(data.key)"
+              @click.stop="analyzeNode(data)"
               class="action-button"
           >
             更新目录
           </button>
           <button
-              v-if="!analyzingStates.get(data.key)"
+              v-if="!isAnalyzing(data.key)"
               @click.stop="deleteItem(data)"
               class="action-button"
           >
             删除
           </button>
-          <custom-loading v-if="analyzingStates.get(data.key)"/>
+          <custom-loading v-if="isAnalyzing(data.key)"/>
         </div>
       </template>
     </a-tree>
@@ -48,29 +47,21 @@ import CustomLoading from '@/components/common/CustomLoading.vue';
 const {ipcRenderer} = require('electron');
 
 export default {
-  props: {
-    selectedSessionId: {required: true},
-  },
+  props: {selectedSessionId: {required: true}},
   components: {CustomLoading},
   setup(props) {
     const analyzingStates = reactive(new Map());
     const messageStore = useSessionStore();
     const modelStore = useModelStore();
-
     const expandedKeys = ref([]);
-    const onExpand = (keys) => (expandedKeys.value = keys);
-
     const currentSession = computed(() =>
-        messageStore.sessions.find(
-            (session) => session.sessionId === props.selectedSessionId
-        ) || null
+        messageStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
     );
-
     const jsonData = ref(null);
 
     watch(
         () => currentSession.value?.messages[0]?.content,
-        (newContent) => {
+        newContent => {
           const match = newContent.match(/```json\n([\s\S]*?)\n```/);
           jsonData.value = match ? JSON.parse(match[1]) : null;
         },
@@ -80,241 +71,119 @@ export default {
     const treeData = computed(() => {
       if (!Array.isArray(jsonData.value)) return [];
       return jsonData.value.map((project, index) => ({
-        title: project.projectName || `项目${index + 1}`,
+        title: project.projectDescription || `项目${index + 1}`,
         key: `project-${project.projectId || index}`,
-        children: [
-          {
-            title: `项目路径: ${project.projectPath}`,
-            key: `project-${index}-path`,
-          },
-          {
-            title: `项目描述: ${project.projectDescription}`,
-            key: `project-${index}-description`,
-          },
-          {
-            title: '项目文件',
-            key: `project-${index}-fileDetails`,
-            children: optimizeTree(
-                buildTreeFromPaths(
-                    Object.keys(project.projectFileDetails || {}),
-                    project.projectId,
-                    index
-                )
-            ),
-          },
-        ],
+        children: optimizeTree(buildTreeFromPaths(
+            Object.keys(project.projectFileDetails || {}),
+            project.projectId,
+            index
+        )),
       }));
     });
 
     const buildTreeFromPaths = (filePaths, projectId) => {
       const root = [];
-      filePaths.forEach((filePath) => {
+      filePaths.forEach(filePath => {
         const pathParts = filePath.split('/');
         let currentLevel = root;
         let nodePath = '';
         pathParts.forEach((part, idx) => {
-          if (!part) {
-            return
+          if (part) {
+            nodePath = `${nodePath}/${part}`;
+            let node = currentLevel.find(item => item.key === nodePath);
+            if (!node) {
+              const isFile = idx === pathParts.length - 1;
+              node = {
+                title: part,
+                key: nodePath,
+                type: isFile ? 'file' : 'folder',
+                projectId,
+                path: isFile ? filePath : nodePath,
+                children: []
+              };
+              currentLevel.push(node);
+            }
+            currentLevel = node.children;
           }
-          nodePath = `${nodePath}/${part}`;
-          let node = currentLevel.find((item) => item.key === nodePath);
-          if (!node) {
-            const isFile = idx === pathParts.length - 1;
-            node = {
-              title: part,
-              key: nodePath,
-              type: isFile ? 'file' : 'folder',
-              projectId,
-              path: isFile ? filePath : nodePath,
-              isAnalyzing: false,
-              children: [],
-            };
-            currentLevel.push(node);
-          }
-          currentLevel = node.children;
         });
       });
       return root;
     };
 
-
-    const optimizeTree = (nodes) =>
-        nodes.map((node) => {
-          if (node.type === 'folder') {
-            while (
-                node.children.length === 1 &&
-                node.children[0].type === 'folder'
-                ) {
-              const child = node.children[0];
-              node.title = `${node.title}/${child.title}`;
-              node.key = child.key;
-              node.children = child.children;
-            }
-            node.children = optimizeTree(node.children);
-          }
-          return node;
-        });
-
-    const updateProjectFileDetails = (nodeData, newData, isDelete = false) => {
-      if (!jsonData.value) return;
-      const project = jsonData.value.find(
-          (proj) => proj.projectId === nodeData.projectId
-      );
-      if (!project) return;
-      if (isDelete) {
-        delete project.projectFileDetails[nodeData.path];
-      } else {
-        project.projectFileDetails[nodeData.path] =
-            newData[nodeData.path] || {};
+    const optimizeTree = nodes => nodes.map(node => {
+      if (node.type === 'folder') {
+        while (node.children.length === 1 && node.children[0].type === 'folder') {
+          const child = node.children[0];
+          node.title = `${node.title}/${child.title}`;
+          node.key = child.key;
+          node.children = child.children;
+        }
+        node.children = optimizeTree(node.children);
       }
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(
-          jsonData.value,
-          null,
-          2
-      )}\n\`\`\``;
-    };
+      return node;
+    });
 
-    const updateFileAnalysis = async (nodeData) => {
+    const analyzeNode = async (nodeData) => {
       analyzingStates.set(nodeData.key, true);
       nodeData.isAnalyzing = true;
-      console.log(nodeData)
+      const model = currentSession.value?.currentModel;
+
       try {
-        const model = currentSession.value?.currentModel;
-        const fileContent = await ipcRenderer.invoke(
-            'get-one-file',
-            nodeData.path
-        );
+        const content = nodeData.type === 'file'
+            ? await ipcRenderer.invoke('get-one-file', nodeData.path)
+            : await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
 
-        const prompt = `
-### ${nodeData.path}
-\`\`\`
-${fileContent}
-\`\`\`
-要求详细说明文件的功能和与其他文件的关联关系，输出标准的json，格式如下:
-{
-  "${nodeData.path}": {
-    "components": ["..."],
-    "external": ["..."],
-    "comment": "中文解释...",
-    "functions": {
-      "函数名字": "函数解释",
-      "...": "..."
-    }
-  }
-}
-`;
-
+        const prompt = buildPrompt(nodeData, content);
         const res = await modelStore.chatCompletions({
           ...model,
           messages: [
-            {
-              role: 'system',
-              content:
-                  '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
+            {role: 'system', content: '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。'},
+            {role: 'user', content: prompt},
           ],
         });
 
         const analysisResult = extractJsonFromResponse(res.content);
         if (!analysisResult) throw new Error('解析AI响应失败');
-
         updateProjectFileDetails(nodeData, analysisResult);
-        message.success('文件解析成功');
+        message.success(`${nodeData.type === 'file' ? '文件' : '目录'}解析成功`);
       } catch (error) {
         console.error(error);
-        message.error('文件解析失败');
+        message.error(`${nodeData.type === 'file' ? '文件' : '目录'}解析失败`);
       } finally {
         nodeData.isAnalyzing = false;
         analyzingStates.set(nodeData.key, false);
       }
     };
 
-    const buildPrompt = (fileContents) => `
-${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\n')}\`\`\`
-要求详细说明各个文件之间的关联关系,输出标准的json,格式如下:
-".../...": {
-  "components": ["package",],
-  "external": ["...",],
-  "comment": "中文解释...",
-  "functions": {
-    "函数名字": "函数解释",
-    ...
-  }
-},...
-`;
-    const updateFolderAnalysis = async (nodeData) => {
-      analyzingStates.set(nodeData.key, true);
-      nodeData.isAnalyzing = true;
+    const buildPrompt = (nodeData, content) => `
+### ${nodeData.path}
+\`\`\`
+${content}
+\`\`\`
+要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
 
-      try {
-        const model = currentSession.value?.currentModel;
-
-        // 获取项目路径
-        const projectPath = nodeData.path; // 从nodeData中获取路径
-
-        // 获取所有文件
-        const projectFiles = await ipcRenderer.invoke('get-all-files', projectPath, ('node_modules,assets,dist,package-lock.json'));
-
-        // 将文件按目录分组
-        const filesByDirectory = projectFiles.reduce((acc, file) => {
-          const dir = file.path.substring(0, file.path.lastIndexOf('/'));
-          if (!acc[dir]) acc[dir] = [];
-          acc[dir].push(file);
-          return acc;
-        }, {});
-
-        // 生成分析请求的内容
-        const fileContents = Object.values(filesByDirectory).flat().map(file => ({ path: file.path, content: file.content }));
-
-        const prompt = buildPrompt(fileContents); // 构建请求内容
-
-        // 进行AI分析
-        const res = await modelStore.chatCompletions({
-          ...model,
-          messages: [
-            { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
-            { role: 'user', content: prompt }
-          ]
-        });
-
-        // 解析AI的响应
-        const analysisResult = extractJsonFromResponse(res.content);
-        if (!analysisResult) throw new Error('解析AI响应失败');
-
-        // 更新项目文件细节
-        updateProjectFileDetails(nodeData, analysisResult);
-        message.success('目录解析成功');
-      } catch (error) {
-        console.error(error);
-        message.error('目录解析失败');
-      } finally {
-        nodeData.isAnalyzing = false;
-        analyzingStates.set(nodeData.key, false);
+    const updateProjectFileDetails = (nodeData, newData, isDelete = false) => {
+      if (!jsonData.value) return;
+      const project = jsonData.value.find(proj => proj.projectId === nodeData.projectId);
+      if (!project) return;
+      if (isDelete) {
+        delete project.projectFileDetails[nodeData.path];
+      } else {
+        project.projectFileDetails[nodeData.path] = newData[nodeData.path] || {};
       }
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(jsonData.value, null, 2)}\n\`\`\``;
     };
-
-
 
     const deleteItem = (nodeData) => {
       try {
-        if (nodeData.type === 'folder') {
-          const deleteRecursively = (nodes) => {
-            nodes.forEach((node) => {
-              if (node.type === 'folder') {
-                deleteRecursively(node.children);
-              }
-              deleteFile(node); // 复用已有的deleteFile逻辑
-            });
-          };
-          deleteRecursively(nodeData.children);
-        } else {
-          deleteFile(nodeData);
-        }
-        message.success('项目已删除');
+        const deleteRecursively = (nodes) => {
+          nodes.forEach(node => {
+            if (node.type === 'folder') deleteRecursively(node.children);
+            deleteFile(node);
+          });
+        };
+        if (nodeData.type === 'folder') deleteRecursively(nodeData.children);
+        else deleteFile(nodeData);
       } catch (error) {
         console.error(error);
         message.error('删除失败');
@@ -341,32 +210,29 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
       }
     };
 
-    watch(
-        treeData,
-        (newTreeData) => {
-          const collectKeys = (nodes) => {
-            let keys = [];
-            nodes.forEach((node) => {
-              if (node.children && node.children.length > 0) {
-                keys.push(node.key);
-                keys = keys.concat(collectKeys(node.children));
-              }
-            });
-            return keys;
-          };
-          expandedKeys.value = collectKeys(newTreeData);
-        },
-        {immediate: true}
-    );
+    const isAnalyzing = (key) => analyzingStates.get(key);
+
+    watch(treeData, (newTreeData) => {
+      const collectKeys = (nodes) => {
+        let keys = [];
+        nodes.forEach(node => {
+          if (node.children && node.children.length > 0) {
+            keys.push(node.key);
+            keys = keys.concat(collectKeys(node.children));
+          }
+        });
+        return keys;
+      };
+      expandedKeys.value = collectKeys(newTreeData);
+    }, {immediate: true});
 
     return {
       treeData,
-      updateFileAnalysis,
-      updateFolderAnalysis,
+      analyzeNode,
       deleteItem,
       analyzingStates,
       expandedKeys,
-      onExpand,
+      isAnalyzing,
     };
   },
 };
