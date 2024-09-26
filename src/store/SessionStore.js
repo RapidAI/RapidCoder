@@ -24,7 +24,7 @@ export const useSessionStore = defineStore('session_store', {
                 sessionId: Date.now(),
                 currentModel: model,
                 currentProjectsId: projectsid,
-                currentExpandedKeys: [],
+                currentSelectNode: [],
                 messages: [
                     {
                         role: 'system',

@@ -3,7 +3,11 @@
     <a-tree
         :treeData="treeData"
         :defaultExpandAll="true"
+        :checkable="true"
+        :selectable="false"
+        :checkedKeys="currentSession.currentSelectNode"
         :showLine="{ showLeafIcon: false }"
+        @check="onCheck"
     >
       <template #title="{ data }">
         <div class="custom-tree-node">
@@ -31,7 +35,7 @@
 </template>
 
 <script>
-import {reactive, computed} from 'vue';
+import {reactive, computed, ref} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from '@/store/ModelStore.js';
 import {useProjectStore} from '@/store/ProjectStore.js';
@@ -54,7 +58,7 @@ export default {
     );
 
     const treeData = computed(() => {
-      const buildTreeFromPaths = (filePaths, projectId) => {
+      const buildTreeFromPaths = (filePaths) => {
         const root = [];
         filePaths.forEach(filePath => {
           const pathParts = filePath.split('/');
@@ -70,7 +74,6 @@ export default {
                   title: part,
                   key: nodePath,
                   type: isFile ? 'file' : 'folder',
-                  projectId,
                   path: isFile ? filePath : nodePath,
                   children: []
                 };
@@ -99,13 +102,11 @@ export default {
       return projectStore.projects
           .filter(project => currentSession.value.currentProjectsId.includes(project.projectId))
           .map((project, index) => {
-            const projectId = project.projectId || index;  // 处理空值的情况
             return {
               title: project.projectDescription || `项目${index + 1}`,
-              key: `project-${projectId}`,
+              key: project.projectId,
               children: optimizeTree(buildTreeFromPaths(
                   Object.keys(project.projectFileDetails || {}),
-                  projectId,
                   index
               )),
             };
@@ -189,6 +190,11 @@ ${content}
 
     const isAnalyzing = (key) => analyzingStates.get(key);
 
+    const onCheck = (checkedKeysValue, {checkedNodes}) => {
+      currentSession.value.currentSelectNode = checkedKeysValue;
+      console.log('选中的节点:', checkedNodes);
+    };
+
     return {
       treeData,
       analyzeNode,
@@ -196,19 +202,8 @@ ${content}
       currentSession,
       analyzingStates,
       isAnalyzing,
+      onCheck,
     };
   },
 };
 </script>
-
-<style scoped>
-.custom-tree-node {
-  display: flex;
-  align-items: center;
-}
-
-.action-button {
-  margin-left: 8px;
-}
-</style>
-<!--\`\`\`json\n${JSON.stringify(projects, null, 2)}\n\`\`\`-->
