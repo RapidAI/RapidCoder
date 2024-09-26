@@ -192,7 +192,7 @@ ${content}
 
     const onCheck = (checkedKeysValue, {checkedNodes}) => {
       currentSession.value.currentSelectNode = checkedKeysValue;
-      currentSession.value.messages[0].content=`\`\`\`json\n${JSON.stringify(checkedNodes, null, 2)}\n\`\`\``
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(checkedNodes, null, 2)}\n\`\`\``
     };
 
     return {
