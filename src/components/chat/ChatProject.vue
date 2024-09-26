@@ -192,7 +192,12 @@ ${content}
 
     const onCheck = (checkedKeysValue, { checkedNodes }) => {
       currentSession.value.currentSelectNode = checkedKeysValue;
-      const fileNodes = checkedNodes.filter(node => node.type === 'file');
+
+      // 过滤出文件节点
+      const fileNodes = checkedNodes
+          .filter(node => node.type === 'file')
+          .map(({ title, key, type, children, ...rest }) => rest); // 去掉指定的key
+
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 
