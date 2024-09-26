@@ -31,7 +31,7 @@
           >
             删除
           </button>
-          <custom-loading v-if="analyzingStates.get(data.key)" />
+          <custom-loading v-if="analyzingStates.get(data.key)"/>
         </div>
       </template>
     </a-tree>
@@ -39,18 +39,19 @@
 </template>
 
 <script>
-import { ref, watch,reactive, computed } from 'vue';
-import { useSessionStore } from '@/store/SessionStore.js';
-import { useModelStore } from '@/store/ModelStore.js';
-import { message } from 'ant-design-vue';
+import {ref, watch, reactive, computed} from 'vue';
+import {useSessionStore} from '@/store/SessionStore.js';
+import {useModelStore} from '@/store/ModelStore.js';
+import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
-const { ipcRenderer } = require('electron');
+
+const {ipcRenderer} = require('electron');
 
 export default {
   props: {
-    selectedSessionId: { required: true },
+    selectedSessionId: {required: true},
   },
-  components: { CustomLoading },
+  components: {CustomLoading},
   setup(props) {
     const analyzingStates = reactive(new Map());
     const messageStore = useSessionStore();
@@ -73,7 +74,7 @@ export default {
           const match = newContent.match(/```json\n([\s\S]*?)\n```/);
           jsonData.value = match ? JSON.parse(match[1]) : null;
         },
-        { immediate: true }
+        {immediate: true}
     );
 
     const treeData = computed(() => {
@@ -112,9 +113,10 @@ export default {
         let currentLevel = root;
         let nodePath = '';
         pathParts.forEach((part, idx) => {
-          // 如果 nodePath 为空，直接使用 part，否则才加 '/'
-          nodePath = nodePath ? `${nodePath}/${part}` : part;
-
+          if (!part) {
+            return
+          }
+          nodePath = `${nodePath}/${part}`;
           let node = currentLevel.find((item) => item.key === nodePath);
           if (!node) {
             const isFile = idx === pathParts.length - 1;
@@ -123,7 +125,7 @@ export default {
               key: nodePath,
               type: isFile ? 'file' : 'folder',
               projectId,
-              path: isFile ? filePath : nodePath,  // 对文件和目录都设置 path
+              path: isFile ? filePath : nodePath,
               isAnalyzing: false,
               children: [],
             };
@@ -134,7 +136,6 @@ export default {
       });
       return root;
     };
-
 
 
     const optimizeTree = (nodes) =>
@@ -232,61 +233,72 @@ ${fileContent}
       }
     };
 
+    const buildPrompt = (fileContents) => `
+${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\n')}\`\`\`
+要求详细说明各个文件之间的关联关系,输出标准的json,格式如下:
+".../...": {
+  "components": ["package",],
+  "external": ["...",],
+  "comment": "中文解释...",
+  "functions": {
+    "函数名字": "函数解释",
+    ...
+  }
+},...
+`;
     const updateFolderAnalysis = async (nodeData) => {
       analyzingStates.set(nodeData.key, true);
       nodeData.isAnalyzing = true;
+
       try {
         const model = currentSession.value?.currentModel;
-        const allFiles = await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
-        for (const filePath of allFiles) {
-          const fileContent = await ipcRenderer.invoke('get-one-file', filePath);
-          const prompt = `
-### ${filePath}
-\`\`\`
-${fileContent}
-\`\`\`
-要求详细说明文件的功能和与其他文件的关联关系，输出标准的json，格式如下:
-{
-  "${filePath}": {
-    "components": ["..."],
-    "external": ["..."],
-    "comment": "中文解释...",
-    "functions": {
-      "函数名字": "函数解释",
-      "...": "..."
-    }
-  }
-}
-`;
-          const res = await modelStore.chatCompletions({
-            ...model,
-            messages: [
-              {
-                role: 'system',
-                content:
-                    '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。',
-              },
-              {
-                role: 'user',
-                content: prompt,
-              },
-            ],
-          });
 
-          const analysisResult = extractJsonFromResponse(res.content);
-          if (!analysisResult) throw new Error('解析AI响应失败');
+        // 获取项目路径
+        const projectPath = nodeData.path; // 从nodeData中获取路径
 
-          updateProjectFileDetails({ ...nodeData, path: filePath }, analysisResult);
-        }
-        message.success('目录文件解析成功');
+        // 获取所有文件
+        const projectFiles = await ipcRenderer.invoke('get-all-files', projectPath, ('node_modules,assets,dist,package-lock.json'));
+
+        // 将文件按目录分组
+        const filesByDirectory = projectFiles.reduce((acc, file) => {
+          const dir = file.path.substring(0, file.path.lastIndexOf('/'));
+          if (!acc[dir]) acc[dir] = [];
+          acc[dir].push(file);
+          return acc;
+        }, {});
+
+        // 生成分析请求的内容
+        const fileContents = Object.values(filesByDirectory).flat().map(file => ({ path: file.path, content: file.content }));
+
+        const prompt = buildPrompt(fileContents); // 构建请求内容
+
+        // 进行AI分析
+        const res = await modelStore.chatCompletions({
+          ...model,
+          messages: [
+            { role: "system", content: "你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。" },
+            { role: 'user', content: prompt }
+          ]
+        });
+
+        // 解析AI的响应
+        const analysisResult = extractJsonFromResponse(res.content);
+        if (!analysisResult) throw new Error('解析AI响应失败');
+
+        // 更新项目文件细节
+        updateProjectFileDetails(nodeData, analysisResult);
+        message.success('目录解析成功');
       } catch (error) {
         console.error(error);
-        message.error('目录文件解析失败');
+        message.error('目录解析失败');
       } finally {
         nodeData.isAnalyzing = false;
         analyzingStates.set(nodeData.key, false);
       }
     };
+
+
+
     const deleteItem = (nodeData) => {
       try {
         if (nodeData.type === 'folder') {
@@ -344,7 +356,7 @@ ${fileContent}
           };
           expandedKeys.value = collectKeys(newTreeData);
         },
-        { immediate: true }
+        {immediate: true}
     );
 
     return {
@@ -365,9 +377,11 @@ ${fileContent}
   display: flex;
   align-items: center;
 }
+
 .action-button {
   margin-left: 8px;
 }
+
 .custom-loading {
   margin-left: 8px;
 }
