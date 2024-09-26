@@ -2,7 +2,7 @@
   <div>
     <a-tree
         :treeData="treeData"
-        :expandedKeys="expandedKeys"
+        :expandedKeys="currentSession.currentExpandedKeys"
         :defaultExpandAll="false"
         :showLine="{ showLeafIcon: false }"
     >
@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import {ref, watch, reactive, computed} from 'vue';
+import {reactive, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from '@/store/ModelStore.js';
 import {useProjectStore} from '@/store/ProjectStore.js';
@@ -49,74 +49,68 @@ export default {
     const sessionStore = useSessionStore();
     const modelStore = useModelStore();
     const projectStore = useProjectStore();
-    const expandedKeys = ref([]);
+
     const currentSession = computed(() =>
         sessionStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
     );
-    const jsonData = ref(null);
-
-    watch(
-        () => currentSession.value?.messages[0]?.content,
-        newContent => {
-          const match = newContent.match(/```json\n([\s\S]*?)\n```/);
-          jsonData.value = match ? JSON.parse(match[1]) : null;
-        },
-        {immediate: true}
-    );
 
     const treeData = computed(() => {
-      if (!Array.isArray(jsonData.value)) return [];
-      return jsonData.value.map((project, index) => ({
-        title: project.projectDescription || `项目${index + 1}`,
-        key: `project-${project.projectId || index}`,
-        children: optimizeTree(buildTreeFromPaths(
-            Object.keys(project.projectFileDetails || {}),
-            project.projectId,
-            index
-        )),
-      }));
-    });
-
-    const buildTreeFromPaths = (filePaths, projectId) => {
-      const root = [];
-      filePaths.forEach(filePath => {
-        const pathParts = filePath.split('/');
-        let currentLevel = root;
-        let nodePath = '';
-        pathParts.forEach((part, idx) => {
-          if (part) {
-            nodePath = `${nodePath}/${part}`;
-            let node = currentLevel.find(item => item.key === nodePath);
-            if (!node) {
-              const isFile = idx === pathParts.length - 1;
-              node = {
-                title: part,
-                key: nodePath,
-                type: isFile ? 'file' : 'folder',
-                projectId,
-                path: isFile ? filePath : nodePath,
-                children: []
-              };
-              currentLevel.push(node);
+      const buildTreeFromPaths = (filePaths, projectId) => {
+        const root = [];
+        filePaths.forEach(filePath => {
+          const pathParts = filePath.split('/');
+          let currentLevel = root;
+          let nodePath = '';
+          pathParts.forEach((part, idx) => {
+            if (part) {
+              nodePath = `${nodePath}/${part}`;
+              let node = currentLevel.find(item => item.key === nodePath);
+              if (!node) {
+                const isFile = idx === pathParts.length - 1;
+                node = {
+                  title: part,
+                  key: nodePath,
+                  type: isFile ? 'file' : 'folder',
+                  projectId,
+                  path: isFile ? filePath : nodePath,
+                  children: []
+                };
+                currentLevel.push(node);
+              }
+              currentLevel = node.children;
             }
-            currentLevel = node.children;
-          }
+          });
         });
-      });
-      return root;
-    };
+        return root;
+      };
 
-    const optimizeTree = nodes => nodes.map(node => {
-      if (node.type === 'folder') {
-        while (node.children.length === 1 && node.children[0].type === 'folder') {
-          const child = node.children[0];
-          node.title = `${node.title}/${child.title}`;
-          node.key = child.key;
-          node.children = child.children;
+      const optimizeTree = nodes => nodes.map(node => {
+        if (node.type === 'folder') {
+          while (node.children.length === 1 && node.children[0].type === 'folder') {
+            const child = node.children[0];
+            node.title = `${node.title}/${child.title}`;
+            node.key = child.key;
+            node.children = child.children;
+          }
+          node.children = optimizeTree(node.children);
         }
-        node.children = optimizeTree(node.children);
-      }
-      return node;
+        return node;
+      });
+
+      return projectStore.projects
+          .filter(project => currentSession.value.currentProjectsId.includes(project.projectId))
+          .map((project, index) => {
+            const projectId = project.projectId || index;  // 处理空值的情况
+            return {
+              title: project.projectDescription || `项目${index + 1}`,
+              key: `project-${projectId}`,
+              children: optimizeTree(buildTreeFromPaths(
+                  Object.keys(project.projectFileDetails || {}),
+                  projectId,
+                  index
+              )),
+            };
+          });
     });
 
     const analyzeNode = async (nodeData) => {
@@ -140,7 +134,6 @@ export default {
 
         const analysisResult = extractJsonFromResponse(res.content);
         if (!analysisResult) throw new Error('解析AI响应失败');
-        updateProjectFileDetails(nodeData, analysisResult);
         message.success(`${nodeData.type === 'file' ? '文件' : '目录'}解析成功`);
       } catch (error) {
         console.error(error);
@@ -158,17 +151,6 @@ ${content}
 \`\`\`
 要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
 
-    const updateProjectFileDetails = (nodeData, newData, isDelete = false) => {
-      if (!jsonData.value) return;
-      const project = jsonData.value.find(proj => proj.projectId === nodeData.projectId);
-      if (!project) return;
-      if (isDelete) {
-        delete project.projectFileDetails[nodeData.path];
-      } else {
-        project.projectFileDetails[nodeData.path] = newData[nodeData.path] || {};
-      }
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(jsonData.value, null, 2)}\n\`\`\``;
-    };
 
     const deleteItem = (nodeData) => {
       try {
@@ -208,26 +190,12 @@ ${content}
 
     const isAnalyzing = (key) => analyzingStates.get(key);
 
-    watch(treeData, (newTreeData) => {
-      const collectKeys = (nodes) => {
-        let keys = [];
-        nodes.forEach(node => {
-          if (node.children && node.children.length > 0) {
-            keys.push(node.key);
-            keys = keys.concat(collectKeys(node.children));
-          }
-        });
-        return keys;
-      };
-      expandedKeys.value = collectKeys(newTreeData);
-    }, {immediate: true});
-
     return {
       treeData,
       analyzeNode,
       deleteItem,
+      currentSession,
       analyzingStates,
-      expandedKeys,
       isAnalyzing,
     };
   },

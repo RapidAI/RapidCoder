@@ -113,8 +113,7 @@ export default {
       loadingProjects.value = true;
       try {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
-        const projects = projectStore.projects.filter(p => selectedProjectId.value.includes(p.projectId));
-        const newSession = await sessionStore.createSession(model, projects);
+        const newSession = sessionStore.createSession(model, selectedProjectId.value);
         selectedSessionId.value = newSession.sessionId
         router.push({query: {sessionId: selectedSessionId.value}});
       } catch (e) {
