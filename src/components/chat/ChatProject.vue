@@ -2,8 +2,7 @@
   <div>
     <a-tree
         :treeData="treeData"
-        :expandedKeys="currentSession.currentExpandedKeys"
-        :defaultExpandAll="false"
+        :defaultExpandAll="true"
         :showLine="{ showLeafIcon: false }"
     >
       <template #title="{ data }">
