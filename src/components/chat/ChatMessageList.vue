@@ -77,14 +77,14 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const messageList = ref([]);
     const editedMessageIndex = ref(null);
     const editedMessageContent = ref('');
     let isComposition = false;
 
     const currentSession = computed(() => {
-      return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+      return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
     });
 
     const enableEditMode = (index, content) => {
@@ -96,7 +96,7 @@ export default {
       if (role === 'user' && editedMessageContent.value.trim()) {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index + 1);
-        messageStore.selectFileAndChat(currentSession.value, index, false, false);
+        sessionStore.selectFileAndChat(currentSession.value, index, false, false);
         resetEdit();
       }
       if (role === 'assistant' && editedMessageContent.value.trim()) {
@@ -123,7 +123,7 @@ export default {
 
     const regenerateMessage = (index) => {
       currentSession.value.messages.splice(index);
-      messageStore.processChat(
+      sessionStore.processChat(
           currentSession.value,
           currentSession.value.messages,
           index,
@@ -177,7 +177,7 @@ export default {
       regenerateMessage,
       handleKeyDown,
       handleComposition,
-      messageStore,
+      sessionStore,
     };
   },
 };

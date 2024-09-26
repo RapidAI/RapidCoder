@@ -23,10 +23,11 @@ export const useSessionStore = defineStore('session_store', {
             const newSession = {
                 sessionId: Date.now(),
                 currentModel: models,
+                currentProjects: projects,
                 messages: [
                     {
                         role: 'system',
-                        content: `\`\`\`json\n${JSON.stringify(projects, null, 2)}\n\`\`\``,
+                        content: ``,
                     },
                 ],
             };

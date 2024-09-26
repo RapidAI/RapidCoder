@@ -24,18 +24,18 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const inputMessage = ref('');
     const isComposition = ref(false);
     const isSending = ref(false);
 
     const currentSession = computed(() => {
-      return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+      return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
     });
 
     const handleSendOrStop = async () => {
       if (currentSession.value.isStreaming) {
-        await messageStore.stopChat(currentSession.value);
+        await sessionStore.stopChat(currentSession.value);
       } else {
         if (isSending.value) return; // 防止重复发送
         handleSend(inputMessage.value);
@@ -49,7 +49,7 @@ export default {
           currentSession.value.messages.push({role: 'user', content: message});
           inputMessage.value = ''; // 清空输入框
           isSending.value = false;
-          await messageStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length-1, false, false);
+          await sessionStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length-1, false, false);
         } catch (error) {
           console.error('消息发送失败:', error);
           alert('发送消息时出现问题，请稍后再试。');
@@ -81,7 +81,7 @@ export default {
       handleKeyDown,
       handleCompositionStart,
       handleCompositionEnd,
-      messageStore,
+      sessionStore,
       isSending,
     };
   },

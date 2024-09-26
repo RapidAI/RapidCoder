@@ -45,7 +45,7 @@ export default {
     ClockCircleOutlined,
   },
   setup(props) {
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const dataBlocks = ref([]);
 
     const md = new MarkdownIt({
@@ -102,7 +102,7 @@ export default {
 
 
     const executeCode = () => {
-      messageStore.messageExecuteCode(props.selectedSessionId, props.messageindex);
+      sessionStore.messageExecuteCode(props.selectedSessionId, props.messageindex);
     };
 
     return {

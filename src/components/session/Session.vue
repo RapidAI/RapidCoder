@@ -12,9 +12,9 @@
       </div>
       <!-- 对话列表 -->
       <div class="scrollable-menu-container">
-        <a-menu v-if="messageStore.sessions.length" mode="inline" :inlineIndent="0"
+        <a-menu v-if="sessionStore.sessions.length" mode="inline" :inlineIndent="0"
                 :selectedKeys="[selectedSessionId]" class="custom-menu">
-          <a-menu-item v-for="session in [...messageStore.sessions].reverse()" :key="session.sessionId">
+          <a-menu-item v-for="session in [...sessionStore.sessions].reverse()" :key="session.sessionId">
             <div class="menu-item-container">
               <a-button type="link" @click="deleteSession(session)">
                 <DeleteOutlined/>
@@ -72,7 +72,7 @@ import {eventBus} from "@/eventBus";
 export default {
   components: {Chat, EditOutlined, DeleteOutlined},
   setup() {
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
     const loadingProjects = ref(false);
@@ -93,12 +93,12 @@ export default {
     const locateSessionFromUrl = async () => {
       const sessionId = route.query.sessionId;
       if (sessionId) {
-        const session = messageStore.sessions.find(s => String(s.sessionId) === sessionId);
+        const session = sessionStore.sessions.find(s => String(s.sessionId) === sessionId);
         if (session) {
           selectSession(session);
         }
-      } else if (messageStore.sessions.length) {
-        selectSession(messageStore.sessions[messageStore.sessions.length - 1]);
+      } else if (sessionStore.sessions.length) {
+        selectSession(sessionStore.sessions[sessionStore.sessions.length - 1]);
       }
     };
 
@@ -114,7 +114,7 @@ export default {
       try {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
         const projects = projectStore.projects.filter(p => selectedProjectId.value.includes(p.projectId));
-        const newSession = await messageStore.createSession(model, projects);
+        const newSession = await sessionStore.createSession(model, projects);
         selectedSessionId.value = newSession.sessionId
         router.push({query: {sessionId: selectedSessionId.value}});
       } catch (e) {
@@ -133,7 +133,7 @@ export default {
     };
 
     const deleteSession = (session) => {
-      messageStore.sessions = messageStore.sessions.filter(s => s.sessionId !== session.sessionId);
+      sessionStore.sessions = sessionStore.sessions.filter(s => s.sessionId !== session.sessionId);
     };
 
     onMounted(async () => {
@@ -146,7 +146,7 @@ export default {
     });
 
     return {
-      messageStore,
+      sessionStore,
       isSessionCreationModalVisible,
       loadingProjects,
       selectedModelId,

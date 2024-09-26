@@ -35,6 +35,7 @@
 import {ref, watch, reactive, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from '@/store/ModelStore.js';
+import {useProjectStore} from '@/store/ProjectStore.js';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 
@@ -45,11 +46,12 @@ export default {
   components: {CustomLoading},
   setup(props) {
     const analyzingStates = reactive(new Map());
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const modelStore = useModelStore();
+    const projectStore = useProjectStore();
     const expandedKeys = ref([]);
     const currentSession = computed(() =>
-        messageStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
+        sessionStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
     );
     const jsonData = ref(null);
 
@@ -242,3 +244,4 @@ ${content}
   margin-left: 8px;
 }
 </style>
+<!--\`\`\`json\n${JSON.stringify(projects, null, 2)}\n\`\`\`-->

@@ -48,11 +48,11 @@ export default {
     },
   },
   setup(props) {
-    const messageStore = useSessionStore();
+    const sessionStore = useSessionStore();
     const debugMode = ref(true);
 
     const currentSession = computed(() => {
-      return messageStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
+      return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
     });
 
     return {
