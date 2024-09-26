@@ -1,7 +1,7 @@
 <template>
   <a-layout class="full-height">
     <!-- 侧边栏 -->
-    <a-layout-sider theme="light" width="300">
+    <a-layout-sider theme="light" width="150">
       <!-- 新建对话 -->
       <div class="fixed-button-container">
         <a-button class="new_session_button" type="primary" :loading="loadingProjects"

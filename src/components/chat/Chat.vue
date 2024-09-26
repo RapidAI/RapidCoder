@@ -1,26 +1,31 @@
 <template>
-  <div class="chat-container">
-    <div class="top-bar">
-      {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
-      <a-switch
-          v-model:checked="debugMode"
-          class="debug-switch"
-          checked-children="调试模式"
-          un-checked-children="普通模式"
+  <a-layout>
+    <a-layout-sider theme="light" width="200">
+      123
+    </a-layout-sider>
+    <a-layout-content class="chat-container ">
+      <div class="top-bar">
+        {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
+        <a-switch
+            v-model:checked="debugMode"
+            class="debug-switch"
+            checked-children="调试模式"
+            un-checked-children="普通模式"
+        />
+      </div>
+      <chat-message-list
+          class="message-list"
+          :debugMode="debugMode"
+          v-if="selectedSessionId"
+          :selectedSessionId="selectedSessionId"
       />
-    </div>
-    <chat-message-list
-        class="message-list"
-        :debugMode="debugMode"
-        v-if="selectedSessionId"
-        :selectedSessionId="selectedSessionId"
-    />
-    <chat-message-input
-        class="message-input"
-        v-if="selectedSessionId"
-        :selectedSessionId="selectedSessionId"
-    />
-  </div>
+      <chat-message-input
+          class="message-input"
+          v-if="selectedSessionId"
+          :selectedSessionId="selectedSessionId"
+      />
+    </a-layout-content>
+  </a-layout>
 </template>
 
 <script>
@@ -28,9 +33,11 @@ import {ref, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatMessageInput from './ChatMessageInput.vue';
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 
 export default {
   components: {
+    DeleteOutlined, EditOutlined,
     ChatMessageList,
     ChatMessageInput,
   },

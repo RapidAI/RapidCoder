@@ -1,6 +1,6 @@
 <template>
   <a-layout style="min-height: 100vh; max-height: 100vh">
-    <a-layout-sider v-model:collapsed="collapsed" theme="light">
+    <a-layout-sider v-model:collapsed="collapsed" theme="light" width="150">
       <div class="logo-container">
         <div class="logo"></div>
         <div class="logo-text">MyCodeGPT</div>
