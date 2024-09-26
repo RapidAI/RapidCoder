@@ -58,8 +58,10 @@ export default {
     );
 
     const treeData = computed(() => {
-      const buildTreeFromPaths = (filePaths) => {
+      const buildTreeFromPaths = (projectFileDetails) => {
         const root = [];
+        const filePaths = Object.keys(projectFileDetails);
+        ;
         filePaths.forEach(filePath => {
           const pathParts = filePath.split('/');
           let currentLevel = root;
@@ -75,6 +77,7 @@ export default {
                   key: nodePath,
                   type: isFile ? 'file' : 'folder',
                   path: isFile ? filePath : nodePath,
+                  fileDetails: isFile ? projectFileDetails[filePath] : '',
                   children: []
                 };
                 currentLevel.push(node);
@@ -103,12 +106,9 @@ export default {
           .filter(project => currentSession.value.currentProjectsId.includes(project.projectId))
           .map((project, index) => {
             return {
-              title: project.projectDescription || `项目${index + 1}`,
+              title: project.projectDescription,
               key: project.projectId,
-              children: optimizeTree(buildTreeFromPaths(
-                  Object.keys(project.projectFileDetails || {}),
-                  index
-              )),
+              children: optimizeTree(buildTreeFromPaths(project.projectFileDetails)),
             };
           });
     });
@@ -192,7 +192,7 @@ ${content}
 
     const onCheck = (checkedKeysValue, {checkedNodes}) => {
       currentSession.value.currentSelectNode = checkedKeysValue;
-      console.log('选中的节点:', checkedNodes);
+      currentSession.value.messages[0].content=`\`\`\`json\n${JSON.stringify(checkedNodes, null, 2)}\n\`\`\``
     };
 
     return {
