@@ -9,27 +9,21 @@
       <template #title="{ data }">
         <div class="custom-tree-node">
           <span>{{ data.title }}</span>
-          <button
-              v-if="data.type === 'file' && !isAnalyzing(data.key)"
-              @click.stop="analyzeNode(data)"
-              class="action-button"
-          >
+          <a-button size="small"
+                    v-if="data.type === 'file' && !isAnalyzing(data.key)"
+                    @click.stop="analyzeNode(data)">
             更新
-          </button>
-          <button
-              v-if="data.type === 'folder' && !isAnalyzing(data.key)"
-              @click.stop="analyzeNode(data)"
-              class="action-button"
-          >
+          </a-button>
+          <a-button size="small"
+                    v-if="data.type === 'folder' && !isAnalyzing(data.key)"
+                    @click.stop="analyzeNode(data)">
             更新目录
-          </button>
-          <button
-              v-if="!isAnalyzing(data.key)"
-              @click.stop="deleteItem(data)"
-              class="action-button"
-          >
+          </a-button>
+          <a-button size="small"
+                    v-if="!isAnalyzing(data.key)"
+                    @click.stop="deleteItem(data)">
             删除
-          </button>
+          </a-button>
           <custom-loading v-if="isAnalyzing(data.key)"/>
         </div>
       </template>
@@ -245,10 +239,6 @@ ${content}
 }
 
 .action-button {
-  margin-left: 8px;
-}
-
-.custom-loading {
   margin-left: 8px;
 }
 </style>
