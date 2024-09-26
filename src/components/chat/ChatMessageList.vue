@@ -5,8 +5,7 @@
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
           <template v-if="debugMode">
-            <chat-system v-if="item.role === 'system'" :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
-            <chat-markdown v-else :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
+            <chat-markdown :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
           </template>
           <div v-if="!debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
@@ -59,11 +58,9 @@ import {
 import {eventBus} from '@/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
 import CustomLoading from "@/components/common/CustomLoading.vue";
-import ChatSystem from "@/components/chat/ChatSystem.vue";
 
 export default {
   components: {
-    ChatSystem,
     CustomLoading,
     ChatMarkdown,
     UserOutlined,
