@@ -6,33 +6,36 @@
         :checkable="true"
         :selectable="false"
         :checkedKeys="currentSession.currentSelectNode"
-        :showLine="{ showLeafIcon: false }"
+        :showLine="false"
         @check="onCheck"
     >
       <template #title="{ data }">
         <div class="custom-tree-node">
           <span>{{ data.title }}</span>
-          <a-button size="small"
-                    v-if="data.type === 'file' && !isAnalyzing(data.key)"
-                    @click.stop="analyzeNode(data)">
-            更新
-          </a-button>
-          <a-button size="small"
-                    v-if="data.type === 'folder' && !isAnalyzing(data.key)"
-                    @click.stop="analyzeNode(data)">
-            更新目录
-          </a-button>
-          <a-button size="small"
-                    v-if="!isAnalyzing(data.key)"
-                    @click.stop="deleteItem(data)">
-            删除
-          </a-button>
-          <custom-loading v-if="isAnalyzing(data.key)"/>
+          <div class="tree-node-buttons">
+            <a-button size="small"
+                      v-if="data.type === 'file' && !isAnalyzing(data.key)"
+                      @click.stop="analyzeNode(data)">
+              更新
+            </a-button>
+            <a-button size="small"
+                      v-if="data.type === 'folder' && !isAnalyzing(data.key)"
+                      @click.stop="analyzeNode(data)">
+              更新目录
+            </a-button>
+            <a-button size="small"
+                      v-if="!isAnalyzing(data.key)"
+                      @click.stop="deleteItem(data)">
+              删除
+            </a-button>
+            <custom-loading v-if="isAnalyzing(data.key)"/>
+          </div>
         </div>
       </template>
     </a-tree>
   </div>
 </template>
+
 
 <script>
 import {reactive, computed, ref} from 'vue';
@@ -213,3 +216,18 @@ ${content}
   },
 };
 </script>
+<style scoped>
+.custom-tree-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tree-node-buttons {
+  display: none; /* 默认隐藏按钮 */
+}
+
+.custom-tree-node:hover .tree-node-buttons {
+  display: inline-block; /* 鼠标悬停时显示按钮 */
+}
+</style>
