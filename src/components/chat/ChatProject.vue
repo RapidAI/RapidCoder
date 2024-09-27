@@ -194,15 +194,14 @@ ${content}
     const isAnalyzing = (key) => analyzingStates.get(key);
 
     const onCheck = (checkedKeysValue, { checkedNodes }) => {
-      currentSession.value.currentSelectNode = checkedKeysValue;
-
-      // 过滤出文件节点
       const fileNodes = checkedNodes
-          .filter(node => node.type === 'file')
-          .map(({ title, key, type, children, ...rest }) => rest); // 去掉指定的key
-
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
+          .filter(node => node.type === 'file');
+      currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
+      const fileNodeDetails = fileNodes
+          .map(({ title, key, type, children, ...rest }) => rest);
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodeDetails, null, 2)}\n\`\`\``;
     };
+
 
     return {
       treeData,

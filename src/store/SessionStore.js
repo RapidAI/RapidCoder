@@ -46,10 +46,14 @@ export const useSessionStore = defineStore('session_store', {
                 this.messageExecuteCode(currentSession.sessionId, index + 1)
                 return
             }
-
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
-            const prompt = `
+            let combinedContent = ""
+            if (currentSession.currentSelectNode.length < 5) {
+                combinedContent = await this.getCombinedFileContent(currentSession.currentSelectNode);
+                index = index - 1
+            } else {
+                const prompt = `
 返回的 JSON 数据结构为：
 {
     "thinking": "...",
@@ -69,21 +73,23 @@ finalResult：提供最终的简洁答案
 
 用户的问题：${userQuestion} ,与哪些文件相关?
 `;
-            const clonedMessages = JSON.parse(JSON.stringify(messagelist));
-            clonedMessages[index].content = prompt;
-            await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
+                const clonedMessages = JSON.parse(JSON.stringify(messagelist));
+                clonedMessages[index].content = prompt;
+                await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
 
 
-            const assistantMessage = currentSession.messages[index + 1]?.content || '';
-            const finalResult = await this.parseJsonMessage(assistantMessage);
-            if (!finalResult) {
-                return;
+                const assistantMessage = currentSession.messages[index + 1]?.content || '';
+                const finalResult = await this.parseJsonMessage(assistantMessage);
+                if (!finalResult) {
+                    return;
+                }
+
+                const files = finalResult.filePath || [];
+                if (!files.length) return;
+
+                combinedContent = await this.getCombinedFileContent(files);
             }
 
-            const files = finalResult.filePath || [];
-            if (!files.length) return;
-
-            const combinedContent = await this.getCombinedFileContent(files);
             if (!combinedContent) return;
 
             const newPrompt = `
