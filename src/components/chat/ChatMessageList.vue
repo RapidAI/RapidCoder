@@ -1,7 +1,6 @@
 <template>
   <div ref="messageList" class="custom-list">
     <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
-      <component :is="item.role === 'user' ? UserOutlined : RobotOutlined" class="role-icon"/>
       <div class="message-content">
         <div v-if="editedMessageIndex !== index">
           <template v-if="debugMode">
@@ -51,8 +50,6 @@ import {ref, onMounted, onUnmounted, nextTick, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {message} from 'ant-design-vue';
 import {
-  UserOutlined,
-  RobotOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons-vue';
 import {eventBus} from '@/eventBus.js';
@@ -63,8 +60,6 @@ export default {
   components: {
     CustomLoading,
     ChatMarkdown,
-    UserOutlined,
-    RobotOutlined,
     ArrowDownOutlined,
   },
   props: {
@@ -169,8 +164,6 @@ export default {
       editedMessageIndex,
       editedMessageContent,
       enableEditMode,
-      RobotOutlined,
-      UserOutlined,
       updateMessage,
       resetEdit,
       copyToClipboard,
@@ -185,7 +178,7 @@ export default {
 
 <style scoped>
 .custom-list {
-  height: 83vh;
+  height: 100vh;
   overflow: auto;
 }
 

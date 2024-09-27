@@ -29,7 +29,7 @@
     </a-layout-sider>
 
     <!-- 对话内容区域 -->
-    <a-layout-content class="custom-content">
+    <a-layout-content>
       <Chat v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
     </a-layout-content>
 
@@ -193,9 +193,5 @@ export default {
   text-overflow: ellipsis;
   /* 移除背景颜色 */
   /* background-color: red; */
-}
-
-.custom-content {
-  padding: 20px;
 }
 </style>

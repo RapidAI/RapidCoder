@@ -66,11 +66,11 @@ export default {
 <style scoped>
 .chat-container {
   position: relative;
-  height: 93vh;
+  height: 99vh;
   overflow: hidden;
 }
 .chat-project {
-  height: 93vh;
+  height: 99vh;
   overflow: scroll;
 }
 
@@ -81,7 +81,7 @@ export default {
 }
 
 .message-list {
-  height: 83vh;
+  height: 88vh;
   overflow: auto;
 }
 

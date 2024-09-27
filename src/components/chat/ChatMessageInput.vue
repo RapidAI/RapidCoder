@@ -94,7 +94,6 @@ export default {
   align-items: flex-start;
   width: 100%;
   background-color: #1a1a1a;
-  padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
