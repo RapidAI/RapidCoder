@@ -1,38 +1,37 @@
 <template>
   <div>
-    <a-tree
+    <a-directory-tree
         :treeData="treeData"
         :defaultExpandAll="true"
-        :checkable="true"
-        :selectable="false"
-        :checkedKeys="currentSession.currentSelectNode"
+        :checkable="false"
+        :selectable="true"
+        :multiple="true"
         :showLine="false"
-        @check="onCheck"
+        :selectedKeys="currentSession.currentSelectNode"
+        @select="onSelect"
     >
       <template #title="{ data }">
-        <div class="custom-tree-node">
-          <span>{{ data.title }}</span>
-          <div class="tree-node-buttons">
-            <a-button size="small"
-                      v-if="data.type === 'file' && !isAnalyzing(data.key)"
-                      @click.stop="analyzeNode(data)">
-              更新
-            </a-button>
-            <a-button size="small"
-                      v-if="data.type === 'folder' && !isAnalyzing(data.key)"
-                      @click.stop="analyzeNode(data)">
-              更新目录
-            </a-button>
-            <a-button size="small"
-                      v-if="!isAnalyzing(data.key)"
-                      @click.stop="deleteItem(data)">
-              删除
-            </a-button>
-            <custom-loading v-if="isAnalyzing(data.key)"/>
-          </div>
+        <span>{{ data.title }}</span>
+        <div class="tree-node-buttons">
+          <a-button size="small"
+                    v-if="data.type === 'file' && !isAnalyzing(data.key)"
+                    @click.stop="analyzeNode(data)">
+            更新
+          </a-button>
+          <a-button size="small"
+                    v-if="data.type === 'folder' && !isAnalyzing(data.key)"
+                    @click.stop="analyzeNode(data)">
+            更新目录
+          </a-button>
+          <a-button size="small"
+                    v-if="!isAnalyzing(data.key)"
+                    @click.stop="deleteItem(data)">
+            删除
+          </a-button>
         </div>
+        <custom-loading v-if="isAnalyzing(data.key)"/>
       </template>
-    </a-tree>
+    </a-directory-tree>
   </div>
 </template>
 
@@ -116,6 +115,15 @@ export default {
           });
     });
 
+    const isAnalyzing = (key) => analyzingStates.get(key);
+
+    const buildPrompt = (nodeData, content) => `
+### ${nodeData.path}
+\`\`\`
+${content}
+\`\`\`
+要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
+
     const analyzeNode = async (nodeData) => {
       analyzingStates.set(nodeData.key, true);
       nodeData.isAnalyzing = true;
@@ -147,40 +155,6 @@ export default {
       }
     };
 
-    const buildPrompt = (nodeData, content) => `
-### ${nodeData.path}
-\`\`\`
-${content}
-\`\`\`
-要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
-
-
-    const deleteItem = (nodeData) => {
-      try {
-        const deleteRecursively = (nodes) => {
-          nodes.forEach(node => {
-            if (node.type === 'folder') deleteRecursively(node.children);
-            deleteFile(node);
-          });
-        };
-        if (nodeData.type === 'folder') deleteRecursively(nodeData.children);
-        else deleteFile(nodeData);
-      } catch (error) {
-        console.error(error);
-        message.error('删除失败');
-      }
-    };
-
-    const deleteFile = (nodeData) => {
-      try {
-        updateProjectFileDetails(nodeData, null, true);
-        message.success('文件已删除');
-      } catch (error) {
-        console.error(error);
-        message.error('文件删除失败');
-      }
-    };
-
     const extractJsonFromResponse = (response) => {
       try {
         const match = response.match(/```json\n([\s\S]*?)\n```/);
@@ -191,14 +165,30 @@ ${content}
       }
     };
 
-    const isAnalyzing = (key) => analyzingStates.get(key);
 
-    const onCheck = (checkedKeysValue, { checkedNodes }) => {
-      const fileNodes = checkedNodes
+    const deleteItem = (nodeData) => {
+      if (nodeData.type === 'folder') {
+        // 递归删除文件夹下的所有文件和子文件夹
+        nodeData.children.forEach(childNode => deleteItem(childNode));
+      }
+      // 删除当前文件或文件夹
+      deleteFile(nodeData);
+
+    };
+
+    const deleteFile = (nodeData) => {
+      // 假设 updateProjectFileDetails 是一个删除文件的操作
+      updateProjectFileDetails(nodeData, null, true);
+      message.success(`${nodeData.name} 已删除`);
+    };
+
+
+    const onSelect = (checkedKeysValue, {selectedNodes}) => {
+      const fileNodes = selectedNodes
           .filter(node => node.type === 'file');
       currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
       const fileNodeDetails = fileNodes
-          .map(({ title, key, type, children, ...rest }) => rest);
+          .map(({title, key, type, children, ...rest}) => rest);
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodeDetails, null, 2)}\n\`\`\``;
     };
 
@@ -210,23 +200,17 @@ ${content}
       currentSession,
       analyzingStates,
       isAnalyzing,
-      onCheck,
+      onSelect,
     };
   },
 };
 </script>
 <style scoped>
-.custom-tree-node {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .tree-node-buttons {
   display: none; /* 默认隐藏按钮 */
 }
 
-.custom-tree-node:hover .tree-node-buttons {
-  display: inline-block; /* 鼠标悬停时显示按钮 */
+.ant-tree-treenode:hover .tree-node-buttons {
+  display: inline-block; /* 鼠标悬停整个节点时显示按钮 */
 }
 </style>
