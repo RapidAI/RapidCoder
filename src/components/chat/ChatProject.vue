@@ -169,12 +169,28 @@ ${content}
       if (nodeData.type === 'folder') {
         nodeData.children.forEach(childNode => deleteItem(childNode));
       }
-      deleteFile(nodeData);
+      // 从treeData中删除节点
+      updateProjectFileDetails(nodeData, null, true);
     };
 
-    const deleteFile = (nodeData) => {
-      updateProjectFileDetails(nodeData, null, true);
-      message.success(`${nodeData.name} 已删除`);
+    const updateProjectFileDetails = (nodeData, newDetails = null, isDelete = false) => {
+      const project = projectStore.projects.find(project =>
+          currentSession.value.currentProjectsId.includes(project.projectId) &&
+          nodeData.path in project.projectFileDetails
+      );
+      if (!project) {
+        message.error('无法找到相关项目');
+        return;
+      }
+      const fileDetails = JSON.parse(JSON.stringify(project.projectFileDetails));
+      if (isDelete) {
+        delete fileDetails[nodeData.path];
+      } else {
+        fileDetails[nodeData.path] = newDetails;
+      }
+      project.projectFileDetails = fileDetails
+      projectStore.updateProject(project);
+      message.success(`${nodeData.title} 已${isDelete ? '删除' : '更新'}`);
     };
 
 
