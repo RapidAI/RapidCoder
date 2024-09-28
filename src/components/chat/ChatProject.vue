@@ -5,6 +5,7 @@
         :defaultExpandAll="false"
         :checkable="false"
         :selectable="true"
+        :blockNode="true"
         :multiple="true"
         :showLine="false"
         :selectedKeys="currentSession.currentSelectNode"
@@ -13,21 +14,10 @@
       <template #title="{ data }">
         <span>{{ data.title }}</span>
         <div class="tree-node-buttons">
-          <a-button size="small"
-                    v-if="data.type === 'file' && !isAnalyzing(data.key)"
-                    @click.stop="analyzeNode(data)">
-            更新
+          <a-button size="small" v-if="data.type && !isAnalyzing(data.key)" @click.stop="analyzeNode(data)">
+            {{ data.type === 'file' ? '更新' : '更新目录' }}
           </a-button>
-          <a-button size="small"
-                    v-if="data.type === 'folder' && !isAnalyzing(data.key)"
-                    @click.stop="analyzeNode(data)">
-            更新目录
-          </a-button>
-          <a-button size="small"
-                    v-if="!isAnalyzing(data.key)"
-                    @click.stop="deleteItem(data)">
-            删除
-          </a-button>
+          <a-button size="small" v-if="!isAnalyzing(data.key)" @click.stop="deleteItem(data)">删除</a-button>
         </div>
         <custom-loading v-if="isAnalyzing(data.key)"/>
       </template>
@@ -35,9 +25,8 @@
   </div>
 </template>
 
-
 <script>
-import {reactive, computed, ref} from 'vue';
+import {reactive, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from '@/store/ModelStore.js';
 import {useProjectStore} from '@/store/ProjectStore.js';
@@ -59,87 +48,74 @@ export default {
         sessionStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
     );
 
-    const treeData = computed(() => {
-      const buildTreeFromPaths = (projectFileDetails) => {
-        const root = [];
-        const filePaths = Object.keys(projectFileDetails);
-        filePaths.forEach(filePath => {
-          const pathParts = filePath.split('/');
-          let currentLevel = root;
-          let nodePath = '';
-          pathParts.forEach((part, idx) => {
-            if (part) {
-              nodePath = `${nodePath}/${part}`;
-              let node = currentLevel.find(item => item.key === nodePath);
-              if (!node) {
-                const isFile = idx === pathParts.length - 1;
-                node = {
-                  title: part,
-                  key: nodePath,
-                  type: isFile ? 'file' : 'folder',
-                  path: isFile ? filePath : nodePath,
-                  fileDetails: isFile ? projectFileDetails[filePath] : '',
-                  children: []
-                };
-                currentLevel.push(node);
-              }
-              currentLevel = node.children;
-            }
-          });
-        });
-        return root;
-      };
-
-      const optimizeTree = nodes => nodes.map(node => {
-        if (node.type === 'folder') {
-          while (node.children.length === 1 && node.children[0].type === 'folder') {
-            const child = node.children[0];
-            node.title = `${node.title}/${child.title}`;
-            node.key = child.key;
-            node.children = child.children;
+    const buildTree = (paths) => {
+      const root = [];
+      Object.keys(paths).forEach((path) => {
+        const parts = path.split('/');
+        let level = root, nodePath = '';
+        parts.forEach((part, idx) => {
+          nodePath = `${nodePath}/${part}`;
+          let node = level.find(item => item.key === nodePath);
+          if (!node) {
+            node = {
+              title: part,
+              key: nodePath,
+              type: idx === parts.length - 1 ? 'file' : 'folder',
+              path,
+              children: []
+            };
+            level.push(node);
           }
-          node.children = optimizeTree(node.children);
-        }
-        return node;
+          level = node.children;
+        });
       });
+      return root;
+    };
 
-      return projectStore.projects
-          .filter(project => currentSession.value.currentProjectsId.includes(project.projectId))
-          .map((project, index) => {
-            return {
+    const optimizeTree = (nodes) => nodes.map(node => {
+      while (node.type === 'folder' && node.children.length === 1 && node.children[0].type === 'folder') {
+        const child = node.children[0];
+        node.title += `/${child.title}`;
+        node.key = child.key;
+        node.children = child.children;
+      }
+      node.children = optimizeTree(node.children);
+      return node;
+    });
+
+    const treeData = computed(() =>
+        projectStore.projects
+            .filter(project => currentSession.value.currentProjectsId.includes(project.projectId))
+            .map(project => ({
               title: project.projectDescription,
               key: project.projectId,
-              children: optimizeTree(buildTreeFromPaths(project.projectFileDetails)),
-            };
-          });
-    });
+              children: optimizeTree(buildTree(project.projectFileDetails))
+            }))
+    );
 
     const isAnalyzing = (key) => analyzingStates.get(key);
 
-    const buildPrompt = (nodeData, content) => `
+    const analyzeNode = async (nodeData) => {
+      analyzingStates.set(nodeData.key, true);
+      const model = currentSession.value?.currentModel;
+      try {
+        const content = nodeData.type === 'file'
+            ? await ipcRenderer.invoke('get-one-file', nodeData.path)
+            : await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
+
+        const prompt = `
 ### ${nodeData.path}
 \`\`\`
 ${content}
 \`\`\`
 要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
 
-    const analyzeNode = async (nodeData) => {
-      analyzingStates.set(nodeData.key, true);
-      nodeData.isAnalyzing = true;
-      const model = currentSession.value?.currentModel;
-
-      try {
-        const content = nodeData.type === 'file'
-            ? await ipcRenderer.invoke('get-one-file', nodeData.path)
-            : await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
-
-        const prompt = buildPrompt(nodeData, content);
         const res = await modelStore.chatCompletions({
           ...model,
           messages: [
             {role: 'system', content: '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。'},
-            {role: 'user', content: prompt},
-          ],
+            {role: 'user', content: prompt}
+          ]
         });
 
         const analysisResult = extractJsonFromResponse(res.content);
@@ -149,7 +125,6 @@ ${content}
         console.error(error);
         message.error(`${nodeData.type === 'file' ? '文件' : '目录'}解析失败`);
       } finally {
-        nodeData.isAnalyzing = false;
         analyzingStates.set(nodeData.key, false);
       }
     };
@@ -164,12 +139,10 @@ ${content}
       }
     };
 
-
     const deleteItem = (nodeData) => {
       if (nodeData.type === 'folder') {
-        nodeData.children.forEach(childNode => deleteItem(childNode));
+        return nodeData.children.forEach(deleteItem);
       }
-      // 从treeData中删除节点
       updateProjectFileDetails(nodeData, null, true);
     };
 
@@ -179,29 +152,23 @@ ${content}
           nodeData.path in project.projectFileDetails
       );
       if (!project) {
-        message.error('无法找到相关项目');
-        return;
+        return message.error('无法找到相关项目');
       }
-      const fileDetails = JSON.parse(JSON.stringify(project.projectFileDetails));
-      if (isDelete) {
-        delete fileDetails[nodeData.path];
-      } else {
-        fileDetails[nodeData.path] = newDetails;
-      }
-      project.projectFileDetails = fileDetails
+
+      const fileDetails = {...project.projectFileDetails};
+      if (isDelete) delete fileDetails[nodeData.path];
+      else fileDetails[nodeData.path] = newDetails;
+
+      project.projectFileDetails = fileDetails;
       message.success(`${nodeData.title} 已${isDelete ? '删除' : '更新'}`);
     };
 
-
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
-      const fileNodes = selectedNodes
-          .filter(node => node.type === 'file');
+      const fileNodes = selectedNodes.filter(node => node.type === 'file');
       currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
-      const fileNodeDetails = fileNodes
-          .map(({title, key, type, children, ...rest}) => rest);
+      const fileNodeDetails = fileNodes.map(({title, key, type, children, ...rest}) => rest);
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodeDetails, null, 2)}\n\`\`\``;
     };
-
 
     return {
       treeData,
@@ -212,15 +179,16 @@ ${content}
       isAnalyzing,
       onSelect,
     };
-  },
+  }
 };
 </script>
+
 <style scoped>
 .tree-node-buttons {
-  display: none; /* 默认隐藏按钮 */
+  display: none;
 }
 
 .ant-tree-treenode:hover .tree-node-buttons {
-  display: inline-block; /* 鼠标悬停整个节点时显示按钮 */
+  display: inline-block;
 }
 </style>
