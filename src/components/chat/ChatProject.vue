@@ -63,7 +63,6 @@ export default {
       const buildTreeFromPaths = (projectFileDetails) => {
         const root = [];
         const filePaths = Object.keys(projectFileDetails);
-        ;
         filePaths.forEach(filePath => {
           const pathParts = filePath.split('/');
           let currentLevel = root;
@@ -168,16 +167,12 @@ ${content}
 
     const deleteItem = (nodeData) => {
       if (nodeData.type === 'folder') {
-        // 递归删除文件夹下的所有文件和子文件夹
         nodeData.children.forEach(childNode => deleteItem(childNode));
       }
-      // 删除当前文件或文件夹
       deleteFile(nodeData);
-
     };
 
     const deleteFile = (nodeData) => {
-      // 假设 updateProjectFileDetails 是一个删除文件的操作
       updateProjectFileDetails(nodeData, null, true);
       message.success(`${nodeData.name} 已删除`);
     };
