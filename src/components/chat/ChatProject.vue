@@ -2,7 +2,7 @@
   <div>
     <a-directory-tree
         :treeData="treeData"
-        :defaultExpandAll="true"
+        :defaultExpandAll="false"
         :checkable="false"
         :selectable="true"
         :multiple="true"
@@ -189,7 +189,6 @@ ${content}
         fileDetails[nodeData.path] = newDetails;
       }
       project.projectFileDetails = fileDetails
-      projectStore.updateProject(project);
       message.success(`${nodeData.title} 已${isDelete ? '删除' : '更新'}`);
     };
 
