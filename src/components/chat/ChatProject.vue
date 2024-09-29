@@ -2,10 +2,8 @@
   <div>
     <a-directory-tree
         :treeData="treeData"
-        :defaultExpandAll="false"
         :checkable="false"
         :selectable="true"
-        :blockNode="true"
         :multiple="true"
         :showLine="false"
         :selectedKeys="currentSession.currentSelectNode"
@@ -196,11 +194,7 @@ ${content}
 </script>
 
 <style scoped>
-.tree-node-buttons {
-  display: none;
-}
-
-.ant-tree-treenode:hover .tree-node-buttons {
-  display: inline-block;
+:deep(.ant-tree-node-content-wrapper) {
+  display: flex;
 }
 </style>
