@@ -90,7 +90,11 @@ finalResult：提供最终的简洁答案
                 combinedContent = await this.getCombinedFileContent(files);
             }
 
-            if (!combinedContent) return;
+            if (!combinedContent) {
+                await this.processChat(currentSession, currentSession.messages, index + 1, overwrite, semanticSearch);
+                this.messageExecuteCode(currentSession.sessionId, index + 2);
+                return;
+            }
 
             const newPrompt = `
 ${combinedContent}

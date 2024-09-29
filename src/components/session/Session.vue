@@ -22,6 +22,7 @@
               <div class="menu-item-title" @click="selectSession(session)">
                 {{ sessionTitle(session) }}
               </div>
+              <CustomLoading v-if="session.isStreaming" />
             </div>
           </a-menu-item>
         </a-menu>
@@ -61,16 +62,16 @@
 <script>
 import {ref, onMounted} from 'vue';
 import Chat from '../chat/Chat.vue';
+import CustomLoading from '../common/CustomLoading.vue'; // 引入CustomLoading组件
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useProjectStore} from "@/store/ProjectStore";
 import {useModelStore} from "@/store/ModelStore";
 import {useRoute, useRouter} from 'vue-router';
 import {EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
-import {eventBus} from "@/eventBus";
 
 export default {
-  components: {Chat, EditOutlined, DeleteOutlined},
+  components: {Chat, EditOutlined, DeleteOutlined, CustomLoading}, // 注册CustomLoading组件
   setup() {
     const sessionStore = useSessionStore();
     const projectStore = useProjectStore();
