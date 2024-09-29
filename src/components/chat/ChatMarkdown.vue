@@ -5,16 +5,8 @@
         <span>{{ block.language }}</span>
         <div class="code-actions">
           <custom-loading v-if="block.isLoading"/>
-          <a-tooltip placement="bottom" title="复制代码">
-            <a @click="copyCode(block.code)">
-              <CopyOutlined/>
-            </a>
-          </a-tooltip>
-          <a-tooltip placement="bottom" title="再次运行">
-            <a @click="executeCode()">
-              <ClockCircleOutlined/>
-            </a>
-          </a-tooltip>
+          <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
+          <a-button type="primary" size="small" @click="executeCode()">再次运行</a-button>
         </div>
       </div>
       <div v-html="block.content"></div>
@@ -122,7 +114,6 @@ export default {
   word-wrap: break-word;
 }
 
-
 .code-header {
   display: flex;
   justify-content: space-between;
@@ -137,7 +128,6 @@ export default {
   display: flex;
   gap: 10px;
   color: #d4d4d4;
-  margin-right: 25px;
 }
 
 pre {
