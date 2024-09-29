@@ -12,13 +12,15 @@
         @select="onSelect"
     >
       <template #title="{ data }">
-        <span>{{ data.title }}</span>
-        <div class="tree-node-buttons">
-          <a-button size="small" v-if="data.type && !isAnalyzing(data.key)" @click.stop="analyzeNode(data)">
-            {{ data.type === 'file' ? '更新' : '更新目录' }}
-          </a-button>
-          <a-button size="small" v-if="!isAnalyzing(data.key)" @click.stop="deleteItem(data)">删除</a-button>
-        </div>
+        <a-dropdown :trigger="['contextmenu']">
+          <span>{{ data.title }}</span>
+          <template #overlay>
+            <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
+              <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
+              <a-menu-item key="delete">删除</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
         <custom-loading v-if="isAnalyzing(data.key)"/>
       </template>
     </a-directory-tree>
@@ -26,18 +28,18 @@
 </template>
 
 <script>
-import {reactive, computed} from 'vue';
-import {useSessionStore} from '@/store/SessionStore.js';
-import {useModelStore} from '@/store/ModelStore.js';
-import {useProjectStore} from '@/store/ProjectStore.js';
-import {message} from 'ant-design-vue';
+import { reactive, computed } from 'vue';
+import { useSessionStore } from '@/store/SessionStore.js';
+import { useModelStore } from '@/store/ModelStore.js';
+import { useProjectStore } from '@/store/ProjectStore.js';
+import { message } from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
 
 export default {
-  props: {selectedSessionId: {required: true}},
-  components: {CustomLoading},
+  props: { selectedSessionId: { required: true } },
+  components: { CustomLoading },
   setup(props) {
     const analyzingStates = reactive(new Map());
     const sessionStore = useSessionStore();
@@ -164,6 +166,14 @@ ${content}
       message.success(`${nodeData.title} 已${isDelete ? '删除' : '更新'}`);
     };
 
+    const onContextMenuClick = (nodeData, menuKey) => {
+      if (menuKey === 'update') {
+        analyzeNode(nodeData);
+      } else if (menuKey === 'delete') {
+        deleteItem(nodeData);
+      }
+    };
+
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
       currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
@@ -179,6 +189,7 @@ ${content}
       analyzingStates,
       isAnalyzing,
       onSelect,
+      onContextMenuClick
     };
   }
 };
