@@ -54,6 +54,7 @@ export default {
         const parts = path.split('/');
         let level = root, nodePath = '';
         parts.forEach((part, idx) => {
+          if (!part) return; // 跳过空字符串
           nodePath = `${nodePath}/${part}`;
           let node = level.find(item => item.key === nodePath);
           if (!node) {

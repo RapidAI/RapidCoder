@@ -123,7 +123,8 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
 // 获取单个文件
 ipcMain.handle('get-one-file', (event, filePath) => {
     const stats = fs.statSync(filePath);
-    const content = fs.readFileSync(filePath, 'utf-8').split('\n');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    // const content = fs.readFileSync(filePath, 'utf-8').split('\n');
     //
     // // 获取最大行号长度，用于对齐
     // const maxLineNumberLength = String(content.length).length;
@@ -139,7 +140,7 @@ ipcMain.handle('get-one-file', (event, filePath) => {
         size: stats.size,
         createdAt: stats.birthtime,
         modifiedAt: stats.mtime,
-        content: contentWithLineNumbers
+        content: content
     };
 });
 

@@ -40,7 +40,6 @@ export const useSessionStore = defineStore('session_store', {
                 message.error('请选择一个模型');
                 return;
             }
-            console.log(index) //从第2次对话开始就不再联系文件内容
             if (index > 2) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId, index + 1)
