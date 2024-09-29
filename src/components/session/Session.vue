@@ -16,13 +16,14 @@
                 :selectedKeys="[selectedSessionId]" class="custom-menu">
           <a-menu-item v-for="session in [...sessionStore.sessions].reverse()" :key="session.sessionId">
             <div class="menu-item-container">
-              <a-button type="link" @click="deleteSession(session)">
-                <CustomLoading v-if="session.isStreaming"/>
-                <DeleteOutlined v-else/>
-              </a-button>
-              <div class="menu-item-title" @click="selectSession(session)">
-                {{ sessionTitle(session) }}
-              </div>
+              <a-dropdown :trigger="['contextmenu']">
+                <span><CustomLoading v-if="session.isStreaming"/>{{ sessionTitle(session) }}</span>
+                <template #overlay>
+                  <a-menu @click="({ key: menuKey }) => onContextMenuClick(session, menuKey)">
+                    <a-menu-item key="delete">删除</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
             </div>
           </a-menu-item>
         </a-menu>
@@ -137,6 +138,12 @@ export default {
       sessionStore.sessions = sessionStore.sessions.filter(s => s.sessionId !== session.sessionId);
     };
 
+    const onContextMenuClick = (session, menuKey) => {
+      if (menuKey === 'delete') {
+        deleteSession(session);
+      }
+    };
+
     onMounted(async () => {
       loadingProjects.value = true;
       try {
@@ -159,7 +166,8 @@ export default {
       createSession,
       resetModal,
       deleteSession,
-      selectSession
+      selectSession,
+      onContextMenuClick
     };
   },
 };
@@ -186,6 +194,7 @@ export default {
 .menu-item-container {
   display: flex;
   align-items: center;
+  justify-content: center
 }
 
 .menu-item-title {
