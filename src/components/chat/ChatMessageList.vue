@@ -2,10 +2,12 @@
   <div ref="messageList" class="custom-list">
     <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
       <div class="message-content">
-        <div v-if="editedMessageIndex !== index">
+        <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'edit-container':''">
+          <!--内容-->
           <template v-if="debugMode">
             <chat-markdown :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
           </template>
+          <!--展示-->
           <div v-if="!debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
               {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
@@ -13,6 +15,7 @@
             <custom-loading v-if="item.isAnalyzing" class="loading-icon"/>
             <span v-else class="check-icon">✅</span>
           </div>
+          <!--功能-->
           <div class="message-actions">
             <template v-if="item.role === 'system'">
               <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
