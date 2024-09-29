@@ -24,7 +24,7 @@
         </template>
       </template>
     </a-table>
-    <a-modal v-model:open="isModalVisible" :title="modalType === 'add' ? '添加模型' : '更新模型'" :footer="null" :width="600">
+    <a-modal :mask="false" v-model:open="isModalVisible" :title="modalType === 'add' ? '添加模型' : '更新模型'" :footer="null" :width="600">
       <ModelForm v-if="isModalVisible" ref="modelFormRef" :initialValues="currentModel" :mode="modalType"
                  @onCancel="handleCancel"/>
     </a-modal>

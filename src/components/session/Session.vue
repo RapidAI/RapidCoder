@@ -34,7 +34,7 @@
     </a-layout-content>
 
     <!-- 新建对话选择模型和项目模态框 -->
-    <a-modal v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
+    <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
              @ok="createSession" @cancel="resetModal">
       <div>
         <p><strong>请选择一个模型：</strong><span style="color: red;">*</span></p>

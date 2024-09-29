@@ -26,11 +26,11 @@
       </template>
     </a-table>
 
-    <a-modal v-model:open="isModalVisible" :title="modalTitle" :footer="null" :width="600">
+    <a-modal :mask="false" v-model:open="isModalVisible" :title="modalTitle" :footer="null" :width="600">
       <ProjectForm ref="projectFormRef" :initialValues="modalType === 'add' ? {} : selectedProject" :mode="modalType" @onCancel="closeModal"/>
     </a-modal>
 
-    <a-modal v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze" @cancel="closeAnalyzeModal">
+    <a-modal :mask="false" v-model:open="isAnalyzeModalVisible" title="选择模型" okText="确定" cancelText="取消" @ok="handleAnalyze" @cancel="closeAnalyzeModal">
       <a-form>
         <a-form-item label="项目目录">
           {{ selectedProject.projectPath }}
@@ -45,7 +45,7 @@
       <custom-loading v-if="isAnalyzing" tip="AI解析中..."/>
     </a-modal>
 
-    <a-modal v-model:open="isDescriptionModalVisible" title="项目解析" :footer="null" :width="800">
+    <a-modal :mask="false" v-model:open="isDescriptionModalVisible" title="项目解析" :footer="null" :width="800">
       <div v-html="markdownDescription"></div>
     </a-modal>
   </a-layout-content>
