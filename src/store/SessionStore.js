@@ -36,10 +36,6 @@ export const useSessionStore = defineStore('session_store', {
             return newSession
         },
         async selectFileAndChat(currentSession, index, overwrite, semanticSearch = false) {
-            if (!currentSession.currentModel) {
-                message.error('请选择一个模型');
-                return;
-            }
             if (index > 2) {
                 await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
                 this.messageExecuteCode(currentSession.sessionId, index + 1)
@@ -48,7 +44,7 @@ export const useSessionStore = defineStore('session_store', {
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
             let combinedContent = ""
-            if (currentSession.currentSelectNode.length < 5) {
+            if (currentSession.currentSelectNode.length < 10) {
                 combinedContent = await this.getCombinedFileContent(currentSession.currentSelectNode);
                 index = index - 1
             } else {

@@ -98,49 +98,6 @@ export default {
 
     const isAnalyzing = (key) => analyzingStates.get(key);
 
-    const analyzeNode = async (nodeData) => {
-      analyzingStates.set(nodeData.key, true);
-      const model = currentSession.value?.currentModel;
-      try {
-        const content = nodeData.type === 'file'
-            ? await ipcRenderer.invoke('get-one-file', nodeData.path)
-            : await ipcRenderer.invoke('get-all-files', nodeData.path, 'node_modules,assets,dist,package-lock.json');
-
-        const prompt = `
-### ${nodeData.path}
-\`\`\`
-${content}
-\`\`\`
-要求详细说明文件的功能和与其他文件的关联关系，输出标准的json格式。`;
-
-        const res = await modelStore.chatCompletions({
-          ...model,
-          messages: [
-            {role: 'system', content: '你是一个程序员，请根据给定的文件内容生成详细的文件关联说明，输出标准的json格式。'},
-            {role: 'user', content: prompt}
-          ]
-        });
-
-        const analysisResult = extractJsonFromResponse(res.content);
-        if (!analysisResult) throw new Error('解析AI响应失败');
-        message.success(`${nodeData.type === 'file' ? '文件' : '目录'}解析成功`);
-      } catch (error) {
-        console.error(error);
-        message.error(`${nodeData.type === 'file' ? '文件' : '目录'}解析失败`);
-      } finally {
-        analyzingStates.set(nodeData.key, false);
-      }
-    };
-
-    const extractJsonFromResponse = (response) => {
-      try {
-        const match = response.match(/```json\n([\s\S]*?)\n```/);
-        return match ? JSON.parse(match[1]) : null;
-      } catch {
-        console.error('解析JSON失败');
-        return null;
-      }
-    };
 
     const deleteItem = (nodeData) => {
       if (nodeData.type === 'folder') {
@@ -183,7 +140,6 @@ ${content}
 
     return {
       treeData,
-      analyzeNode,
       deleteItem,
       currentSession,
       analyzingStates,
