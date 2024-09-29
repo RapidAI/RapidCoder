@@ -194,7 +194,6 @@ export default {
 .menu-item-container {
   display: flex;
   align-items: center;
-  justify-content: center
 }
 
 .menu-item-title {

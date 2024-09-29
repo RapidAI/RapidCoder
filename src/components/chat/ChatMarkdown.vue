@@ -112,6 +112,8 @@ export default {
   overflow: auto;
   white-space: normal;
   word-wrap: break-word;
+  font-size: 14px; /* 减小字体大小 */
+  line-height: 1.3; /* 减少行高 */
 }
 
 .code-header {
@@ -122,12 +124,16 @@ export default {
   color: #d4d4d4;
   padding: 10px;
   border-radius: 5px 5px 0 0;
+  font-size: 14px; /* 减小字体大小 */
+  line-height: 1.3; /* 减少行高 */
 }
 
 .code-actions {
   display: flex;
   gap: 10px;
   color: #d4d4d4;
+  font-size: 14px; /* 减小字体大小 */
+  line-height: 1.3; /* 减少行高 */
 }
 
 pre {
@@ -139,11 +145,15 @@ pre {
   margin: 0;
   border-radius: 0 0 5px 5px;
   overflow-x: auto;
+  font-size: 14px; /* 减小字体大小 */
+  line-height: 1.3; /* 减少行高 */
 }
 
 code {
   background-color: transparent;
   color: inherit;
+  font-size: 14px; /* 减小字体大小 */
+  line-height: 1.3; /* 减少行高 */
 }
 
 /* VSCode Dark Theme Syntax Highlighting */
