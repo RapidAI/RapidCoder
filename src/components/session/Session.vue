@@ -1,7 +1,7 @@
 <template>
   <a-layout class="full-height">
     <!-- 侧边栏 -->
-    <a-layout-sider theme="light" width="150">
+    <a-layout-sider theme="light" width="200">
       <!-- 新建对话 -->
       <div class="fixed-button-container">
         <a-button class="new_session_button" type="primary" :loading="loadingProjects"
@@ -17,12 +17,12 @@
           <a-menu-item v-for="session in [...sessionStore.sessions].reverse()" :key="session.sessionId">
             <div class="menu-item-container">
               <a-button type="link" @click="deleteSession(session)">
-                <DeleteOutlined/>
+                <CustomLoading v-if="session.isStreaming"/>
+                <DeleteOutlined v-else/>
               </a-button>
               <div class="menu-item-title" @click="selectSession(session)">
                 {{ sessionTitle(session) }}
               </div>
-              <CustomLoading v-if="session.isStreaming" />
             </div>
           </a-menu-item>
         </a-menu>
@@ -35,7 +35,8 @@
     </a-layout-content>
 
     <!-- 新建对话选择模型和项目模态框 -->
-    <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定" cancelText="取消"
+    <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定"
+             cancelText="取消"
              @ok="createSession" @cancel="resetModal">
       <div>
         <p><strong>请选择一个模型：</strong><span style="color: red;">*</span></p>
