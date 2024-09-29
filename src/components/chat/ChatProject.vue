@@ -48,9 +48,9 @@ export default {
         sessionStore.sessions.find(session => session.sessionId === props.selectedSessionId) || null
     );
 
-    const buildTree = (paths) => {
+    const buildTree = (projectFileDetails) => {
       const root = [];
-      Object.keys(paths).forEach((path) => {
+      Object.keys(projectFileDetails).forEach((path) => {
         const parts = path.split('/');
         let level = root, nodePath = '';
         parts.forEach((part, idx) => {
@@ -61,7 +61,8 @@ export default {
               title: part,
               key: nodePath,
               type: idx === parts.length - 1 ? 'file' : 'folder',
-              path,
+              path: path,
+              fileDetails: idx === parts.length - 1 ? projectFileDetails[path] : '',
               children: []
             };
             level.push(node);
