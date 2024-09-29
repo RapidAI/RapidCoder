@@ -1,16 +1,18 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const {app, BrowserWindow, Tray, ipcMain, dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { applyPatch } = require('diff');
+const {applyPatch} = require('diff');
 
 function createWindow() {
+    const tray = new Tray(path.join(__dirname, 'public/logo.png'))
     const win = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
-        }
+        },
+        icon: path.join(__dirname, 'public/logo.png')
     });
 
     if (process.env.NODE_ENV === 'development') {
@@ -154,14 +156,13 @@ ipcMain.handle('replace-file-content', (event, filePath, newContent) => {
 
     try {
         const dir = path.dirname(filePath);
-        fs.mkdirSync(dir, { recursive: true }); // 创建缺失的目录
-        fs.writeFileSync(filePath, newContent, { encoding: 'utf-8' });
-        return { success: true, message: '成功' };
+        fs.mkdirSync(dir, {recursive: true}); // 创建缺失的目录
+        fs.writeFileSync(filePath, newContent, {encoding: 'utf-8'});
+        return {success: true, message: '成功'};
     } catch (error) {
-        return { success: false, message: `失败: ${error.message}` };
+        return {success: false, message: `失败: ${error.message}`};
     }
 });
-
 
 
 ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent) => {
@@ -169,9 +170,9 @@ ipcMain.handle('replace-file-content-diff', async (event, filePath, diffContent)
         const originalContent = fs.readFileSync(filePath, 'utf-8');
         const patchedContent = applyPatch(originalContent, diffContent);
         fs.writeFileSync(filePath, patchedContent, 'utf-8');
-        return { success: true, message: '文件已成功更新（使用 git diff）' };
+        return {success: true, message: '文件已成功更新（使用 git diff）'};
     } catch (error) {
-        return { success: false, message: `更新文件失败: ${error.message}` };
+        return {success: false, message: `更新文件失败: ${error.message}`};
     }
 });
 
