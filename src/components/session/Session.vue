@@ -191,7 +191,5 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* 移除背景颜色 */
-  /* background-color: red; */
 }
 </style>
