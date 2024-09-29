@@ -68,6 +68,7 @@ export default {
   position: relative;
   height: 99vh;
   overflow: hidden;
+  background-color: white;
 }
 .chat-project {
   height: 99vh;

@@ -120,7 +120,6 @@ export default {
   overflow: auto;
   white-space: normal;
   word-wrap: break-word;
-  padding-right: 3vh;
 }
 
 
