@@ -15,7 +15,7 @@
         <a-menu v-if="sessionStore.sessions.length" mode="inline" :inlineIndent="0"
                 :selectedKeys="[selectedSessionId]" class="custom-menu">
           <a-menu-item v-for="session in [...sessionStore.sessions].reverse()" :key="session.sessionId">
-            <div class="menu-item-container">
+            <div class="menu-item-container" @click="selectSession(session)">
               <a-dropdown :trigger="['contextmenu']">
                 <span><CustomLoading v-if="session.isStreaming"/>{{ sessionTitle(session) }}</span>
                 <template #overlay>
