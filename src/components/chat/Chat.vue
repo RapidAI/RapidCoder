@@ -1,5 +1,5 @@
 <template>
-  <a-layout>
+  <a-layout class="custom-content">
     <a-layout-sider class="chat-project" theme="light" width="400">
       <chat-project v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-project>
     </a-layout-sider>
@@ -66,12 +66,12 @@ export default {
 <style scoped>
 .chat-container {
   position: relative;
-  height: 99vh;
   overflow: hidden;
   background-color: white;
 }
 .chat-project {
-  height: 99vh;
+  position: relative;
+  background-color: white;
   overflow: scroll;
 }
 

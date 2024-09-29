@@ -143,7 +143,7 @@ export default {
       // 并发处理每个目录下的文件
       const analyzeDirectoryFiles = async (files) => {
         const fileContents = files.map(file => ({ path: file.path, content: file.content }));
-        
+
         const model = modelStore.models.find(model => model.modelId === selectedModelId.value);
 
         const res = await modelStore.chatCompletions({
@@ -154,7 +154,7 @@ export default {
           ]
         });
 
-        
+
         if (res) {
           return extractJsonFromResponse(res.content);
         } else {
@@ -164,16 +164,16 @@ export default {
 
       try {
         // 使用 Promise.all 并发执行每个目录的文件解析
-        
+
         const allResults = await Promise.all(Object.values(filesByDirectory).map(analyzeDirectoryFiles));
-        
+
 
         // 将所有结果合并到 selectedProject 的 projectFileDetails 中
         selectedProject.value.projectFileDetails = allResults.reduce((acc, result) => ({
           ...acc,
           ...result
         }), {});
-        
+
 
         projectStore.updateProject(selectedProject.value);
         message.success('AI解析成功');
@@ -246,26 +246,3 @@ ${fileContents.map(file => `### ${file.path} \n\`\`\`\n${file.content}`).join('\
   }
 };
 </script>
-
-<style scoped>
-.custom-content {
-  padding: 24px;
-  background: #fff;
-}
-
-.custom-table {
-  margin-top: 16px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-}
-</style>

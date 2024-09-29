@@ -1,22 +1,15 @@
 <template>
-  <a-layout style="min-height: 100vh; max-height: 100vh">
-    <a-layout-sider v-model:collapsed="collapsed" theme="light" width="150">
-      <div class="logo-container">
-        <div class="logo"></div>
-        <div class="logo-text">MyCodeGPT</div>
-      </div>
+  <a-layout class="full-height">
+    <a-layout-sider v-model:collapsed="collapsed" theme="light" width="60">
       <a-menu v-model:selectedKeys="selectedKeys">
         <a-menu-item key="ModelTable" @click="navigateTo('/ModelTable')">
           <RobotOutlined/>
-          <span>AI模型管理</span>
         </a-menu-item>
         <a-menu-item key="ProjectTable" @click="navigateTo('/ProjectTable')">
           <ProjectOutlined/>
-          <span>项目管理</span>
         </a-menu-item>
         <a-menu-item key="SessionWithBigData" @click="navigateTo('/SessionWithBigData')">
           <CodeOutlined/>
-          <span>AI代码</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -27,9 +20,9 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { Layout, Menu } from 'ant-design-vue';
+import {ref, watch} from 'vue';
+import {useRouter, useRoute} from 'vue-router';
+import {Layout, Menu} from 'ant-design-vue';
 import {
   RobotOutlined, // 新增图标用于AI模型管理
   ProjectOutlined, // 新增图标用于项目管理
@@ -73,27 +66,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.logo-container {
-  display: flex;
-  align-items: center;
-  height: 64px;
-  padding: 16px;
-  background-color: #fff;
-}
-
-.logo {
-  width: 32px;
-  height: 32px;
-  background: url('/logo3.png') no-repeat center center;
-  background-size: contain;
-}
-
-.logo-text {
-  font-size: 18px;
-  font-weight: bold;
-  margin-left: 10px;
-  color: #333;
-}
-</style>
