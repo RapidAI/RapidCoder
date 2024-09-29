@@ -159,23 +159,23 @@ ${combinedContent}
                 if (semanticSearch) {
                     //  todo 检索
                 }
-                const modelPayload = {
-                    ...currentSession.currentModel,
-                    stream: true,
-                    messages: messagelist,
-                };
+                const {currentModel} = currentSession;
+                const {baseUrl = '', apiKey, model} = currentModel;
 
-                const response = await fetch(
-                    `${modelPayload.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${modelPayload.apiKey}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(modelPayload),
-                    }
-                );
+                const url = baseUrl.endsWith('/') ? `${baseUrl}v1/chat/completions` : `${baseUrl}/v1/chat/completions`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model,
+                        stream: true,
+                        messages: messagelist,
+                    }),
+                });
 
                 currentSession.reader = response.body.getReader();
                 const decoder = new TextDecoder();

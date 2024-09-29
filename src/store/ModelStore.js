@@ -26,13 +26,19 @@ export const useModelStore = defineStore('model_store', {
         async chatCompletions(model) {
             try {
                 // 发送请求
-                const response = await fetch(`${model.baseUrl.replace(/\/?$/, '/')}${'v1/chat/completions'}`, {
+                const url = model.baseUrl.endsWith('/') ? `${model.baseUrl}v1/chat/completions` : `${model.baseUrl}/v1/chat/completions`;
+
+                // 发送请求
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${model.apiKey}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(model)
+                    body: JSON.stringify({
+                        model: model.model,
+                        messages: model.messages,
+                    }),
                 });
 
                 // 解析响应
