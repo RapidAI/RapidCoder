@@ -96,4 +96,7 @@ export default {
   position: absolute;
   right: 10px;
 }
+.custom-content {
+  padding: 24px 10px;
+}
 </style>

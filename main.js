@@ -124,15 +124,15 @@ ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
 ipcMain.handle('get-one-file', (event, filePath) => {
     const stats = fs.statSync(filePath);
     const content = fs.readFileSync(filePath, 'utf-8').split('\n');
-
-    // 获取最大行号长度，用于对齐
-    const maxLineNumberLength = String(content.length).length;
-
-    // 将行号与内容合并，行号左侧对齐
-    const contentWithLineNumbers = content.map((line, index) => {
-        const lineNumber = (index + 1).toString().padStart(maxLineNumberLength, ' ');
-        return `${lineNumber} | ${line}`;  // 行号与内容通过 '|' 分隔
-    }).join('\n');  // 将行内容合并成单个字符串
+    //
+    // // 获取最大行号长度，用于对齐
+    // const maxLineNumberLength = String(content.length).length;
+    //
+    // // 将行号与内容合并，行号左侧对齐
+    // const contentWithLineNumbers = content.map((line, index) => {
+    //     const lineNumber = (index + 1).toString().padStart(maxLineNumberLength, ' ');
+    //     return `${lineNumber} | ${line}`;  // 行号与内容通过 '|' 分隔
+    // }).join('\n');  // 将行内容合并成单个字符串
 
     return {
         path: filePath,

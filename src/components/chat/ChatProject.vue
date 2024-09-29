@@ -197,4 +197,13 @@ ${content}
 :deep(.ant-tree-node-content-wrapper) {
   display: flex;
 }
+
+:deep(.ant-tree-directory) {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: #f5f5f5;
+}
+
+
 </style>
