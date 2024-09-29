@@ -3,6 +3,7 @@
     <a-directory-tree
         :treeData="treeData"
         :checkable="false"
+        :defaultExpandAll="true"
         :selectable="true"
         :multiple="true"
         :showLine="false"

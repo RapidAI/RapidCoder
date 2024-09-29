@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "cross-env NODE_ENV=development electron .",
+    "electron:dev": "vite dev & cross-env NODE_ENV=development electron .",
     "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
   },
   "dependencies": {
