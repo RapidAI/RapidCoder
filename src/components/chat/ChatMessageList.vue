@@ -182,7 +182,12 @@ export default {
 <style scoped>
 .custom-list {
   height: 100vh;
-  overflow: auto;
+  overflow-y: auto; /* 保持内容可以滚动 */
+  scrollbar-width: none; /* Firefox 隐藏滚动条 */
+}
+
+.custom-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, 和 Edge 隐藏滚动条 */
 }
 
 .message-item {
@@ -214,7 +219,7 @@ export default {
 
 .edit-container {
   background-color: #f5f5f5;
-  padding: 12px;
+  padding: 12px 0;
   border-radius: 8px;
 }
 
