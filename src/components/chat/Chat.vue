@@ -1,6 +1,6 @@
 <template>
   <a-layout class="custom-content">
-    <a-layout-sider class="chat-project" theme="light" width="400">
+    <a-layout-sider class="chat-project" theme="light" width="300">
       <chat-project v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-project>
     </a-layout-sider>
     <a-layout-content class="chat-container">
