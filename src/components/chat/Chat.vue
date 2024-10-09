@@ -64,39 +64,5 @@ export default {
 </script>
 
 <style scoped>
-.chat-container {
-  position: relative;
-  overflow: hidden;
-  background-color: white;
-}
-.chat-project {
-  position: relative;
-  background-color: white;
-  overflow: scroll;
-}
 
-.top-bar {
-  margin: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.message-list {
-  height: 90vh;
-  overflow: auto;
-}
-
-.message-input {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
-
-.debug-switch {
-  position: absolute;
-  right: 10px;
-}
-.custom-content {
-  padding:0;
-}
 </style>

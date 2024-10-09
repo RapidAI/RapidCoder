@@ -1,8 +1,7 @@
 <template>
   <a-layout class="full-height">
     <!-- 对话tab区域 -->
-    <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit"
-            class="scrollable-menu-container">
+    <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit">
       <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
                   :closable="true">
         <Chat :selectedSessionId="session.sessionId"/>

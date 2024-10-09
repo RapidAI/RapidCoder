@@ -163,7 +163,4 @@ export default {
   background-color: #f5f5f5;
   overflow: scroll;
 }
-
-
-
 </style>
