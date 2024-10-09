@@ -1,39 +1,13 @@
 <template>
   <a-layout class="full-height">
-    <!-- 侧边栏 -->
-    <a-layout-sider theme="light" width="200">
-      <!-- 新建对话 -->
-      <div class="fixed-button-container">
-        <a-button class="new_session_button" type="primary" :loading="loadingProjects"
-                  @click="isSessionCreationModalVisible = true">
-          <EditOutlined/>
-          新对话
-        </a-button>
-      </div>
-      <!-- 对话列表 -->
-      <div class="scrollable-menu-container">
-        <a-menu v-if="sessionStore.sessions.length" mode="inline" :inlineIndent="0"
-                :selectedKeys="[selectedSessionId]" class="custom-menu">
-          <a-menu-item v-for="session in [...sessionStore.sessions].reverse()" :key="session.sessionId">
-            <div class="menu-item-container" @click="selectSession(session)">
-              <a-dropdown :trigger="['contextmenu']">
-                <span><CustomLoading v-if="session.isStreaming"/>{{ sessionTitle(session) }}</span>
-                <template #overlay>
-                  <a-menu @click="({ key: menuKey }) => onContextMenuClick(session, menuKey)">
-                    <a-menu-item key="delete">删除</a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </div>
-    </a-layout-sider>
-
-    <!-- 对话内容区域 -->
-    <a-layout-content>
-      <Chat v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
-    </a-layout-content>
+    <!-- 对话tab区域 -->
+    <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit"
+            class="scrollable-menu-container">
+      <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
+                  :closable="true">
+        <Chat :selectedSessionId="session.sessionId"/>
+      </a-tab-pane>
+    </a-tabs>
 
     <!-- 新建对话选择模型和项目模态框 -->
     <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定"
@@ -69,16 +43,15 @@ import {useSessionStore} from '@/store/SessionStore.js';
 import {useProjectStore} from "@/store/ProjectStore";
 import {useModelStore} from "@/store/ModelStore";
 import {useRoute, useRouter} from 'vue-router';
-import {EditOutlined, DeleteOutlined} from '@ant-design/icons-vue';
+import {EditOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
 
 export default {
-  components: {Chat, EditOutlined, DeleteOutlined, CustomLoading}, // 注册CustomLoading组件
+  components: {Chat, EditOutlined, CustomLoading}, // 注册CustomLoading组件
   setup() {
     const sessionStore = useSessionStore();
     const projectStore = useProjectStore();
     const modelStore = useModelStore();
-    const loadingProjects = ref(false);
     const isSessionCreationModalVisible = ref(false);
     const selectedSessionId = ref(null);
     const selectedModelId = ref(null);
@@ -113,7 +86,6 @@ export default {
 
     const createSession = async () => {
       if (!selectedModelId.value) return message.error('请选择模型');
-      loadingProjects.value = true;
       try {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
         const newSession = sessionStore.createSession(model, selectedProjectId.value);
@@ -122,7 +94,6 @@ export default {
       } catch (e) {
         message.error('创建会话失败');
       } finally {
-        loadingProjects.value = false;
         resetModal();
       }
     };
@@ -138,25 +109,23 @@ export default {
       sessionStore.sessions = sessionStore.sessions.filter(s => s.sessionId !== session.sessionId);
     };
 
-    const onContextMenuClick = (session, menuKey) => {
-      if (menuKey === 'delete') {
+    const onEdit = (targetKey, action) => {
+      if (action === 'remove') {
+        const session = sessionStore.sessions.find(s => s.sessionId === targetKey);
         deleteSession(session);
+      }
+      if (action === 'add') {
+        isSessionCreationModalVisible.value = true
       }
     };
 
     onMounted(async () => {
-      loadingProjects.value = true;
-      try {
-        await locateSessionFromUrl();
-      } finally {
-        loadingProjects.value = false;
-      }
+      await locateSessionFromUrl();
     });
 
     return {
       sessionStore,
       isSessionCreationModalVisible,
-      loadingProjects,
       selectedModelId,
       selectedProjectId,
       selectedSessionId,
@@ -167,40 +136,8 @@ export default {
       resetModal,
       deleteSession,
       selectSession,
-      onContextMenuClick
+      onEdit
     };
   },
 };
 </script>
-
-<style scoped lang="scss">
-.fixed-button-container {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white;
-  padding: 10px 0;
-}
-
-.scrollable-menu-container {
-  max-height: calc(100vh - 60px);
-  overflow-y: auto;
-}
-
-.new_session_button {
-  width: 100%;
-}
-
-.menu-item-container {
-  display: flex;
-  align-items: center;
-  padding: 4px;
-}
-
-.menu-item-title {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>

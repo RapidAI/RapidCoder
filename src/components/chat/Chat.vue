@@ -82,7 +82,7 @@ export default {
 }
 
 .message-list {
-  height: 85vh;
+  height: 90vh;
   overflow: auto;
 }
 
@@ -97,6 +97,6 @@ export default {
   right: 10px;
 }
 .custom-content {
-  padding: 24px 10px;
+  padding:0;
 }
 </style>
