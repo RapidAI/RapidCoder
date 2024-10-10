@@ -181,7 +181,7 @@ export default {
 
 <style scoped>
 .custom-list {
-  height: 100vh;
+  height: 83vh;
   overflow-y: auto; /* 保持内容可以滚动 */
   scrollbar-width: none; /* Firefox 隐藏滚动条 */
 }
