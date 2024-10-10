@@ -1,37 +1,34 @@
 <template>
-  <a-layout class="full-height">
-    <!-- 对话tab区域 -->
-    <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit">
-      <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
-                  :closable="true">
-        <Chat :selectedSessionId="session.sessionId"/>
-      </a-tab-pane>
-    </a-tabs>
+  <!-- 对话tab区域 -->
+  <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit">
+    <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
+                :closable="true">
+      <Chat :selectedSessionId="session.sessionId"/>
+    </a-tab-pane>
+  </a-tabs>
+  <!-- 新建对话选择模型和项目模态框 -->
+  <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定"
+           cancelText="取消"
+           @ok="createSession" @cancel="resetModal">
+    <div>
+      <p><strong>请选择一个模型：</strong><span style="color: red;">*</span></p>
+      <a-radio-group v-model:value="selectedModelId" style="width: 100%">
+        <a-radio v-for="model in modelOptions" :key="model.value" :value="model.value">
+          {{ model.label }}
+        </a-radio>
+      </a-radio-group>
+      <p v-if="!selectedModelId" style="color: #f5222d; margin-top: 5px;">请选择一个模型以继续。</p>
+    </div>
 
-    <!-- 新建对话选择模型和项目模态框 -->
-    <a-modal :mask="false" v-model:open="isSessionCreationModalVisible" title="选择模型和项目" okText="确定"
-             cancelText="取消"
-             @ok="createSession" @cancel="resetModal">
-      <div>
-        <p><strong>请选择一个模型：</strong><span style="color: red;">*</span></p>
-        <a-radio-group v-model:value="selectedModelId" style="width: 100%">
-          <a-radio v-for="model in modelOptions" :key="model.value" :value="model.value">
-            {{ model.label }}
-          </a-radio>
-        </a-radio-group>
-        <p v-if="!selectedModelId" style="color: #f5222d; margin-top: 5px;">请选择一个模型以继续。</p>
-      </div>
-
-      <div style="margin-top: 20px;">
-        <p><strong>请选择项目：</strong></p>
-        <a-checkbox-group v-model:value="selectedProjectId" style="width: 100%">
-          <a-checkbox v-for="project in projectOptions" :key="project.value" :value="project.value">
-            {{ project.label }}
-          </a-checkbox>
-        </a-checkbox-group>
-      </div>
-    </a-modal>
-  </a-layout>
+    <div style="margin-top: 20px;">
+      <p><strong>请选择项目：</strong></p>
+      <a-checkbox-group v-model:value="selectedProjectId" style="width: 100%">
+        <a-checkbox v-for="project in projectOptions" :key="project.value" :value="project.value">
+          {{ project.label }}
+        </a-checkbox>
+      </a-checkbox-group>
+    </div>
+  </a-modal>
 </template>
 
 <script>
@@ -140,3 +137,8 @@ export default {
   },
 };
 </script>
+<style scoped>
+:deep(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+</style>
