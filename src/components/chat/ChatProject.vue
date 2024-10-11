@@ -13,7 +13,7 @@
     >
       <template #title="{ data }">
         <a-dropdown :trigger="['contextmenu']">
-          <span>{{ data.title }}</span>
+          <span>{{ data.name }}</span>
           <template #overlay>
             <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
               <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
@@ -142,11 +142,13 @@ export default {
       }
     };
 
-    const onSelect = (checkedKeysValue, {selectedNodes}) => {
+
+    const onSelect = (checkedKeysValue, { selectedNodes }) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      const selectedFiles = fileNodes.map(node => node.key);
-      console.log('Selected Files:', selectedFiles);
+      currentSession.value.currentSelectNode = fileNodes.map(node => node.name);
+      const fileNodeDetails = fileNodes.map(({title, key, type, children, ...rest}) => rest);
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodeDetails, null, 2)}\n\`\`\``;
     };
 
     return {
