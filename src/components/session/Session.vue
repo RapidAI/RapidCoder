@@ -1,6 +1,6 @@
 <template>
   <!-- 对话tab区域 -->
-  <a-tabs v-model:activeKey="selectedSessionId" size="small" type="editable-card" @edit="onEdit">
+  <a-tabs v-model:activeKey="sessionStore.selectedSessionId" size="small" type="editable-card" @edit="onEdit">
     <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
                 :closable="true">
       <Chat :selectedSessionId="session.sessionId"/>
@@ -45,7 +45,6 @@ export default {
     const sessionStore = useSessionStore();
     const modelStore = useModelStore();
     const isSessionCreationModalVisible = ref(false);
-    const selectedSessionId = ref(null);
     const selectedModelId = ref(null);
     const projectPath = ref(null);
 
@@ -64,8 +63,7 @@ export default {
       try {
         const model = modelStore.models.find(m => m.modelId === selectedModelId.value);
         const newSession = sessionStore.createSession(model, projectPath.value); // 传递路径而不是项目ID
-        selectedSessionId.value = newSession.sessionId;
-        router.push({query: {sessionId: selectedSessionId.value}});
+        sessionStore.selectedSessionId = newSession.sessionId;
       } catch (e) {
         message.error('创建会话失败');
       } finally {
@@ -86,8 +84,7 @@ export default {
     const sessionTitle = (session) => session.messages[1]?.content || '新对话';
 
     const selectSession = (session) => {
-      selectedSessionId.value = session.sessionId;
-      router.push({query: {sessionId: session.sessionId}});
+      sessionStore.selectedSessionId = session.sessionId;
     };
 
     const deleteSession = (session) => {
@@ -109,8 +106,7 @@ export default {
       sessionStore,
       isSessionCreationModalVisible,
       selectedModelId,
-      projectPath,  // 仅存储路径
-      selectedSessionId,
+      projectPath,
       modelOptions,
       sessionTitle,
       createSession,

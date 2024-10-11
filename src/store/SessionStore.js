@@ -8,6 +8,7 @@ const {ipcRenderer} = require('electron');
 export const useSessionStore = defineStore('session_store', {
     state: () => ({
         sessions: [],
+        selectedSessionId: '',
     }),
     persist: {
         enabled: true,
