@@ -2,6 +2,7 @@
   <div>
     <a-directory-tree
         :treeData="treeData"
+        :fieldNames="{children:'children', title:'name', key:'name' }"
         :checkable="false"
         :defaultExpandAll="true"
         :selectable="true"
@@ -27,15 +28,16 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
-import { message } from 'ant-design-vue';
+import {ref, onMounted, computed} from 'vue';
+import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
-const { ipcRenderer } = require('electron');
+
+const {ipcRenderer} = require('electron');
 
 export default {
-  props: { selectedSessionId: { required: true } },
-  components: { CustomLoading },
+  props: {selectedSessionId: {required: true}},
+  components: {CustomLoading},
   setup(props) {
 
     const sessionStore = useSessionStore();
@@ -48,14 +50,17 @@ export default {
     const analyzingStates = ref(new Map());
 
     // 当组件挂载时启动文件夹监听
-    onMounted(() => {
+    onMounted(async () => {
       const directoryPath = currentSession.value.currentPath
 
+      // 获取目录结构
+      const structure = await ipcRenderer.invoke('get-directory-structure', directoryPath);
+      treeData.value = [structure];
       // 启动监听文件目录
       ipcRenderer.invoke('start-watching', directoryPath);
 
       // 监听文件变化事件
-      ipcRenderer.on('file-changed', (event, { action, fileInfo }) => {
+      ipcRenderer.on('file-changed', (event, {action, fileInfo}) => {
         if (action === 'add') {
           addNodeToTree(treeData.value, fileInfo);
         } else if (action === 'change') {
@@ -137,7 +142,7 @@ export default {
       }
     };
 
-    const onSelect = (checkedKeysValue, { selectedNodes }) => {
+    const onSelect = (checkedKeysValue, {selectedNodes}) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
       const selectedFiles = fileNodes.map(node => node.key);

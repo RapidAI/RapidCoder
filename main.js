@@ -97,6 +97,40 @@ ipcMain.handle('start-watching', (event, dirPath) => {
     }
 });
 
+
+// 使用 ipcMain 来处理前端的请求
+ipcMain.handle('get-directory-structure', (event, dirPath) => {
+
+    // 递归读取目录结构并生成树状结构
+    const getDirectoryStructure = (directoryPath) => {
+        const stats = fs.statSync(directoryPath);
+        const item = {
+            name: path.basename(directoryPath),
+            type: stats.isDirectory() ? 'folder' : 'file',
+            created: stats.birthtime,
+            modified: stats.mtime,
+            children: []
+        };
+
+        if (stats.isDirectory()) {
+            const children = fs.readdirSync(directoryPath).map(child => {
+                return getDirectoryStructure(path.join(directoryPath, child));
+            });
+            item.children = children;
+        }
+
+        return item;
+    }
+
+    try {
+        const structure = getDirectoryStructure(dirPath);
+        return structure; // 返回嵌套的目录结构
+    } catch (error) {
+        console.error("Error reading directory:", error);
+        return {error: "Failed to read directory"};
+    }
+});
+
 ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
     // 确保dirPath是字符串
     console.log(dirPath)
