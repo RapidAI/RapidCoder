@@ -1,7 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import NotFound from '../components/common/NotFound.vue';
 import Session from '../components/session/SessionProject.vue';
-import ProjectTable from '../components/project/ProjectTable.vue';
 import ModelTable from '../components/model/ModelTable.vue';
 
 const routes = [
@@ -18,11 +17,6 @@ const routes = [
         path: '/ModelTable',
         name: 'ModelTable',
         component: ModelTable
-    },
-    {
-        path: '/ProjectTable',
-        name: 'ProjectTable',
-        component: ProjectTable
     },
     {
         path: '/:pathMatch(.*)*',
