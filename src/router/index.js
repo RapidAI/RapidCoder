@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import NotFound from '../components/common/NotFound.vue';
-import Session from '../components/session/SessionProject.vue';
+import Session from '../components/session/Session.vue';
 import ModelTable from '../components/model/ModelTable.vue';
 
 const routes = [
