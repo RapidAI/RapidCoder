@@ -2,7 +2,7 @@
   <div>
     <a-directory-tree
         :treeData="treeData"
-        :fieldNames="{children:'children', title:'name', key:'name' }"
+        :fieldNames="{children:'children', title:'name', key:'path' }"
         :checkable="false"
         :defaultExpandAll="true"
         :selectable="true"
@@ -146,9 +146,8 @@ export default {
     const onSelect = (checkedKeysValue, { selectedNodes }) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      currentSession.value.currentSelectNode = fileNodes.map(node => node.name);
-      const fileNodeDetails = fileNodes.map(({title, key, type, children, ...rest}) => rest);
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodeDetails, null, 2)}\n\`\`\``;
+      currentSession.value.currentSelectNode = fileNodes.map(node => node.path);
+      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 
     return {

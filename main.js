@@ -104,6 +104,7 @@ ipcMain.handle('get-directory-structure', (event, dirPath) => {
         const item = {
             name: path.basename(directoryPath),
             type: stats.isDirectory() ? 'folder' : 'file',
+            path: directoryPath,
             created: stats.birthtime,
             modified: stats.mtime,
             children: []
