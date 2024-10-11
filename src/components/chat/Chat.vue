@@ -69,4 +69,8 @@ export default {
     justify-content: space-between;
     align-items: center;
 }
+.chat-project{
+  overflow: auto;
+  height: 90vh;
+}
 </style>
