@@ -54,18 +54,18 @@ export default {
       const directoryPath = currentSession.value.currentPath
 
       // 获取目录结构
-      const structure = await ipcRenderer.invoke('get-directory-structure', directoryPath);
+      const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
       treeData.value = [structure];
       // 启动监听文件目录
-      ipcRenderer.invoke('start-watching', directoryPath);
+      ipcRenderer.invoke('initDirectoryWatch', directoryPath);
 
       // 监听文件变化事件
-      ipcRenderer.on('file-changed', (event, {action, fileInfo}) => {
-        if (action === 'add') {
+      ipcRenderer.on('fileEvent', (event, {action, fileInfo}) => {
+        if (action === 'added') {
           addNodeToTree(treeData.value, fileInfo);
-        } else if (action === 'change') {
+        } else if (action === 'modified') {
           updateNodeInTree(treeData.value, fileInfo);
-        } else if (action === 'unlink') {
+        } else if (action === 'deleted') {
           removeNodeFromTree(treeData.value, fileInfo);
         }
       });

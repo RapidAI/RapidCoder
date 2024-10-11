@@ -80,7 +80,7 @@ export default {
     );
 
     const selectDirectory = () => {
-      ipcRenderer.invoke('select-directory').then((result) => {
+      ipcRenderer.invoke('getDirectoryDialog').then((result) => {
         if (result && !result.canceled && result.filePaths.length > 0) {
           formState.projectPath = result.filePaths[0];
           // 自动将目录名称设置为项目名称

@@ -32,7 +32,6 @@
 <script>
 import {ref, onMounted} from 'vue';
 const { ipcRenderer } = window.require('electron'); // 使用 Electron 的 ipcRenderer
-const path = window.require('path'); // 引入 Node.js 的 path 模块
 import Chat from '../chat/Chat.vue';
 import CustomLoading from '../common/CustomLoading.vue'; // 引入CustomLoading组件
 import {useSessionStore} from '@/store/SessionStore.js';
@@ -90,7 +89,7 @@ export default {
     };
 
     const selectDirectory = () => {
-      ipcRenderer.invoke('select-directory').then((result) => {
+      ipcRenderer.invoke('getDirectoryDialog').then((result) => {
         if (result && !result.canceled && result.filePaths.length > 0) {
           projectPath.value = result.filePaths[0];  // 将路径直接赋值给变量
         }

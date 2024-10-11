@@ -135,7 +135,7 @@ ${combinedContent}
                 const contents = await Promise.all(
                     files.map(async (file) => {
                         try {
-                            const info = await ipcRenderer.invoke('get-one-file', file);
+                            const info = await ipcRenderer.invoke('getFileContent', file);
                             const fileType = file.split('.').pop();
                             return `${file}:\n\`\`\`${fileType} \n${info.content}\n\`\`\` \n`;
                         } catch (error) {
@@ -259,7 +259,7 @@ ${combinedContent}
                     continue;
                 }
 
-                const result = await ipcRenderer.invoke(totleContent ? 'replace-file-content' : 'replace-file-content-diff', filePath, code);
+                const result = await ipcRenderer.invoke(totleContent ? 'replaceFileContentt' : 'applyPatchToFile', filePath, code);
 
                 if (result.success) {
                     message.success(`文件 ${filePath} 已成功更新`);

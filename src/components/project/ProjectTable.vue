@@ -131,7 +131,7 @@ export default {
       if (!selectedModelId.value) return message.error('请选择一个模型');
       isAnalyzing.value = true;
       // 获取所有文件
-      const projectFiles = await ipcRenderer.invoke('get-all-files', selectedProject.value.projectPath, ignoredPatterns.value);
+      const projectFiles = await ipcRenderer.invoke('getAllTextFiles', selectedProject.value.projectPath, ignoredPatterns.value);
       // 将文件按照目录进行分组
       const filesByDirectory = projectFiles.reduce((acc, file) => {
         const dir = file.path.substring(0, file.path.lastIndexOf('/')); // 获取文件目录
