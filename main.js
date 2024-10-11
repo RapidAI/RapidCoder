@@ -67,9 +67,9 @@ ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
         }
     };
 
-    watcher.on('add', filePath => sendFileDetails(filePath, '添加'));
-    watcher.on('change', filePath => sendFileDetails(filePath, '修改'));
-    watcher.on('unlink', filePath => sendFileDetails(filePath, '删除'));
+    watcher.on('add', filePath => sendFileDetails(filePath, 'add'));
+    watcher.on('change', filePath => sendFileDetails(filePath, 'change'));
+    watcher.on('unlink', filePath => sendFileDetails(filePath, 'unlink'));
 
     watcher.on('error', (error) => {
         console.error(`监控目录时发生错误: ${error}`);

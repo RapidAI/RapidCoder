@@ -59,11 +59,11 @@ export default {
 
       // 监听文件变化事件
       ipcRenderer.on('fileEvent', (event, {action, fileInfo}) => {
-        if (action === 'added') {
+        if (action === 'add') {
           addNodeToTree(treeData.value, fileInfo);
-        } else if (action === 'modified') {
+        } else if (action === 'change') {
           updateNodeInTree(treeData.value, fileInfo);
-        } else if (action === 'deleted') {
+        } else if (action === 'unlink') {
           removeNodeFromTree(treeData.value, fileInfo);
         }
       });
