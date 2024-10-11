@@ -19,11 +19,11 @@ export const useSessionStore = defineStore('session_store', {
         ],
     },
     actions: {
-        createSession(model, projectsid) {
+        createSession(model, path) {
             const newSession = {
                 sessionId: Date.now(),
                 currentModel: model,
-                currentProjectsId: projectsid,
+                currentPath: path,
                 currentSelectNode: [],
                 messages: [
                     {

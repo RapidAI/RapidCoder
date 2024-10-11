@@ -1,18 +1,18 @@
 import {createRouter, createWebHistory} from 'vue-router';
 import NotFound from '../components/common/NotFound.vue';
-import SessionWithBigData from '../components/session/Session.vue';
+import Session from '../components/session/SessionProject.vue';
 import ProjectTable from '../components/project/ProjectTable.vue';
 import ModelTable from '../components/model/ModelTable.vue';
 
 const routes = [
     {
         path: '/',
-        redirect: '/SessionWithBigData'
+        redirect: '/Session'
     },
     {
-        path: '/SessionWithBigData',
-        name: 'SessionWithBigData',
-        component: SessionWithBigData
+        path: '/Session',
+        name: 'Session',
+        component: Session
     },
     {
         path: '/ModelTable',
