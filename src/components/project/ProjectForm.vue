@@ -32,8 +32,8 @@
 <script>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useProjectStore } from '@/store/ProjectStore'; // 引入 ProjectStore
-const { ipcRenderer } = window.require('electron'); // 使用 Electron 的 ipcRenderer
-const path = window.require('path'); // 引入 Node.js 的 path 模块
+const { ipcRenderer } = window.require('electron');
+const path = window.require('path');
 
 export default {
   props: {

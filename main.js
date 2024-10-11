@@ -2,6 +2,7 @@ const {app, BrowserWindow, Tray, ipcMain, dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const {applyPatch} = require('diff');
+const chokidar = require('chokidar');
 
 function createWindow() {
     const tray = new Tray(path.join(__dirname, 'public/logo.png'))
@@ -45,6 +46,55 @@ ipcMain.handle('select-directory', async () => {
         properties: ['openDirectory'],
     });
     return result;
+});
+
+// 监听文件夹变化
+ipcMain.handle('start-watching', (event, dirPath) => {
+    const watcher = chokidar.watch(dirPath, {
+        persistent: true,
+        ignoreInitial: true
+    });
+
+    // 当文件或文件夹被添加时
+    watcher.on('add', filePath => {
+        sendFileDetails(filePath, 'add');
+    });
+
+    // 当文件或文件夹被修改时
+    watcher.on('change', filePath => {
+        sendFileDetails(filePath, 'change');
+    });
+
+    // 当文件或文件夹被删除时
+    watcher.on('unlink', filePath => {
+        win.webContents.send('file-changed', {
+            action: 'unlink',
+            filePath
+        });
+    });
+
+    function sendFileDetails(filePath, action) {
+        fs.stat(filePath, (err, stats) => {
+            if (err) {
+                console.error("Error fetching file stats:", err);
+                return;
+            }
+
+            const fileInfo = {
+                name: path.basename(filePath),
+                path: filePath,
+                type: stats.isDirectory() ? 'folder' : 'file',
+                size: stats.size,
+                created: stats.birthtime,
+                modified: stats.mtime
+            };
+
+            win.webContents.send('file-changed', {
+                action,
+                fileInfo
+            });
+        });
+    }
 });
 
 ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
