@@ -42,10 +42,9 @@ app.on('window-all-closed', () => {
 
 // 添加目录选择的事件处理
 ipcMain.handle('select-directory', async () => {
-    const result = await dialog.showOpenDialog({
+    return await dialog.showOpenDialog({
         properties: ['openDirectory'],
     });
-    return result;
 });
 
 // 监听文件夹变化
@@ -100,8 +99,6 @@ ipcMain.handle('start-watching', (event, dirPath) => {
 
 // 使用 ipcMain 来处理前端的请求
 ipcMain.handle('get-directory-structure', (event, dirPath) => {
-
-    // 递归读取目录结构并生成树状结构
     const getDirectoryStructure = (directoryPath) => {
         const stats = fs.statSync(directoryPath);
         const item = {
@@ -113,18 +110,14 @@ ipcMain.handle('get-directory-structure', (event, dirPath) => {
         };
 
         if (stats.isDirectory()) {
-            const children = fs.readdirSync(directoryPath).map(child => {
+            item.children = fs.readdirSync(directoryPath).map(child => {
                 return getDirectoryStructure(path.join(directoryPath, child));
             });
-            item.children = children;
         }
-
         return item;
     }
-
     try {
-        const structure = getDirectoryStructure(dirPath);
-        return structure; // 返回嵌套的目录结构
+        return getDirectoryStructure(dirPath);
     } catch (error) {
         console.error("Error reading directory:", error);
         return {error: "Failed to read directory"};
@@ -132,15 +125,9 @@ ipcMain.handle('get-directory-structure', (event, dirPath) => {
 });
 
 ipcMain.handle('get-all-files', (event, dirPath, ignoredPatterns = '') => {
-    // 确保dirPath是字符串
-    console.log(dirPath)
-    // 将ignoredPatterns字符串分割为数组
     const ignoredPatternsArray = ignoredPatterns.split(',').map(pattern => pattern.trim());
 
     const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const fs = require('fs');
-        const path = require('path');
-
         // 定义需要过滤掉的已知二进制文件扩展名
         const binaryFileExtensions = [
             '.png', '.jpg', '.jpeg', '.gif', '.bmp',
