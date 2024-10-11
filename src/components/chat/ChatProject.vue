@@ -1,30 +1,28 @@
 <template>
-  <div>
-    <a-directory-tree
-        :treeData="treeData"
-        :fieldNames="{children:'children', title:'name', key:'path' }"
-        :checkable="false"
-        :defaultExpandAll="true"
-        :selectable="true"
-        :multiple="true"
-        :showLine="false"
-        :selectedKeys="currentSession.currentSelectNode"
-        @select="onSelect"
-    >
-      <template #title="{ data }">
-        <a-dropdown :trigger="['contextmenu']">
-          <span>{{ data.name }}</span>
-          <template #overlay>
-            <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
-              <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
-              <a-menu-item key="delete">删除</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-        <custom-loading v-if="isAnalyzing(data.key)"/>
-      </template>
-    </a-directory-tree>
-  </div>
+  <a-directory-tree
+      :treeData="treeData"
+      :fieldNames="{children:'children', title:'name', key:'path' }"
+      :checkable="false"
+      :defaultExpandAll="true"
+      :selectable="true"
+      :multiple="true"
+      :showLine="false"
+      :selectedKeys="currentSession.currentSelectNode"
+      @select="onSelect"
+  >
+    <template #title="{ data }">
+      <a-dropdown :trigger="['contextmenu']">
+        <span>{{ data.name }}</span>
+        <template #overlay>
+          <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
+            <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
+            <a-menu-item key="delete">删除</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+      <custom-loading v-if="isAnalyzing(data.key)"/>
+    </template>
+  </a-directory-tree>
 </template>
 
 <script>
@@ -51,7 +49,7 @@ export default {
 
     // 当组件挂载时启动文件夹监听
     onMounted(async () => {
-      const directoryPath = currentSession.value.currentPath
+      const directoryPath = currentSession.value.currentPath;
 
       // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
@@ -135,15 +133,15 @@ export default {
     // 处理右键菜单点击事件
     const onContextMenuClick = (nodeData, menuKey) => {
       if (menuKey === 'update') {
-        message.success(`更新 ${nodeData.title}`);
+        message.success(`更新 ${nodeData.name} 成功`);
       } else if (menuKey === 'delete') {
         removeNodeFromTree(treeData.value, nodeData);
-        message.success(`${nodeData.title} 已删除`);
+        message.success(`${nodeData.name} 已删除`);
       }
     };
 
-
-    const onSelect = (checkedKeysValue, { selectedNodes }) => {
+    // 处理文件选中
+    const onSelect = (checkedKeysValue, {selectedNodes}) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
       currentSession.value.currentSelectNode = fileNodes.map(node => node.path);
@@ -160,17 +158,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-:deep(.ant-tree-node-content-wrapper) {
-  display: flex;
-}
-
-:deep(.ant-tree-directory) {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  background-color: #f5f5f5;
-  overflow: scroll;
-}
-</style>
