@@ -37,7 +37,6 @@ app.on('window-all-closed', () => {
         app.quit();
     }
 });
-
 // 通用函数：获取文件信息
 const getFileStats = async (filePath) => {
     try {
@@ -51,21 +50,10 @@ const getFileStats = async (filePath) => {
             modified: stats.mtime
         };
     } catch (err) {
-        console.error(`Error fetching file stats for ${filePath}:`, err);
-        throw new Error(`Error fetching file stats: ${err.message}`);
+        console.error(`获取 ${filePath} 的文件信息时出错:`, err);
+        throw new Error(`获取文件信息时出错: ${err.message}`);
     }
 };
-
-// 选择目录处理
-ipcMain.handle('getDirectoryDialog', async () => {
-    try {
-        return await dialog.showOpenDialog({ properties: ['openDirectory'] });
-    } catch (err) {
-        console.error('Error opening directory dialog:', err);
-        throw new Error('Failed to open directory dialog.');
-    }
-});
-
 // 监听文件夹变化
 ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
     const watcher = chokidar.watch(dirPath, { persistent: true, ignoreInitial: true });
@@ -75,16 +63,31 @@ ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
             const fileInfo = await getFileStats(filePath);
             event.sender.send('fileEvent', { action, fileInfo });
         } catch (err) {
-            console.error('Error processing file change event:', err);
+            console.error(`处理文件变更事件时出错: ${filePath}`, err);
         }
     };
 
-    watcher.on('add', filePath => sendFileDetails(filePath, 'added'));
-    watcher.on('change', filePath => sendFileDetails(filePath, 'modified'));
-    watcher.on('unlink', filePath => sendFileDetails(filePath, 'deleted'));
+    watcher.on('add', filePath => sendFileDetails(filePath, '添加'));
+    watcher.on('change', filePath => sendFileDetails(filePath, '修改'));
+    watcher.on('unlink', filePath => sendFileDetails(filePath, '删除'));
+
+    watcher.on('error', (error) => {
+        console.error(`监控目录时发生错误: ${error}`);
+        event.sender.send('watchError', { message: `监控目录时发生错误: ${error.message}` });
+    });
 
     // 确保应用关闭时清理监视器
     app.on('before-quit', () => watcher.close());
+});
+
+// 选择目录处理
+ipcMain.handle('getDirectoryDialog', async () => {
+    try {
+        return await dialog.showOpenDialog({ properties: ['openDirectory'] });
+    } catch (err) {
+        console.error('打开目录选择对话框时出错:', err);
+        throw new Error('打开目录选择对话框失败。');
+    }
 });
 
 // 获取目录结构
@@ -111,8 +114,8 @@ ipcMain.handle('getDirectoryStructure', async (event, dirPath) => {
     try {
         return await buildDirectoryStructure(dirPath);
     } catch (err) {
-        console.error("Error reading directory:", err);
-        return { error: "Failed to read directory" };
+        console.error("读取目录时出错:", err);
+        return { error: "读取目录失败" };
     }
 });
 
@@ -156,26 +159,18 @@ ipcMain.handle('getAllTextFiles', async (event, dirPath, ignoredPatterns = '') =
             content: await fs.readFile(file.path, 'utf-8')
         })));
     } catch (err) {
-        console.error("Error fetching files:", err);
-        return { error: "Failed to fetch files" };
+        console.error("获取文件时出错:", err);
+        return { error: "获取文件失败" };
     }
 });
 
 // 获取单个文件的内容
 ipcMain.handle('getFileContent', async (event, filePath) => {
     try {
-        const stats = await fs.stat(filePath);
-        const content = await fs.readFile(filePath, 'utf-8');
-        return {
-            path: filePath,
-            size: stats.size,
-            createdAt: stats.birthtime,
-            modifiedAt: stats.mtime,
-            content
-        };
+        return await fs.readFile(filePath, 'utf-8');
     } catch (err) {
-        console.error(`Error reading file ${filePath}:`, err);
-        return { error: `Failed to read file: ${err.message}` };
+        console.error(`读取文件 ${filePath} 时出错:`, err);
+        return { error: `读取文件失败: ${err.message}` };
     }
 });
 
@@ -184,10 +179,10 @@ ipcMain.handle('replaceFileContent', async (event, filePath, newContent) => {
     try {
         await fs.mkdir(path.dirname(filePath), { recursive: true });
         await fs.writeFile(filePath, newContent, 'utf-8');
-        return { success: true, message: 'File successfully replaced' };
+        return { success: true, message: '文件替换成功' };
     } catch (err) {
-        console.error(`Error replacing file ${filePath}:`, err);
-        return { success: false, message: `Failed to replace file: ${err.message}` };
+        console.error(`替换文件 ${filePath} 时出错:`, err);
+        return { success: false, message: `文件替换失败: ${err.message}` };
     }
 });
 
@@ -197,9 +192,9 @@ ipcMain.handle('applyPatchToFile', async (event, filePath, diffContent) => {
         const originalContent = await fs.readFile(filePath, 'utf-8');
         const patchedContent = applyPatch(originalContent, diffContent);
         await fs.writeFile(filePath, patchedContent, 'utf-8');
-        return { success: true, message: 'File successfully updated with patch' };
+        return { success: true, message: '文件补丁应用成功' };
     } catch (err) {
-        console.error(`Error applying patch to file ${filePath}:`, err);
-        return { success: false, message: `Failed to apply patch: ${err.message}` };
+        console.error(`应用补丁到文件 ${filePath} 时出错:`, err);
+        return { success: false, message: `应用补丁失败: ${err.message}` };
     }
 });
