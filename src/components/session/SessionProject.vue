@@ -36,7 +36,6 @@ import Chat from '../chat/Chat.vue';
 import CustomLoading from '../common/CustomLoading.vue'; // 引入CustomLoading组件
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from "@/store/ModelStore";
-import {useRoute, useRouter} from 'vue-router';
 import {EditOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
 
@@ -48,24 +47,10 @@ export default {
     const isSessionCreationModalVisible = ref(false);
     const selectedSessionId = ref(null);
     const selectedModelId = ref(null);
-    const projectPath = ref(null);  // 独立存储项目路径
+    const projectPath = ref(null);
 
-    const router = useRouter();
-    const route = useRoute();
 
     const modelOptions = modelStore.models.map(({modelName, modelId}) => ({label: modelName, value: modelId}));
-
-    const locateSessionFromUrl = async () => {
-      const sessionId = route.query.sessionId;
-      if (sessionId) {
-        const session = sessionStore.sessions.find(s => String(s.sessionId) === sessionId);
-        if (session) {
-          selectSession(session);
-        }
-      } else if (sessionStore.sessions.length) {
-        selectSession(sessionStore.sessions[sessionStore.sessions.length - 1]);
-      }
-    };
 
     const resetModal = () => {
       isSessionCreationModalVisible.value = false;
@@ -119,9 +104,6 @@ export default {
       }
     };
 
-    onMounted(async () => {
-      await locateSessionFromUrl();
-    });
 
     return {
       sessionStore,
