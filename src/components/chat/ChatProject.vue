@@ -1,7 +1,6 @@
 <template>
   <a-directory-tree
       :treeData="treeData"
-      :fieldNames="{children:'children', title:'name', key:'path' }"
       :checkable="false"
       :defaultExpandAll="true"
       :selectable="true"
@@ -12,7 +11,7 @@
   >
     <template #title="{ data }">
       <a-dropdown :trigger="['contextmenu']">
-        <span>{{ data.name }}</span>
+        <span>{{ data.title }}</span>
         <template #overlay>
           <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
             <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
@@ -26,7 +25,7 @@
 </template>
 
 <script>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted, onBeforeUnmount, computed} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -58,15 +57,21 @@ export default {
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
 
       // 监听文件变化事件
-      ipcRenderer.on('fileEvent', (event, {action, fileInfo}) => {
+      ipcRenderer.on(directoryPath, (event, {action, fileInfo}) => {
         if (action === 'add') {
+          console.log(fileInfo)
           addNodeToTree(treeData.value, fileInfo);
         } else if (action === 'change') {
+          console.log(fileInfo)
           updateNodeInTree(treeData.value, fileInfo);
         } else if (action === 'unlink') {
+          console.log(fileInfo)
           removeNodeFromTree(treeData.value, fileInfo);
         }
       });
+    });
+    // 组件销毁时清理监听器
+    onBeforeUnmount(() => {
     });
 
     // 根据 key 查找节点
@@ -83,22 +88,16 @@ export default {
 
     // 添加节点
     const addNodeToTree = (nodes, fileInfo) => {
-      const parentPath = fileInfo.path.split('/').slice(0, -1).join('/');
+      const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
       const parentNode = findNodeByKey(nodes, parentPath);
       if (parentNode && parentNode.children) {
         parentNode.children.push({
-          title: fileInfo.name,
-          key: fileInfo.path,
-          type: fileInfo.type,
-          isLeaf: fileInfo.type === 'file',
+          ...fileInfo,
           children: []
         });
       } else if (!parentNode) {
         nodes.push({
-          title: fileInfo.name,
-          key: fileInfo.path,
-          type: fileInfo.type,
-          isLeaf: fileInfo.type === 'file',
+          ...fileInfo,
           children: []
         });
       }
@@ -106,21 +105,21 @@ export default {
 
     // 更新节点
     const updateNodeInTree = (nodes, fileInfo) => {
-      const node = findNodeByKey(nodes, fileInfo.path);
+      const node = findNodeByKey(nodes, fileInfo.key);
       if (node) {
-        node.title = fileInfo.name;
+        node.title = fileInfo.title;
         node.modified = fileInfo.modified;
       }
     };
 
     // 删除节点
     const removeNodeFromTree = (nodes, fileInfo) => {
-      const parentPath = fileInfo.path.split('/').slice(0, -1).join('/');
+      const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
       const parentNode = findNodeByKey(nodes, parentPath);
       if (parentNode && parentNode.children) {
-        parentNode.children = parentNode.children.filter(child => child.key !== fileInfo.path);
+        parentNode.children = parentNode.children.filter(child => child.key !== fileInfo.key);
       } else {
-        const nodeIndex = nodes.findIndex(node => node.key === fileInfo.path);
+        const nodeIndex = nodes.findIndex(node => node.key === fileInfo.key);
         if (nodeIndex !== -1) {
           nodes.splice(nodeIndex, 1);
         }
@@ -133,10 +132,10 @@ export default {
     // 处理右键菜单点击事件
     const onContextMenuClick = (nodeData, menuKey) => {
       if (menuKey === 'update') {
-        message.success(`更新 ${nodeData.name} 成功`);
+        message.success(`更新 ${nodeData.title} 成功`);
       } else if (menuKey === 'delete') {
         removeNodeFromTree(treeData.value, nodeData);
-        message.success(`${nodeData.name} 已删除`);
+        message.success(`${nodeData.title} 已删除`);
       }
     };
 
@@ -144,7 +143,7 @@ export default {
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      currentSession.value.currentSelectNode = fileNodes.map(node => node.path);
+      currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 

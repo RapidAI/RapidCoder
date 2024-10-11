@@ -42,8 +42,8 @@ const getFileStats = async (filePath) => {
     try {
         const stats = await fs.stat(filePath);
         return {
-            name: path.basename(filePath),
-            path: filePath,
+            title: path.basename(filePath),
+            key: filePath,
             type: stats.isDirectory() ? 'folder' : 'file',
             size: stats.size,
             created: stats.birthtime,
@@ -55,13 +55,24 @@ const getFileStats = async (filePath) => {
     }
 };
 // 监听文件夹变化
+const activeWatchers = {};  // 用来存储已经监听的目录
 ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
+    if (activeWatchers[dirPath]) {
+        console.log(`目录 ${dirPath} 已经在监听中。`);
+        return;
+    }
+
     const watcher = chokidar.watch(dirPath, { persistent: true, ignoreInitial: true });
+    activeWatchers[dirPath] = watcher;  // 记录当前监听的目录
 
     const sendFileDetails = async (filePath, action) => {
         try {
-            const fileInfo = await getFileStats(filePath);
-            event.sender.send('fileEvent', { action, fileInfo });
+            if (action !== 'unlink') {
+                const fileInfo = await getFileStats(filePath);
+                event.sender.send(dirPath, { action, fileInfo });
+            } else {
+                event.sender.send(dirPath, { action, fileInfo: { key: filePath } });
+            }
         } catch (err) {
             console.error(`处理文件变更事件时出错: ${filePath}`, err);
         }
@@ -77,7 +88,10 @@ ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
     });
 
     // 确保应用关闭时清理监视器
-    app.on('before-quit', () => watcher.close());
+    app.on('before-quit', () => {
+        watcher.close();
+        delete activeWatchers[dirPath];  // 移除已经关闭的监听器
+    });
 });
 
 // 选择目录处理
@@ -95,9 +109,9 @@ ipcMain.handle('getDirectoryStructure', async (event, dirPath) => {
     const buildDirectoryStructure = async (directoryPath) => {
         const stats = await fs.stat(directoryPath);
         const item = {
-            name: path.basename(directoryPath),
+            title: path.basename(directoryPath),
             type: stats.isDirectory() ? 'folder' : 'file',
-            path: directoryPath,
+            key: directoryPath,
             created: stats.birthtime,
             modified: stats.mtime,
             children: []
