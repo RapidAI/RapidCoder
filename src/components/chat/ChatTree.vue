@@ -1,6 +1,5 @@
 <template>
   <a-layout-sider class="chat-project" theme="light" width="300">
-
     <a-directory-tree
         :treeData="treeData"
         :checkable="false"
@@ -55,7 +54,7 @@ export default {
 
     // 当组件挂载时启动文件夹监听
     onMounted(async () => {
-      const directoryPath = currentSession.value.currentPath;
+      const directoryPath = currentSession.value.currentProjectPath;
 
       // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);

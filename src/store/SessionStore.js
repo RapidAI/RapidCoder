@@ -24,7 +24,7 @@ export const useSessionStore = defineStore('session_store', {
             const newSession = {
                 sessionId: Date.now(),
                 currentModel: model,
-                currentPath: path,
+                currentProjectPath: path,
                 currentSelectNode: [],
                 messages: [
                     {
