@@ -1,8 +1,8 @@
 <template>
   <a-layout class="custom-content">
-    <a-layout-sider class="chat-project" theme="light" width="300">
-      <chat-project v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-project>
-    </a-layout-sider>
+
+    <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-tree>
+
     <a-layout-content class="chat-container">
       <div class="top-bar">
         {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
@@ -33,13 +33,13 @@ import {ref, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import ChatMessageList from './ChatMessageList.vue';
 import ChatMessageInput from './ChatMessageInput.vue';
-import ChatProject from './ChatProject.vue';
+import ChatTree from './ChatTree.vue';
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons-vue";
 
 export default {
   components: {
     DeleteOutlined, EditOutlined,
-    ChatMessageList, ChatProject,
+    ChatMessageList, ChatTree,
     ChatMessageInput,
   },
   props: {
@@ -64,12 +64,13 @@ export default {
 </script>
 
 <style scoped>
-.top-bar{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.chat-project{
+
+.chat-project {
   overflow: auto;
   height: 90vh;
 }
