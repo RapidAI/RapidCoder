@@ -5,11 +5,6 @@
     </a-layout-sider>
     <a-layout-content class="chat-container">
       <!-- 嵌入的 iframe -->
-      <iframe
-          src="https://chatgpt.com/"
-          style="width: 100%; height: 100vh; border: none;"
-          allow="fullscreen"
-      ></iframe>
     </a-layout-content>
   </a-layout>
 </template>
