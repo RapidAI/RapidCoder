@@ -56,15 +56,15 @@ export default {
       // 启动监听文件目录
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
 
-      // 监听文件变化事件
+      // 监听文件和目录变化事件
       ipcRenderer.on(directoryPath, (event, {action, fileInfo}) => {
-        if (action === 'add') {
+        if (action === 'add' || action === 'addDir') {
           console.log(fileInfo)
           addNodeToTree(treeData.value, fileInfo);
         } else if (action === 'change') {
           console.log(fileInfo)
           updateNodeInTree(treeData.value, fileInfo);
-        } else if (action === 'unlink') {
+        } else if (action === 'unlink' || action === 'unlinkDir') {
           console.log(fileInfo)
           removeNodeFromTree(treeData.value, fileInfo);
         }
@@ -93,12 +93,14 @@ export default {
       if (parentNode && parentNode.children) {
         parentNode.children.push({
           ...fileInfo,
-          children: []
+          children: [],
+          type: fileInfo.type
         });
       } else if (!parentNode) {
         nodes.push({
           ...fileInfo,
-          children: []
+          children: [],
+          type: fileInfo.type
         });
       }
     };
@@ -157,5 +159,3 @@ export default {
   }
 };
 </script>
-<style scoped>
-</style>
