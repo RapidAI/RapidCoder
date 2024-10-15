@@ -5,10 +5,7 @@
         <a-menu-item key="ModelTable" @click="navigateTo('/ModelTable')">
           <RobotOutlined/>
         </a-menu-item>
-        <a-menu-item key="ProjectTable" @click="navigateTo('/ProjectTable')">
-          <ProjectOutlined/>
-        </a-menu-item>
-        <a-menu-item key="SessionWithBigData" @click="navigateTo('/SessionWithBigData')">
+        <a-menu-item key="SessionWithBigData" @click="navigateTo('/Session')">
           <CodeOutlined/>
         </a-menu-item>
       </a-menu>
