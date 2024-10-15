@@ -216,7 +216,7 @@ export default {
 }
 
 .edit-container {
-  background-color: #f5f5f5;
+  background-color: white;
   padding: 12px 0;
   border-radius: 8px;
 }
