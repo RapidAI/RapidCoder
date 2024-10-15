@@ -55,6 +55,12 @@ export default {
           role: 'system',
           content: fileContent.value.join('\n')
         };
+      }else{
+        // 空
+        currentSession.value.messages[0] = {
+          role: 'system',
+          content: ""
+        };
       }
     }, {immediate: true});
 
@@ -63,11 +69,15 @@ export default {
       if (action === 'remove') {
         const index = currentSession.value.currentSelectFile.indexOf(targetKey);
         if (index !== -1) {
-          currentSession.value.currentSelectFile.splice(index, 1);
-          activeFile.value = currentSession.value.currentSelectFile[0] || null;
+          // 使用新的数组引用
+          currentSession.value.currentSelectFile = [
+            ...currentSession.value.currentSelectFile.slice(0, index),
+            ...currentSession.value.currentSelectFile.slice(index + 1)
+          ];
         }
       }
     };
+
 
     return {
       currentSession,
