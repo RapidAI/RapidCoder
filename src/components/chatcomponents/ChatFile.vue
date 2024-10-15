@@ -12,7 +12,6 @@ import {useSessionStore} from "@/store/SessionStore";
 import {ref, computed, watch} from "vue";
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-
 const {ipcRenderer} = require('electron');
 
 // 初始化MarkdownIt
@@ -88,9 +87,10 @@ export default {
 };
 </script>
 <style>
-@import "highlight.js/styles/atom-one-light.css";
+@import "highlight.js/styles/intellij-light.css";
 .chat-file {
   height: 89vh;
   overflow: auto;
+  background-color: white;
 }
 </style>

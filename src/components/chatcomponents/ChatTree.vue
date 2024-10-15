@@ -1,5 +1,6 @@
 <template>
   <a-directory-tree
+      class="chat-tree"
       :treeData="treeData"
       :checkable="false"
       v-model:expandedKeys="currentSession.expandedKeys"
@@ -154,3 +155,8 @@ export default {
   }
 };
 </script>
+<style>
+.chat-tree {
+  background-color: #F7F8FAFF;
+}
+</style>
