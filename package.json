@@ -27,15 +27,15 @@
     "pinia-plugin-persist": "^1.0.0",
     "sass": "^1.75.0",
     "shiki": "^1.17.5",
+    "splitpanes": "^3.1.5",
     "vue": "^3.4.21",
-    "vue-draggable-resizable": "^3.0.0",
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
     "cross-env": "^7.0.3",
-    "electron": "^32.0.1",
-    "electron-builder": "^24.13.3",
+    "electron": "latest",
+    "electron-builder": "latest",
     "fast-glob": "^3.3.2",
     "terser": "^5.31.3",
     "vite": "^5.2.0",

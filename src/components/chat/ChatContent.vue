@@ -1,5 +1,5 @@
 <template>
-  <a-layout-content class="chat-container">
+  <a-layout-content class="full-height">
     <div class="top-bar">
       {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
       <a-switch
