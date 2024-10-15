@@ -1,7 +1,7 @@
 <template>
   <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit">
     <a-tab-pane v-for="(file, index) in currentSession.currentSelectFile" :key="file" :tab="getTitle(file)" :closable="true">
-      <div v-html="fileContent[index]"></div>
+      <div class="chat-file" v-html="fileContent[index]"></div>
     </a-tab-pane>
   </a-tabs>
 </template>
@@ -72,3 +72,9 @@ export default {
   },
 };
 </script>
+<style>
+.chat-file {
+  height: 89vh;
+  overflow: auto;
+}
+</style>
