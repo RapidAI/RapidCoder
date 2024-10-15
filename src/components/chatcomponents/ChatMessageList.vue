@@ -1,7 +1,7 @@
 <template>
   <div ref="messageList" class="custom-list">
     <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
-      <div class="message-content">
+      <div class="message-content" v-if="item.role !== 'system'">
         <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'edit-container':''">
           <!--内容-->
           <template v-if="debugMode">
@@ -17,9 +17,6 @@
           </div>
           <!--功能-->
           <div class="message-actions">
-            <template v-if="item.role === 'system'">
-              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
-            </template>
             <template v-if="item.role === 'user'">
               <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
               <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
