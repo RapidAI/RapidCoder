@@ -1,5 +1,5 @@
 <template>
-  <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit">
+  <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit" hideAdd>
     <a-tab-pane v-for="(file, index) in currentSession.currentSelectFile" :key="file" :tab="getTitle(file)" :closable="true">
       <div class="chat-file" v-html="fileContent[index]"></div>
     </a-tab-pane>

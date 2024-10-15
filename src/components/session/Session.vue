@@ -1,10 +1,13 @@
 <template>
   <!-- 对话tab区域 -->
-  <a-tabs v-model:activeKey="sessionStore.selectedSessionId" size="small" type="editable-card" @edit="onEdit">
+  <a-tabs v-model:activeKey="sessionStore.selectedSessionId" size="small" type="editable-card" @edit="onEdit" hideAdd>
     <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :tab="sessionTitle(session)"
                 :closable="true">
       <Chat :selectedSessionId="session.sessionId"/>
     </a-tab-pane>
+    <template #leftExtra>
+      <a-button type="primary" @click="newsession">新对话</a-button>
+    </template>
   </a-tabs>
 
   <!-- 新建对话选择模型和项目模态框 -->
@@ -31,7 +34,8 @@
 
 <script>
 import {ref, onMounted} from 'vue';
-const { ipcRenderer } = window.require('electron'); // 使用 Electron 的 ipcRenderer
+
+const {ipcRenderer} = window.require('electron'); // 使用 Electron 的 ipcRenderer
 import Chat from '../chat/Chat.vue';
 import CustomLoading from '../common/CustomLoading.vue'; // 引入CustomLoading组件
 import {useSessionStore} from '@/store/SessionStore.js';
@@ -96,9 +100,10 @@ export default {
         const session = sessionStore.sessions.find(s => s.sessionId === targetKey);
         deleteSession(session);
       }
-      if (action === 'add') {
-        isSessionCreationModalVisible.value = true;
-      }
+    };
+
+    const newsession = () => {
+      isSessionCreationModalVisible.value = true;
     };
 
 
@@ -114,6 +119,7 @@ export default {
       deleteSession,
       selectSession,
       onEdit,
+      newsession,
       selectDirectory
     };
   },
