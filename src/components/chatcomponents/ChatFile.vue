@@ -36,12 +36,12 @@ export default {
     const currentSession = computed(() => sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || {});
 
     const getTitle = filePath => filePath.split('/').pop();
-    const getLanguageFromPath = filePath => filePath.split('.').pop();
 
     const wrapFileContent = (content, filePath) => {
-      const language = getLanguageFromPath(filePath);
-      return `\`\`\`${language}:${filePath}\n${content}\n\`\`\``;
+      const language = filePath.split('.').pop();
+      return `${filePath}\n\`\`\`${language}\n${content}\n\`\`\``;
     };
+
 
     watch(() => currentSession.value?.currentSelectFile, async (newFiles) => {
       if (newFiles?.length) {
@@ -53,7 +53,7 @@ export default {
         // 跟message的system互动
         currentSession.value.messages[0] = {
           role: 'system',
-          content: JSON.stringify(fileContent.value)
+          content: fileContent.value.join('\n')
         };
       }
     }, {immediate: true});
