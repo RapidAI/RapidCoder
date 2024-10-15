@@ -1,5 +1,5 @@
 <template>
-  <a-layout-sider class="chat-project" theme="light" width="300">
+  <a-layout-sider theme="light" width="300">
     <a-directory-tree
         :treeData="treeData"
         :checkable="false"
@@ -24,7 +24,7 @@
       </template>
     </a-directory-tree>
   </a-layout-sider>
-  <a-layout-sider class="chat-project" theme="light" width="300">
+  <a-layout-sider theme="light" width="300">
     <chat-file v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-file>
   </a-layout-sider>
 </template>

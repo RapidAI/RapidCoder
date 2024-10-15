@@ -1,8 +1,6 @@
 <template>
   <a-layout class="custom-content">
-
     <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-tree>
-
     <a-layout-content class="chat-container">
       <div class="top-bar">
         {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
