@@ -52,31 +52,24 @@ export default {
     const parseDataBlocks = () => {
       const tempBlocks = [];
       const tokens = md.parse(props.markdown, {});
-      let index = 0;
 
-      while (index < tokens.length) {
-        const token = tokens[index];
-        if (token.type === 'fence') {
-          const language = token.info.trim() || 'plaintext';
+      for (let index = 0; index < tokens.length; ) {
+        if (tokens[index].type === 'fence') {
+          const token = tokens[index++];
           tempBlocks.push({
             isCode: true,
-            language,
+            language: token.info.trim() || 'plaintext',
             code: token.content,
             content: md.renderer.render([token], md.options),
           });
-          index++;
         } else {
-          const nonCodeTokens = [];
-          while (index < tokens.length && tokens[index].type !== 'fence') {
-            nonCodeTokens.push(tokens[index]);
-            index++;
-          }
-          if (nonCodeTokens.length > 0) {
-            tempBlocks.push({
-              isCode: false,
-              content: md.renderer.render(nonCodeTokens, md.options),
-            });
-          }
+          const start = index;
+          const nextFenceIndex = tokens.slice(index).findIndex(token => token.type === 'fence');
+          index = nextFenceIndex === -1 ? tokens.length : index + nextFenceIndex;
+          tempBlocks.push({
+            isCode: false,
+            content: md.renderer.render(tokens.slice(start, index), md.options),
+          });
         }
       }
 
