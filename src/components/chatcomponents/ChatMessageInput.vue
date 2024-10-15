@@ -1,12 +1,12 @@
 <template>
   <div class="input-container">
     <a-textarea
-        v-model:value="inputMessage"
+        v-model:value="inputvalue"
         placeholder="输入消息..."
         @keydown="handleKeyDown"
         @compositionstart="handleCompositionStart"
         @compositionend="handleCompositionEnd"
-        class="message-input"
+        class="input-value"
         :auto-size="{ minRows: 1, maxRows: 3 }"
     />
     <a-button type="primary" @click="handleSendOrStop" :disabled="isSending">
@@ -18,6 +18,7 @@
 <script>
 import {ref, computed} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
+import {message} from "ant-design-vue";
 
 export default {
   props: {
@@ -27,7 +28,7 @@ export default {
   },
   setup(props) {
     const sessionStore = useSessionStore();
-    const inputMessage = ref('');
+    const inputvalue = ref('');
     const isComposition = ref(false);
     const isSending = ref(false);
 
@@ -40,21 +41,21 @@ export default {
         await sessionStore.stopChat(currentSession.value);
       } else {
         if (isSending.value) return; // 防止重复发送
-        handleSend(inputMessage.value);
+        handleSend();
       }
     };
 
-    const handleSend = async (message) => {
-      if (message.trim() && currentSession.value) {
+    const handleSend = async () => {
+      if (inputvalue.value.trim() && currentSession.value) {
         try {
           isSending.value = true;
-          currentSession.value.messages.push({role: 'user', content: message});
-          inputMessage.value = ''; // 清空输入框
+          currentSession.value.messages.push({role: 'user', content: inputvalue.value});
+          inputvalue.value = ''; // 清空输入框
           isSending.value = false;
           await sessionStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length - 1, false, false);
         } catch (error) {
           console.error('消息发送失败:', error);
-          alert('发送消息时出现问题，请稍后再试。');
+          message.error('消息发送失败');
         } finally {
           isSending.value = false;
         }
@@ -77,7 +78,7 @@ export default {
     };
 
     return {
-      inputMessage,
+      inputvalue,
       handleSendOrStop,
       currentSession,
       handleKeyDown,
@@ -98,7 +99,7 @@ export default {
   border-radius: 5px;
 }
 
-.message-input {
+.input-value {
   flex: 1;
   margin-right: 10px;
   border-radius: 5px;
@@ -107,12 +108,12 @@ export default {
   transition: all 0.3s ease;
 }
 
-.message-input:focus {
+.input-value:focus {
   border-color: black;
   box-shadow: 0 0 10px rgba(2, 2, 2, 0.8);
 }
 
-.message-input:hover {
+.input-value:hover {
   border-color: black;
 }
 </style>
