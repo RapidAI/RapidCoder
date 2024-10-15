@@ -1,33 +1,31 @@
 <template>
-  <a-layout-sider theme="light" width="300">
-    <a-directory-tree
-        :treeData="treeData"
-        :checkable="false"
-        :defaultExpandAll="true"
-        :selectable="true"
-        :multiple="true"
-        :showLine="false"
-        :selectedKeys="currentSession.currentSelectFile"
-        @select="onSelect"
-    >
-      <template #title="{ data }">
-        <a-dropdown :trigger="['contextmenu']">
-          <span>{{ data.title }}</span>
-          <template #overlay>
-            <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
-              <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
-              <a-menu-item key="delete">删除</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-        <custom-loading v-if="isAnalyzing(data.key)"/>
-      </template>
-    </a-directory-tree>
-  </a-layout-sider>
+  <a-directory-tree
+      :treeData="treeData"
+      :checkable="false"
+      :defaultExpandAll="true"
+      :selectable="true"
+      :multiple="true"
+      :showLine="false"
+      :selectedKeys="currentSession.currentSelectFile"
+      @select="onSelect"
+  >
+    <template #title="{ data }">
+      <a-dropdown :trigger="['contextmenu']">
+        <span>{{ data.title }}</span>
+        <template #overlay>
+          <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
+            <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
+            <a-menu-item key="delete">删除</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+      <custom-loading v-if="isAnalyzing(data.key)"/>
+    </template>
+  </a-directory-tree>
 </template>
 
 <script>
-import {ref, onMounted,  computed} from 'vue';
+import {ref, onMounted, computed} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -36,7 +34,7 @@ const {ipcRenderer} = require('electron');
 
 export default {
   props: {selectedSessionId: {required: true}},
-  components: { CustomLoading},
+  components: {CustomLoading},
   setup(props) {
 
     const sessionStore = useSessionStore();

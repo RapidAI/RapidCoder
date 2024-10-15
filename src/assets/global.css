@@ -81,7 +81,7 @@ html:hover::-webkit-scrollbar {
 }
 
 .custom-content {
-    padding: 2vh;
+    padding: 1vh;
     background: #ffffff; /* 设置内容背景色为白色 */
     height: 96vh; /* 设置内容区域高度为100% */
     overflow: scroll; /* 允许内容区域滚动 */
