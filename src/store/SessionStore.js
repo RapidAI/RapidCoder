@@ -42,22 +42,31 @@ export const useSessionStore = defineStore('session_store', {
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
             const prompt = `
-返回的 JSON 数据结构为：
-{
-    "thinking": "...",
-    "reflection": "...",
-    "rethinking": "...",
-    "finalResult": {
-        "filePath": ["文件路径...", "..."]
-    }
-}
+请基于以上内容回答用户的问题: ${userQuestion}
+返回的数据格式为：
 
-JSON结构说明:
-你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-thinking：按步骤思考并分析问题，提出相关的解决方案。
-reflection：反思上面的思考推理过程，检查是否有错误或改进空间。
-rethinking：根据你的反思做出必要的调整，提出更完善的解决方案。
-finalResult：提供最终的简洁答案
+### 1. 思考:
+按步骤思考并分析问题，提出相关的解决方案。
+### 2. 反思:
+反思上面思考推理过程，检查是否有错误或改进空间。
+### 3. 再思考:
+根据你的反思做出必要的调整，提出更完善的解决方案。
+
+如果用户的问题需要返回代码:
+### 4. 文件路径:
+path/to/file
+### 5. 代码:
+在编写新的代码块时，请在初始反引号后指定语言ID，例如：
+python
+{{ code }}
+
+如果用户的问题需要更详细的相关文件代码,我可以给你提供,但是你必须先给我需要的文件路径:
+### 4. 文件路径:
+path/to/file,path/to/file
+
+如果用户的问题不需要返回代码:
+### 4. 结果:
+提供最终的结果
 
 用户的问题：${userQuestion} ,与哪些文件相关?
 `;
