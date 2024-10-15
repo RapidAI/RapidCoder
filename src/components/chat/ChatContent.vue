@@ -53,6 +53,9 @@ export default {
 }
 </script>
 <style scoped>
+.full-height{
+  background-color: white;
+}
 .top-bar {
   display: flex;
   justify-content: space-between;
