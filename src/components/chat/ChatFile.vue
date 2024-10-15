@@ -1,14 +1,13 @@
 <template>
   <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit">
-    <a-tab-pane v-for="(session, index) in currentSession.currentSelectFile" :key="session" :tab="sessionTitle(session)"
-                :closable="true">
-      {{ fileContent[index] }}
+    <a-tab-pane v-for="(file, index) in currentSession.currentSelectFile" :key="file" :tab="sessionTitle(file)" :closable="true">
+      {{ file }}1
     </a-tab-pane>
   </a-tabs>
+  {{activeFile}}
 </template>
 
 <script>
-import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
 import {ref, computed, watch} from "vue";
 
@@ -16,7 +15,6 @@ const {ipcRenderer} = require('electron');
 
 export default {
   props: {selectedSessionId: {required: true}},
-  components: {CustomLoading},
   setup(props) {
     const fileContent = ref([]); // 用于存储每个文件的内容
     const activeFile = ref(null); // 当前激活的文件
@@ -33,6 +31,7 @@ export default {
         async (newSelectFiles) => {
           if (newSelectFiles?.length) {
             fileContent.value = await Promise.all(newSelectFiles.map(file => ipcRenderer.invoke('getFileContent', file)));
+            console.log(fileContent.value)
             activeFile.value = activeFile.value || newSelectFiles[0]; // 保持第一个文件为默认激活
           }
         },
