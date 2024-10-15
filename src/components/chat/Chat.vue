@@ -1,13 +1,13 @@
 <template>
   <a-layout class="custom-content">
     <splitpanes class="default-theme">
-      <pane >
+      <pane size="25">
         <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
-      <pane>
+      <pane size="50">
         <chat-file v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
-      <pane>
+      <pane size="25">
         <chat-content v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
     </splitpanes>
