@@ -82,38 +82,20 @@ finalResult：提供最终的简洁答案
             const newPrompt = `
 请基于以上内容回答用户的问题: ${userQuestion}
 返回的数据格式为：
-(thinking)"..."(/thinking)
-(reflection)"..."(/reflection)
-(rethinking)"..."(/rethinking)
-(finalResult)
-(filePath)"..."(/filePath)
-(code)
-\`\`\`
-...
-\`\`\`
-(/code)
-(/finalResult)
-(finalResult)
-(filePath)"..."(/filePath)
-(code)
-\`\`\`
-...
-\`\`\`
-(/code)
-(/finalResult)
-
-数据格式说明:
-你是一个使用链式思维（Chain of Thought，CoT）方法并结合反思来回答问题的 AI 助手。
-(thinking)"..."(/thinking)：按步骤思考并分析问题，提出相关的解决方案。
-(reflection)"..."(/reflection)：反思上面的思考推理过程，检查是否有错误或改进空间。
-(rethinking)"..."(/rethinking)：根据你的反思做出必要的调整，提出更完善的解决方案。
-(finalResult)(/finalResult)：提供最终的简洁答案,如果是多个文件的代码就返回多个
-(code)(/code)：代码内容,markdown格式
-(filePath)(/filePath)：代码对应的文件路径
+### 1. 思考:
+按步骤思考并分析问题，提出相关的解决方案。
+### 2. 反思:
+反思上面思考推理过程，检查是否有错误或改进空间。
+### 3. 再思考:
+根据你的反思做出必要的调整，提出更完善的解决方案。
+### 4. 文件路径:
+跟下面代码对应的文件路径
+### 5. 代码:
+提供代码内容,markdown格式
 `;
-            messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-            await this.processChat(currentSession, currentSession.messages, index + 2, overwrite);
-            this.messageExecuteCode(currentSession.sessionId, index + 3)
+            messagelist.splice(index + 1, 0, {role: 'user', content: newPrompt});
+            await this.processChat(currentSession, currentSession.messages, index + 1, overwrite);
+            this.messageExecuteCode(currentSession.sessionId, index + 2)
         },
         async agent1(currentSession, index, overwrite) {
             // 未选,先选中文件
