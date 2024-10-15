@@ -6,7 +6,7 @@
         <div class="code-actions">
           <custom-loading v-if="block.isLoading"/>
           <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
-          <a-button type="primary" size="small" @click="executeCode()">再次运行</a-button>
+          <a-button type="primary" size="small" @click="executeCode(block)">再次运行</a-button>
         </div>
       </div>
       <div v-html="block.content"></div>
@@ -57,7 +57,7 @@ export default {
       while (index < tokens.length) {
         const token = tokens[index];
         if (token.type === 'fence') {
-          const language = token.info.trim().toUpperCase() || 'PLAINTEXT';
+          const language = token.info.trim() || 'plaintext';
           tempBlocks.push({
             isCode: true,
             language,
@@ -93,7 +93,8 @@ export default {
     };
 
 
-    const executeCode = () => {
+    const executeCode = (block) => {
+      console.log(block)
       sessionStore.messageExecuteCode(props.selectedSessionId, props.messageindex);
     };
 
