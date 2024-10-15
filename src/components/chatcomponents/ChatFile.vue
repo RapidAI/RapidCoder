@@ -1,7 +1,8 @@
 <template>
   <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit" hideAdd>
-    <a-tab-pane v-for="(file, index) in currentSession.currentSelectFile" :key="file" :tab="getTitle(file)" :closable="true">
-      <div class="chat-file" v-html="fileContent[index]"></div>
+    <a-tab-pane v-for="(file, index) in currentSession.currentSelectFile" :key="file" :tab="getTitle(file)"
+                :closable="true">
+      <div class="chat-file" v-html="fileContentMarkdown[index]"></div>
     </a-tab-pane>
   </a-tabs>
 </template>
@@ -26,12 +27,13 @@ const md = new MarkdownIt({
 
 export default {
   props: {selectedSessionId: {required: true}},
-  setup({selectedSessionId}) {
+  setup(props) {
+    const fileContentMarkdown = ref([]);
     const fileContent = ref([]);
     const activeFile = ref(null);
     const sessionStore = useSessionStore();
 
-    const currentSession = computed(() => sessionStore.sessions.find(s => s.sessionId === selectedSessionId) || {});
+    const currentSession = computed(() => sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || {});
 
     const getTitle = filePath => filePath.split('/').pop();
     const getLanguageFromPath = filePath => filePath.split('.').pop();
@@ -43,20 +45,25 @@ export default {
 
     watch(() => currentSession.value?.currentSelectFile, async (newFiles) => {
       if (newFiles?.length) {
-        fileContent.value = await Promise.all(newFiles.map(async (file) => {
-          const content = await ipcRenderer.invoke('getFileContent', file);
-          return md.render(wrapFileContent(content, file));
-        }));
-        activeFile.value = newFiles[0];
+        fileContent.value = await Promise.all(newFiles.map(file => ipcRenderer.invoke('getFileContent', file).then(content => wrapFileContent(content, file))));
+        fileContentMarkdown.value = fileContent.value.map(content => md.render(content));
+        if (!newFiles.includes(activeFile.value)) {
+          activeFile.value = newFiles[0];
+        }
+        // 跟message的system互动
+        currentSession.value.messages[0] = {
+          role: 'system',
+          content: JSON.stringify(fileContent.value)
+        };
       }
     }, {immediate: true});
+
 
     const onEdit = (targetKey, action) => {
       if (action === 'remove') {
         const index = currentSession.value.currentSelectFile.indexOf(targetKey);
         if (index !== -1) {
           currentSession.value.currentSelectFile.splice(index, 1);
-          fileContent.value.splice(index, 1);
           activeFile.value = currentSession.value.currentSelectFile[0] || null;
         }
       }
@@ -64,7 +71,7 @@ export default {
 
     return {
       currentSession,
-      fileContent,
+      fileContentMarkdown,
       getTitle,
       onEdit,
       activeFile,

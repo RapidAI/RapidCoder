@@ -7,8 +7,8 @@ const chokidar = require('chokidar');
 // 创建窗口
 const initMainWindow = () => {
     const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1600,
+        height: 1200,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
