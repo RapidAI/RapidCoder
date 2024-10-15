@@ -24,23 +24,19 @@
       </template>
     </a-directory-tree>
   </a-layout-sider>
-  <a-layout-sider theme="light" width="300">
-    <chat-file v-if="selectedSessionId" :selectedSessionId="selectedSessionId"></chat-file>
-  </a-layout-sider>
 </template>
 
 <script>
-import {ref, onMounted, onBeforeUnmount, computed} from 'vue';
+import {ref, onMounted,  computed} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
-import ChatFile from "./ChatFile.vue";
 
 const {ipcRenderer} = require('electron');
 
 export default {
   props: {selectedSessionId: {required: true}},
-  components: {ChatFile, CustomLoading},
+  components: { CustomLoading},
   setup(props) {
 
     const sessionStore = useSessionStore();
@@ -76,10 +72,6 @@ export default {
         }
       });
     });
-    // 组件销毁时清理监听器
-    onBeforeUnmount(() => {
-    });
-
     // 根据 key 查找节点
     const findNodeByKey = (nodes, key) => {
       for (const node of nodes) {
