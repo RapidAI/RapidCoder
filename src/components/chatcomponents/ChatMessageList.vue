@@ -92,7 +92,7 @@ export default {
       if (role === 'user' && editedMessageContent.value.trim()) {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index + 1);
-        sessionStore.selectFileAndChat(currentSession.value, index, false, false);
+        sessionStore.agent1(currentSession.value, index, false);
         resetEdit();
       }
       if (role === 'assistant' && editedMessageContent.value.trim()) {

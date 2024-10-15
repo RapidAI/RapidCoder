@@ -52,7 +52,7 @@ export default {
           currentSession.value.messages.push({role: 'user', content: inputvalue.value});
           inputvalue.value = ''; // 清空输入框
           isSending.value = false;
-          await sessionStore.selectFileAndChat(currentSession.value, currentSession.value.messages.length - 1, false, false);
+          await sessionStore.agent1(currentSession.value, currentSession.value.messages.length - 1, false);
         } catch (error) {
           console.error('消息发送失败:', error);
           message.error('消息发送失败');

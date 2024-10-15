@@ -36,21 +36,11 @@ export const useSessionStore = defineStore('session_store', {
             this.sessions.push(newSession);
             return newSession
         },
-        async selectFileAndChat(currentSession, index, overwrite, semanticSearch = false) {
-            // fixme 区分用户意图
-            if (index > 2) {
-                await this.processChat(currentSession, currentSession.messages, index, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId, index + 1)
-                return
-            }
+        // 用于选择文件
+        async agent2(currentSession, index, overwrite) {
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
-            let combinedContent = ""
-            if (currentSession.currentSelectFile.length < 5) {
-                combinedContent = await this.getCombinedFileContent(currentSession.currentSelectFile);
-                index = index - 1
-            } else {
-                const prompt = `
+            const prompt = `
 返回的 JSON 数据结构为：
 {
     "thinking": "...",
@@ -70,32 +60,26 @@ finalResult：提供最终的简洁答案
 
 用户的问题：${userQuestion} ,与哪些文件相关?
 `;
-                const clonedMessages = JSON.parse(JSON.stringify(messagelist));
-                clonedMessages[index].content = prompt;
-                await this.processChat(currentSession, clonedMessages, index, overwrite, semanticSearch);
+            const clonedMessages = JSON.parse(JSON.stringify(messagelist));
+            clonedMessages[index].content = prompt;
+            await this.processChat(currentSession, clonedMessages, index, overwrite);
 
 
-                const assistantMessage = currentSession.messages[index + 1]?.content || '';
-                const finalResult = await this.parseJsonMessage(assistantMessage);
-                if (!finalResult) {
-                    return;
-                }
-
-                const files = finalResult.filePath || [];
-                if (!files.length) return;
-
-                combinedContent = await this.getCombinedFileContent(files);
-            }
-
-            if (!combinedContent) {
-                await this.processChat(currentSession, currentSession.messages, index + 1, overwrite, semanticSearch);
-                this.messageExecuteCode(currentSession.sessionId, index + 2);
+            const assistantMessage = currentSession.messages[index + 1]?.content || '';
+            const finalResult = await this.parseJsonMessage(assistantMessage);
+            if (!finalResult) {
                 return;
             }
 
+            const files = finalResult.filePath || [];
+            if (!files.length) return;
+            currentSession.currentSelectFile = files
+        },
+        // 用于包裹用户问题
+        async agent3(currentSession, index, overwrite) {
+            const messagelist = currentSession.messages
+            const userQuestion = messagelist[index].content;
             const newPrompt = `
-${combinedContent}
-
 请基于以上内容回答用户的问题: ${userQuestion}
 返回的数据格式为：
 (thinking)"..."(/thinking)
@@ -128,35 +112,22 @@ ${combinedContent}
 (filePath)(/filePath)：代码对应的文件路径
 `;
             messagelist.splice(index + 2, 0, {role: 'user', content: newPrompt});
-            await this.processChat(currentSession, currentSession.messages, index + 2, overwrite, semanticSearch);
+            await this.processChat(currentSession, currentSession.messages, index + 2, overwrite);
             this.messageExecuteCode(currentSession.sessionId, index + 3)
         },
-        async getCombinedFileContent(files) {
-            try {
-                const contents = await Promise.all(
-                    files.map(async (file) => {
-                        try {
-                            const info = await ipcRenderer.invoke('getFileContent', file);
-                            const fileType = file.split('.').pop();
-                            return `${file}:\n\`\`\`${fileType} \n${info.content}\n\`\`\` \n`;
-                        } catch (error) {
-                            const fileType = file.split('.').pop();
-                            return `${file}:\n\`\`\`${fileType} \n文件不存在\n\`\`\` \n`;
-                        }
-                    })
-                );
-                return contents.join('');
-            } catch (error) {
-                console.error('获取文件内容失败:', error);
-                return '';
+        async agent1(currentSession, index, overwrite) {
+            // 未选,先选中文件
+            if (currentSession.currentSelectFile.length === 0) {
+                await this.agent2(currentSession, index, overwrite)
+            }
+            // 已选中文件
+            if (currentSession.currentSelectFile.length > 0) {
+                await this.agent3(currentSession, index, overwrite)
             }
         },
-        async processChat(currentSession, messagelist, index, overwrite, semanticSearch = false) {
+        async processChat(currentSession, messagelist, index, overwrite) {
             currentSession.isStreaming = true;
             try {
-                if (semanticSearch) {
-                    //  todo 检索
-                }
                 const {currentModel} = currentSession;
                 const {baseUrl = '', apiKey, model} = currentModel;
 
