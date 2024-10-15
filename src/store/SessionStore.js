@@ -26,6 +26,7 @@ export const useSessionStore = defineStore('session_store', {
                 currentModel: model,
                 currentProjectPath: path,
                 currentSelectFile: [],
+                expandedKeys: [],
                 messages: [
                     {
                         role: 'system',

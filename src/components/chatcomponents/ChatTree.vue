@@ -2,7 +2,7 @@
   <a-directory-tree
       :treeData="treeData"
       :checkable="false"
-      :defaultExpandAll="true"
+      v-model:expandedKeys="currentSession.expandedKeys"
       :selectable="true"
       :multiple="true"
       :showLine="false"
