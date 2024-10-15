@@ -5,8 +5,8 @@
         <div class="code-header">
           <span>{{ block.language }}</span>
           <div class="code-actions">
-            <a-button size="small" @click="copyCode(block.code)">复制代码</a-button>
-            <a-button size="small" @click="executeCode">再次运行</a-button>
+            <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
+            <a-button type="primary" size="small" @click="executeCode">再次运行</a-button>
           </div>
         </div>
       </div>
@@ -16,11 +16,11 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
-import { useSessionStore } from '@/store/SessionStore.js';
+import {ref, watch} from 'vue';
+import {useSessionStore} from '@/store/SessionStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import { message } from 'ant-design-vue';
+import {message} from 'ant-design-vue';
 
 export default {
   props: {
@@ -34,7 +34,7 @@ export default {
     const md = new MarkdownIt({
       highlight: (str, lang) => {
         if (lang && hljs.getLanguage(lang)) {
-          return hljs.highlight(str, { language: lang }).value;
+          return hljs.highlight(str, {language: lang}).value;
         }
         return hljs.highlightAuto(str).value;
       },
@@ -75,7 +75,7 @@ export default {
       dataBlocks.value = tempBlocks;
     };
 
-    watch(() => props.markdown, parseDataBlocks, { immediate: true });
+    watch(() => props.markdown, parseDataBlocks, {immediate: true});
 
     const copyCode = async (code) => {
       try {
@@ -98,3 +98,21 @@ export default {
   },
 };
 </script>
+
+<style>
+.markdown-content {
+  overflow: auto;
+  word-wrap: break-word;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-actions {
+  display: flex;
+  gap: 10px;
+}
+</style>
