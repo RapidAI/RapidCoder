@@ -6,7 +6,7 @@
         <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'edit-container':''">
           <!--内容-->
           <template v-if="debugMode">
-            <chat-markdown :markdown="item.content" :messageindex="index" :selectedSessionId="selectedSessionId"/>
+            <chat-markdown :markdown="item.content" :messageindex="index"/>
           </template>
           <!--展示-->
           <div v-if="!debugMode" class="analysis-status">
@@ -180,79 +180,7 @@ export default {
 <style scoped>
 .custom-list {
   height: 83vh;
-  overflow-y: auto; /* 保持内容可以滚动 */
-  scrollbar-width: none; /* Firefox 隐藏滚动条 */
-}
-
-.custom-list::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, 和 Edge 隐藏滚动条 */
-}
-
-.message-item {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.role-icon {
-  margin-right: 8px;
-  font-size: large;
-  margin-top: 4px;
-}
-
-.message-content {
-  flex: 1;
-  max-width: 100%;
-  word-wrap: break-word;
-  font-size: 15px;
-  line-height: 28px;
-}
-
-.message-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 10px;
-}
-
-.edit-container {
-  background-color: white;
-  padding: 12px 0;
-  border-radius: 8px;
-}
-
-.edit-textarea {
-  margin-bottom: 8px;
-}
-
-.edit-actions {
-  display: flex;
-  justify-content: flex-start; /* 将按钮靠左对齐 */
-  gap: 10px;
-}
-
-.user-container {
-  color: black;
-}
-
-.analysis-status {
-  color: gray;
-}
-
-.status-text {
-  font-weight: bold;
-}
-
-.status-text.analyzing {
-  color: #1890ff; /* 蓝色 */
-}
-
-.loading-icon {
-  margin-left: 8px;
-}
-
-.check-icon {
-  margin-left: 8px;
-  color: green;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 </style>

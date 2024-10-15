@@ -77,8 +77,6 @@ export default {
         }
       }
     };
-
-
     return {
       currentSession,
       fileContentMarkdown,
@@ -90,6 +88,7 @@ export default {
 };
 </script>
 <style>
+@import "highlight.js/styles/atom-one-light.css";
 .chat-file {
   height: 89vh;
   overflow: auto;
