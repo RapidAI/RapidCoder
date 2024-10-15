@@ -49,19 +49,19 @@ export default {
         if (!newFiles.includes(activeFile.value)) {
           activeFile.value = newFiles[0];
         }
-        // 跟message的system互动
-        currentSession.value.messages[0] = {
+        // 重置 messages 数组
+        currentSession.value.messages = [{
           role: 'system',
           content: fileContent.value.join('\n')
-        };
-      }else{
+        }];
+      } else {
         // 空
-        currentSession.value.messages[0] = {
+        currentSession.value.messages = [{
           role: 'system',
           content: ""
-        };
+        }];
       }
-    }, {immediate: true});
+    }, { immediate: true });
 
 
     const onEdit = (targetKey, action) => {
