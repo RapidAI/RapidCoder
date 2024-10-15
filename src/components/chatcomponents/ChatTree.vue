@@ -142,7 +142,6 @@ export default {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
       currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
-      currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 
     return {
