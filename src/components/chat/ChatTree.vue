@@ -7,7 +7,7 @@
         :selectable="true"
         :multiple="true"
         :showLine="false"
-        :selectedKeys="currentSession.currentSelectNode"
+        :selectedKeys="currentSession.currentSelectFile"
         @select="onSelect"
     >
       <template #title="{ data }">
@@ -151,7 +151,7 @@ export default {
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
       // 处理选中的文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      currentSession.value.currentSelectNode = fileNodes.map(node => node.key);
+      currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
       currentSession.value.messages[0].content = `\`\`\`json\n${JSON.stringify(fileNodes, null, 2)}\n\`\`\``;
     };
 

@@ -25,7 +25,7 @@ export const useSessionStore = defineStore('session_store', {
                 sessionId: Date.now(),
                 currentModel: model,
                 currentProjectPath: path,
-                currentSelectNode: [],
+                currentSelectFile: [],
                 messages: [
                     {
                         role: 'system',
@@ -46,8 +46,8 @@ export const useSessionStore = defineStore('session_store', {
             const messagelist = currentSession.messages
             const userQuestion = messagelist[index].content;
             let combinedContent = ""
-            if (currentSession.currentSelectNode.length < 5) {
-                combinedContent = await this.getCombinedFileContent(currentSession.currentSelectNode);
+            if (currentSession.currentSelectFile.length < 5) {
+                combinedContent = await this.getCombinedFileContent(currentSession.currentSelectFile);
                 index = index - 1
             } else {
                 const prompt = `
