@@ -86,9 +86,16 @@ export default {
       }
     };
 
-    const executeCode = (block) => {
-      console.log(block.language)
-      console.log(block.code)
+    const executeCode = async (block) => {
+      const [language, filePath] = block.language.split(':');
+
+      if (!filePath) {
+        console.error('Invalid language format:', block.language);
+        return;
+      }
+
+      await ipcRenderer.invoke('replaceFileContent', filePath, block.code);
+      message.info(`文件 ${filePath} 替换成功。`);
     };
 
     return {
