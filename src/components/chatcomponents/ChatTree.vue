@@ -158,5 +158,7 @@ export default {
 <style>
 .chat-tree {
   background-color: #F7F8FAFF;
+  height: 93vh;
+  overflow: auto;
 }
 </style>

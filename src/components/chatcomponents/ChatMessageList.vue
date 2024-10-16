@@ -180,6 +180,5 @@ export default {
 .custom-list {
   height: 83vh;
   overflow-y: auto;
-  scrollbar-width: thin;
 }
 </style>
