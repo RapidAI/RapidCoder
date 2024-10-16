@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import {defineComponent, ref, watch} from 'vue'
+import {defineComponent, ref, watch, onMounted, onBeforeUnmount} from 'vue'
 import {Codemirror} from 'vue-codemirror'
 import {oneDark} from '@codemirror/theme-one-dark'
 const {ipcRenderer} = require('electron');
@@ -33,7 +33,6 @@ import {angular} from '@codemirror/lang-angular'
 import {liquid} from '@codemirror/lang-liquid'
 import {wast} from '@codemirror/lang-wast'
 import {java} from '@codemirror/lang-java'
-
 
 export default defineComponent({
   components: {
@@ -121,11 +120,28 @@ export default defineComponent({
       extensions.value = [getLanguageExtension(newLanguage), oneDark]
     })
 
-    // 监听 code 的变化并保存内容
-    watch(code, async (newCode) => {
-      await ipcRenderer.invoke('replaceFileContent', props.filePath, newCode);
+    // 保存文件方法
+    const saveFile = async () => {
+      await ipcRenderer.invoke('replaceFileContent', props.filePath, code.value);
+    }
+
+    // 键盘事件监听，用于保存快捷键
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();  // 阻止默认保存行为
+        saveFile();
+      }
+    }
+
+    // 组件挂载时添加键盘监听器
+    onMounted(() => {
+      window.addEventListener('keydown', handleKeyDown);
     })
 
+    // 组件卸载时移除键盘监听器
+    onBeforeUnmount(() => {
+      window.removeEventListener('keydown', handleKeyDown);
+    })
 
     return {
       code,
