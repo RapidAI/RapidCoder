@@ -100,6 +100,8 @@ export default {
 </script>
 
 <style>
+@import "highlight.js/styles/intellij-light.css";
+
 .markdown-content {
   overflow: auto;
   word-wrap: break-word;
