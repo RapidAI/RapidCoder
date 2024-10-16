@@ -55,12 +55,15 @@ export default {
             if (!newFiles.includes(activeFile.value)) {
               activeFile.value = newFiles[0];
             }
-            currentSession.value.messages = [
-              {
-                role: "system",
-                content: fileContents.value.join("\n"),
-              },
-            ];
+            // 对每个文件内容进行 wrapFileContent 处理
+            const wrappedContents = fileContents.value.map((content, index) =>
+                wrapFileContent(content, newFiles[index])
+            );
+            // 将处理后的内容连接起来
+            currentSession.value.messages[0] =  {
+              role: "system",
+              content: wrappedContents.join("\n"),
+            };
           } else {
             currentSession.value.messages = [
               {
