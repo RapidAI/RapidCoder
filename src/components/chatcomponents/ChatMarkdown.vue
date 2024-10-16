@@ -5,8 +5,8 @@
         <div class="code-header">
           <span>{{ block.language }}</span>
           <div class="code-actions">
-            <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
             <a-button type="primary" size="small" @click="executeCode">再次运行</a-button>
+            <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
           </div>
         </div>
       </div>

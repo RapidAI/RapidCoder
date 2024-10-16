@@ -33,6 +33,7 @@ import {less} from '@codemirror/lang-less'
 import {angular} from '@codemirror/lang-angular'
 import {liquid} from '@codemirror/lang-liquid'
 import {wast} from '@codemirror/lang-wast'
+import {java} from '@codemirror/lang-java'
 
 
 export default defineComponent({
@@ -64,6 +65,8 @@ export default defineComponent({
           return javascript()
         case 'html':
           return html()
+        case 'java':
+          return java()
         case 'css':
           return css()
         case 'markdown':
