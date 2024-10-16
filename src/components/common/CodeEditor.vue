@@ -110,47 +110,11 @@ export default defineComponent({
       }
     }
 
-    // 根据内容自动检测语言
-    const detectLanguageFromContent = (content) => {
-      if (/^\s*</.test(content)) {
-        return 'html'
-      } else if (/^import .* from ['"]|function|const|let|var/.test(content)) {
-        return 'javascript'
-      } else if (/^\s*<template>/.test(content)) {
-        return 'vue'
-      } else if (/^\s*def /.test(content)) {
-        return 'python'
-      } else if (/^interface |^type /.test(content)) {
-        return 'typescript'
-      } else if (/^package |^func /.test(content)) {
-        return 'go'
-      } else if (/^\s*#include|int main\(/.test(content)) {
-        return 'cpp'
-      } else if (/^<\?php|echo /.test(content)) {
-        return 'php'
-      } else if (/^\s*class |def /.test(content)) {
-        return 'ruby'
-      } else if (/^# |^[-*] /.test(content)) {
-        return 'markdown'
-      } else if (/^\s*package |^\s*class /.test(content)) {  // 添加Java检测
-        return 'java'
-      } else {
-        return 'javascript'  // 默认使用 JavaScript
-      }
-    }
-
-
     const extensions = ref([getLanguageExtension(props.language), oneDark])
 
-    // 监听 props.content 的变化并自动检测语言
+    // 监听 props.content 的变化
     watch(() => props.content, (newContent) => {
       code.value = newContent
-
-      // 自动检测语言并更新扩展
-      const detectedLanguage = detectLanguageFromContent(newContent)
-      if (detectedLanguage !== props.language.toLowerCase()) {
-        extensions.value = [getLanguageExtension(detectedLanguage), oneDark]
-      }
     })
 
     // 监听 props.language 的变化并更新扩展
