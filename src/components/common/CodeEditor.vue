@@ -34,8 +34,6 @@ import {liquid} from '@codemirror/lang-liquid'
 import {wast} from '@codemirror/lang-wast'
 import {java} from '@codemirror/lang-java'
 
-// 引入 indentMore 来支持代码缩进
-import {indentMore} from '@codemirror/commands'
 
 export default defineComponent({
   components: {
@@ -133,10 +131,6 @@ export default defineComponent({
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();  // 阻止默认保存行为
         saveFile();
-      } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
-        e.preventDefault();  // 阻止默认行为
-        // 触发代码对齐（缩进）
-        indentMore(code.value);
       }
     }
 
