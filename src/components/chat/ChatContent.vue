@@ -57,5 +57,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color:white;
+  height:35px;
+  font-size:15px;
 }
 </style>
