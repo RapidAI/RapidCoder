@@ -98,6 +98,6 @@ export default {
   },
 };
 </script>
-<style>
-@import "src/assets/chatmarkdown.css";
+<style lang="scss">
+@import "@/assets/chatmarkdown.css";
 </style>

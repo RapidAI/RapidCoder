@@ -1,7 +1,21 @@
 <template>
   <a-layout-content class="full-height">
     <div class="top-bar">
-      {{ currentSession ? currentSession.currentModel.modelName : 'No session selected' }}
+      <a-select
+          type="primary"
+          v-model:value="selectedModelId"
+          style="width: 200px"
+          placeholder="选择模型"
+          @change="handleModelChange"
+      >
+        <a-select-option
+            v-for="model in models"
+            :key="model.modelId"
+            :value="model.modelId"
+        >
+          {{ model.modelName }}
+        </a-select-option>
+      </a-select>
       <a-switch
           v-model:checked="debugMode"
           class="debug-switch"
@@ -22,15 +36,17 @@
     />
   </a-layout-content>
 </template>
+
 <script>
-import {ref, computed} from 'vue';
+import {ref, computed, watch} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
+import {useModelStore} from '@/store/ModelStore.js';
 import ChatMessageList from '../chatcomponents/ChatMessageList.vue';
 import ChatMessageInput from '../chatcomponents/ChatMessageInput.vue';
 
 export default {
   components: {
-    ChatMessageList,ChatMessageInput
+    ChatMessageList, ChatMessageInput
   },
   props: {
     selectedSessionId: {
@@ -39,26 +55,51 @@ export default {
   },
   setup(props) {
     const sessionStore = useSessionStore();
+    const modelStore = useModelStore();
     const debugMode = ref(true);
+    const selectedModelId = ref(null);
 
     const currentSession = computed(() => {
       return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
     });
 
+    const models = computed(() => modelStore.models);
+
+    watch(
+        () => currentSession.value,
+        (newSession) => {
+          if (newSession) {
+            selectedModelId.value = newSession.currentModel.modelId;
+          }
+        },
+        {immediate: true}
+    );
+
+    const handleModelChange = (modelId) => {
+      const selectedModel = models.value.find(model => model.modelId === modelId);
+      if (selectedModel && currentSession.value) {
+        currentSession.value.currentModel = selectedModel;
+      }
+    };
+
     return {
       debugMode,
       currentSession,
+      models,
+      selectedModelId,
+      handleModelChange,
     };
   }
 }
 </script>
+
 <style scoped>
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color:white;
-  height:35px;
-  font-size:15px;
+  background-color: white;
+  height: 35px;
+  font-size: 15px;
 }
 </style>
