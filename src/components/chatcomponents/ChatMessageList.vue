@@ -2,7 +2,7 @@
   <div ref="messageList" class="custom-list">
     <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
       <div class="message-content" v-if="item.role !== 'system'">
-        <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'edit-container':''">
+        <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'user-container':''">
           <!--内容-->
           <template v-if="debugMode">
             <chat-markdown :markdown="item.content" :messageindex="index"/>
@@ -172,5 +172,8 @@ export default {
 .custom-list {
   height: 83vh;
   overflow-y: auto;
+}
+.user-container{
+  background-color: white;
 }
 </style>
