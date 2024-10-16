@@ -98,23 +98,6 @@ export default {
   },
 };
 </script>
-
 <style>
-@import "highlight.js/styles/intellij-light.css";
-
-.markdown-content {
-  overflow: auto;
-  word-wrap: break-word;
-}
-
-.code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.code-actions {
-  display: flex;
-  gap: 10px;
-}
+@import "src/assets/chatmarkdown.css";
 </style>

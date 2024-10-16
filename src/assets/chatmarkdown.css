@@ -1,0 +1,129 @@
+.markdown-content {
+    width: 100%;
+    overflow: auto;
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 14px; /* 减小字体大小 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 10px;
+    border-radius: 5px 5px 0 0;
+    font-size: 14px; /* 减小字体大小 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+.code-actions {
+    display: flex;
+    gap: 10px;
+    color: #d4d4d4;
+    font-size: 14px; /* 减小字体大小 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 10px;
+    margin: 0;
+    border-radius: 0 0 5px 5px;
+    overflow-x: auto;
+    font-size: 14px; /* 减小字体大小 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+code {
+    background-color: transparent;
+    color: inherit;
+    font-size: 14px; /* 减小字体大小 */
+    line-height: 1.3; /* 减少行高 */
+}
+
+/* VSCode Dark Theme Syntax Highlighting */
+.hljs-comment,
+.hljs-quote {
+    color: #6a9955;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+    color: #c586c0;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+    color: #b5cea8;
+}
+
+.hljs-string,
+.hljs-doctag {
+    color: #ce9178;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+    color: #569cd6;
+}
+
+.hljs-subst {
+    color: #d4d4d4;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+    color: #4ec9b0;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+    color: #d7ba7d;
+}
+
+.hljs-regexp,
+.hljs-link {
+    color: #d16969;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+    color: #569cd6;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+    color: #dcdcaa;
+}
+
+.hljs-meta {
+    color: #9cdcfe;
+}
+
+.hljs-deletion {
+    background: #ff0000;
+}
+
+.hljs-addition {
+    background: #00ff00;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}

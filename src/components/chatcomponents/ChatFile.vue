@@ -6,14 +6,15 @@
         :tab="getTitle(file)"
         :closable="true"
     >
-      <CodeMirrorEditor  :content="fileContents[index]" :language="file.split('.').pop()" />
+      <CodeMirrorEditor :content="fileContents[index]" :language="file.split('.').pop()"/>
     </a-tab-pane>
   </a-tabs>
 </template>
 <script>
-import { useSessionStore } from "@/store/SessionStore";
-import { ref, computed, watch } from "vue";
-const { ipcRenderer } = require("electron");
+import {useSessionStore} from "@/store/SessionStore";
+import {ref, computed, watch} from "vue";
+
+const {ipcRenderer} = require("electron");
 import CodeMirrorEditor from "@/components/common/CodeMirrorEditor.vue";
 
 export default {
@@ -21,7 +22,7 @@ export default {
     CodeMirrorEditor,
   },
   props: {
-    selectedSessionId: { required: true },
+    selectedSessionId: {required: true},
   },
   setup(props) {
     const fileContents = ref([]);
@@ -37,6 +38,10 @@ export default {
 
     const getTitle = (filePath) => filePath.split("/").pop();
 
+    const wrapFileContent = (content, filePath) => {
+      const language = filePath.split('.').pop();
+      return `${filePath}\n\`\`\`${language}\n${content}\n\`\`\``;
+    };
 
     watch(
         () => currentSession.value?.currentSelectFile,
@@ -65,7 +70,7 @@ export default {
             ];
           }
         },
-        { immediate: true }
+        {immediate: true}
     );
 
     const onEdit = (targetKey, action) => {
