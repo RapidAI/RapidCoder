@@ -40,7 +40,7 @@ export default {
 
     const wrapFileContent = (content, filePath) => {
       const language = filePath.split('.').pop();
-      return `${filePath}\n\`\`\`${language}\n${content}\n\`\`\``;
+      return `\`\`\`${language}:${filePath}\n${content}\n\`\`\``;
     };
 
     watch(
