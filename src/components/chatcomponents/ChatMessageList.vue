@@ -53,7 +53,7 @@ import {message} from 'ant-design-vue';
 import {
   ArrowDownOutlined,
 } from '@ant-design/icons-vue';
-import {eventBus} from '@/eventBus.js';
+import {eventBus} from '@/util/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
 import CustomLoading from "@/components/common/CustomLoading.vue";
 
