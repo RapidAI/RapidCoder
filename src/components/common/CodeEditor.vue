@@ -132,10 +132,13 @@ export default defineComponent({
         return 'ruby'
       } else if (/^# |^[-*] /.test(content)) {
         return 'markdown'
+      } else if (/^\s*package |^\s*class /.test(content)) {  // 添加Java检测
+        return 'java'
       } else {
         return 'javascript'  // 默认使用 JavaScript
       }
     }
+
 
     const extensions = ref([getLanguageExtension(props.language), oneDark])
 

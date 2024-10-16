@@ -138,15 +138,28 @@ export default {
       isComposition = status;
     };
 
+    const messageItems = computed(() => {
+      if (messageList.value) {
+        return messageList.value.querySelectorAll('.message-item');
+      }
+      return [];
+    });
+
     const scrollToCurrentMessage = (sessionId, index) => {
       nextTick(() => {
-        if (currentSession.value.sessionId === sessionId) {
-          const messageItems = messageList.value?.querySelectorAll('.message-item');
-          messageItems[index].scrollIntoView({behavior: 'instant', block: 'end'});
+        if (currentSession.value && currentSession.value.sessionId === sessionId) {
+          if (messageItems.value && messageItems.value[index]) {
+            const messageItem = messageItems.value[index];
+            const rect = messageItem.getBoundingClientRect();
+            const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+
+            if (!isVisible) {
+              messageItem.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+          }
         }
       });
     };
-
     onMounted(() => {
       eventBus.on('messageUpdated', ({sessionId, index}) => {
         scrollToCurrentMessage(sessionId, index);
