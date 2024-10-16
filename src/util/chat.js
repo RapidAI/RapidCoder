@@ -36,7 +36,7 @@ export async function processChat(currentSession, messagelist, index, overwrite)
             if (done) break;
             const chunk = decoder.decode(value);
             currentSession.messages[assistantIndex].content += parseChatResponse(chunk);
-            eventBus.emit('messageUpdated', { sessionId: currentSession.sessionId, index: assistantIndex });
+            eventBus.emit('messageUpdated', currentSession.sessionId);
         }
 
         currentSession.messages[assistantIndex].isAnalyzing = false;

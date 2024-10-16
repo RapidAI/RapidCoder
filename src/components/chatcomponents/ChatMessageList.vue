@@ -138,12 +138,12 @@ export default {
     };
 
     onMounted(() => {
-      eventBus.on('messageUpdated', ({sessionId}) => {
+      eventBus.on('messageUpdated', (sessionId) => {
         if (currentSession.value && currentSession.value.sessionId === sessionId) {
           scrollToCurrentMessage();
         }
       });
-      scrollToCurrentMessage(); 
+      scrollToCurrentMessage();
     });
 
 
