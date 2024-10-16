@@ -126,27 +126,26 @@ export default {
       isComposition = status;
     };
 
-    const messageItems = computed(() => {
-      if (messageList.value) {
-        return messageList.value.querySelectorAll('.message-item');
-      }
-      return [];
-    });
 
-    const scrollToCurrentMessage = (sessionId, index) => {
+    const scrollToCurrentMessage = () => {
       nextTick(() => {
-        if (currentSession.value && currentSession.value.sessionId === sessionId) {
-            const messageItem = messageItems.value[index];
-            messageItem.scrollIntoView({behavior: 'smooth', block: 'end'});
+        const messageItems = messageList.value.querySelectorAll('.message-item')
+        if (messageItems.length > 0) {
+          const lastMessageItem = messageItems[messageItems.length - 1];
+          lastMessageItem.scrollIntoView({behavior: 'smooth', block: 'end'});
         }
       });
     };
+
     onMounted(() => {
-      eventBus.on('messageUpdated', ({sessionId, index}) => {
-        scrollToCurrentMessage(sessionId, index);
+      eventBus.on('messageUpdated', ({sessionId}) => {
+        if (currentSession.value && currentSession.value.sessionId === sessionId) {
+          scrollToCurrentMessage();
+        }
       });
-      scrollToCurrentMessage(currentSession.value.sessionId, currentSession.value.messages.length - 1)
+      scrollToCurrentMessage(); 
     });
+
 
     onUnmounted(() => {
       eventBus.off('messageUpdated', scrollToCurrentMessage);
