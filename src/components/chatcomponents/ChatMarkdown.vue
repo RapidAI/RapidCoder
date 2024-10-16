@@ -16,6 +16,7 @@
 </template>
 
 <script>
+const {ipcRenderer} = require('electron');
 import {ref, watch} from 'vue';
 import {useSessionStore} from '@/store/SessionStore.js';
 import MarkdownIt from 'markdown-it';

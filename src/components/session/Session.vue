@@ -37,7 +37,7 @@
 <script>
 import {ref, onMounted} from 'vue';
 
-const {ipcRenderer} = window.require('electron'); // 使用 Electron 的 ipcRenderer
+const {ipcRenderer} = require('electron');
 import Chat from '../chat/Chat.vue';
 import CustomLoading from '../common/CustomLoading.vue'; // 引入CustomLoading组件
 import {useSessionStore} from '@/store/SessionStore.js';
