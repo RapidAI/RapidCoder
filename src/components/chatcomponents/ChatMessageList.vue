@@ -24,7 +24,6 @@
             <template v-if="item.role === 'assistant'">
               <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
               <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
-              <a-button type="primary" size="small" @click="regenerateMessage(index)">重新生成</a-button>
             </template>
           </div>
         </div>
@@ -116,17 +115,6 @@ export default {
           });
     };
 
-    const regenerateMessage = (index) => {
-      currentSession.value.messages.splice(index);
-      sessionStore.processChat(
-          currentSession.value,
-          currentSession.value.messages,
-          index,
-          true,
-          false
-      );
-    };
-
     const handleKeyDown = (event) => {
       if (event.key === 'Enter' && !isComposition && !event.shiftKey) {
         event.preventDefault();
@@ -173,7 +161,6 @@ export default {
       updateMessage,
       resetEdit,
       copyToClipboard,
-      regenerateMessage,
       handleKeyDown,
       handleComposition,
       sessionStore,
