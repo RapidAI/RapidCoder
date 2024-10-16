@@ -91,7 +91,7 @@ export default {
       const [language, filePath] = block.language.split(':');
 
       if (!filePath) {
-        console.error('Invalid language format:', block.language);
+        message.info(`文件 ${filePath} 不存在`);
         return;
       }
 
