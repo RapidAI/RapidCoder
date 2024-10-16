@@ -5,8 +5,8 @@
       <a-switch
           v-model:checked="debugMode"
           class="debug-switch"
-          checked-children="调试模式"
-          un-checked-children="普通模式"
+          checked-children="调试"
+          un-checked-children=""
       />
     </div>
     <chat-message-list
