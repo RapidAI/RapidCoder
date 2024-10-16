@@ -140,8 +140,9 @@ export default {
 
     // 处理文件选中
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
-      // 处理选中的文件节点
+      // 过滤出文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
+      // 更新 currentSession.currentSelectFile
       currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
     };
 
