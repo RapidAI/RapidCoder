@@ -3,7 +3,6 @@
       v-model="code"
       :extensions="extensions"
       :style="{ height: '89vh' }"
-      @ready="handleReady"
   />
 </template>
 
@@ -127,14 +126,10 @@ export default defineComponent({
       await ipcRenderer.invoke('replaceFileContent', props.filePath, newCode);
     })
 
-    const handleReady = (payload) => {
-      console.log('Codemirror is ready', payload.view)
-    }
 
     return {
       code,
       extensions,
-      handleReady
     }
   }
 })
