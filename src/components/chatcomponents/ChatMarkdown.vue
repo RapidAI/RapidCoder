@@ -5,8 +5,8 @@
         <div class="code-header">
           <span>{{ block.language }}</span>
           <div class="code-actions">
-            <a-button type="primary" size="small" @click="executeCode(block.code)">再次运行</a-button>
-            <a-button type="primary" size="small" @click="copyCode(block.code)">复制代码</a-button>
+            <a-button type="primary" size="small" @click="copyCode(block.code)">复制</a-button>
+            <a-button type="primary" size="small" @click="executeCode(block)">替换</a-button>
           </div>
         </div>
       </div>
@@ -86,9 +86,9 @@ export default {
       }
     };
 
-    const executeCode = (code) => {
-      console.log(code)
-      sessionStore.messageExecuteCode();
+    const executeCode = (block) => {
+      console.log(block.language)
+      console.log(block.code)
     };
 
     return {
