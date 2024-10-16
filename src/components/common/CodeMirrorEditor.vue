@@ -11,6 +11,7 @@
 import {defineComponent, ref, watch} from 'vue'
 import {Codemirror} from 'vue-codemirror'
 import {oneDark} from '@codemirror/theme-one-dark'
+const {ipcRenderer} = require('electron');
 
 // 导入所有语言扩展
 import {javascript} from '@codemirror/lang-javascript'
@@ -33,6 +34,7 @@ import {angular} from '@codemirror/lang-angular'
 import {liquid} from '@codemirror/lang-liquid'
 import {wast} from '@codemirror/lang-wast'
 
+
 export default defineComponent({
   components: {
     Codemirror
@@ -43,6 +45,10 @@ export default defineComponent({
       required: true
     },
     language: {
+      type: String,
+      required: true
+    },
+    filePath: {
       type: String,
       required: true
     }
@@ -144,6 +150,11 @@ export default defineComponent({
     // 监听 props.language 的变化并更新扩展
     watch(() => props.language, (newLanguage) => {
       extensions.value = [getLanguageExtension(newLanguage), oneDark]
+    })
+
+    // 监听 code 的变化并保存内容
+    watch(code, async (newCode) => {
+      await ipcRenderer.invoke('replaceFileContent', props.filePath, newCode);
     })
 
     const handleReady = (payload) => {

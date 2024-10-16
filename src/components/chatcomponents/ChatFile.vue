@@ -6,7 +6,7 @@
         :tab="getTitle(file)"
         :closable="true"
     >
-      <CodeMirrorEditor :content="fileContents[index]" :language="file.split('.').pop()"/>
+      <CodeMirrorEditor :content="fileContents[index]"  :language="file.split('.').pop()" :file-path="file"/>
     </a-tab-pane>
   </a-tabs>
 </template>
