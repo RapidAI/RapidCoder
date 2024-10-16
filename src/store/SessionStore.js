@@ -27,6 +27,7 @@ export const useSessionStore = defineStore('session_store', {
                 currentProjectPath: path,
                 currentSelectFile: [],
                 expandedKeys: [],
+                isStreaming:false,
                 messages: [
                     {
                         role: 'system',
