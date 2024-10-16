@@ -6,6 +6,7 @@
       v-model:expandedKeys="currentSession.expandedKeys"
       :selectable="true"
       :multiple="true"
+      :blockNode="true"
       :showLine="false"
       :selectedKeys="currentSession.currentSelectFile"
       @select="onSelect"
@@ -53,10 +54,7 @@ export default {
 
       // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
-
-      // 对获取到的结构进行排序
-      const sortedStructure = sortTreeData([structure]);
-      treeData.value = sortedStructure;
+      treeData.value= sortTreeData([structure]);
 
       // 启动监听文件目录
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
