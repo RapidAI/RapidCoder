@@ -8,7 +8,7 @@
       <Chat :selectedSessionId="session.sessionId"/>
     </a-tab-pane>
     <template #leftExtra>
-      <a-button type="primary" @click="newsession">新对话</a-button>
+      <a-button type="text" @click="newsession">新对话</a-button>
     </template>
   </a-tabs>
 

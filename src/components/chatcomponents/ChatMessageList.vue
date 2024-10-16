@@ -18,12 +18,12 @@
           <!--功能-->
           <div class="message-actions">
             <template v-if="item.role === 'user'">
-              <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
-              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
+              <a-button type="text" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
+              <a-button type="text" size="small" @click="copyToClipboard(item.content)">复制</a-button>
             </template>
             <template v-if="item.role === 'assistant'">
-              <a-button type="primary" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
-              <a-button type="primary" size="small" @click="copyToClipboard(item.content)">复制</a-button>
+              <a-button type="text" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
+              <a-button type="text" size="small" @click="copyToClipboard(item.content)">复制</a-button>
             </template>
           </div>
         </div>
@@ -35,8 +35,8 @@
                       :auto-size="{ minRows: 1, maxRows: 3 }"
                       class="edit-textarea"/>
           <div class="edit-actions">
-            <a-button type="primary" size="small" @click="updateMessage(index, item.role)">发送</a-button>
-            <a-button type="primary" size="small" @click="resetEdit">取消</a-button>
+            <a-button type="text" size="small" @click="updateMessage(index, item.role)">发送</a-button>
+            <a-button type="text" size="small" @click="resetEdit">取消</a-button>
           </div>
         </div>
       </div>

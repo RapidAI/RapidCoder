@@ -43,7 +43,7 @@
     </a-form-item>
 
     <a-form-item :wrapper-col="{ span: 20, offset: 6 }">
-      <a-button type="primary" @click="onSubmit">确认</a-button>
+      <a-button type="text" @click="onSubmit">确认</a-button>
       <a-button style="margin-left: 10px" @click="onCancel">取消</a-button>
     </a-form-item>
   </a-form>

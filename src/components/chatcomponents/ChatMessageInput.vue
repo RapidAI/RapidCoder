@@ -9,7 +9,7 @@
         class="input-value"
         :auto-size="{ minRows: 1, maxRows: 3 }"
     />
-    <a-button type="primary" @click="handleSendOrStop" :disabled="isSending">
+    <a-button type="text" @click="handleSendOrStop" :disabled="isSending">
       {{ currentSession.isStreaming ? '终止' : '发送' }}
     </a-button>
   </div>

@@ -2,7 +2,7 @@
   <a-layout-content class="full-height">
     <div class="top-bar">
       <a-select
-          type="primary"
+          type="text"
           v-model:value="selectedModelId"
           style="width: 200px"
           placeholder="选择模型"

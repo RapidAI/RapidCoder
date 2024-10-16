@@ -2,18 +2,18 @@
   <a-layout-content class="custom-content">
     <div class="header">
       <div class="title">模型管理</div>
-      <a-button type="primary" @click="showModal('add')">添加模型</a-button>
+      <a-button type="text" @click="showModal('add')">添加模型</a-button>
     </div>
     <a-table :columns="columns" :dataSource="models" :rowKey="record => record.modelId" class="custom-table">
       <template v-slot:bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'action'">
           <a-space>
-            <a-button type="primary" @click="showModal('edit', record)">编辑</a-button>
+            <a-button type="text" @click="showModal('edit', record)">编辑</a-button>
             <a-popconfirm title="确定要删除这个模型吗？" okText="确定" cancelText="取消"
                           @confirm="() => deleteModel(record.modelId)">
-              <a-button type="primary">删除</a-button>
+              <a-button type="text">删除</a-button>
             </a-popconfirm>
-            <a-button type="primary" @click="testConnection(record)">测试连接</a-button>
+            <a-button type="text" @click="testConnection(record)">测试连接</a-button>
           </a-space>
         </template>
         <template v-else-if="column.dataIndex === 'apiKey'">
