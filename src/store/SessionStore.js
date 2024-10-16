@@ -148,17 +148,6 @@ python:/src/.../file
             }
             await this.processResults(finalResult);
         },
-        async parseJsonMessage(assistantMessage) {
-            try {
-                const matches = assistantMessage.match(/```json([\s\S]*?)```/);
-                const jsonString = matches ? matches[1].trim() : assistantMessage.trim();
-                const jsonResponse = JSON.parse(jsonString);
-                return jsonResponse.finalResult;
-            } catch (error) {
-                console.log('解析 JSON 时发生错误:', assistantMessage);
-                return null;
-            }
-        },
         async parseParenthesesMessage(assistantMessage) {
             const removeQuotes = str => str.replace(/^['"]|['"]$/g, '');
             const removeCodeBlock = str => str.replace(/^```.*?\n|```$/g, '');
