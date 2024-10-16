@@ -53,24 +53,46 @@ export default {
 
       // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
-      treeData.value = [structure];
+
+      // 对获取到的结构进行排序
+      const sortedStructure = sortTreeData([structure]);
+      treeData.value = sortedStructure;
+
       // 启动监听文件目录
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
 
       // 监听文件和目录变化事件
       ipcRenderer.on(directoryPath, (event, {action, fileInfo}) => {
         if (action === 'add' || action === 'addDir') {
-          console.log(fileInfo)
           addNodeToTree(treeData.value, fileInfo);
         } else if (action === 'change') {
-          console.log(fileInfo)
           updateNodeInTree(treeData.value, fileInfo);
         } else if (action === 'unlink' || action === 'unlinkDir') {
-          console.log(fileInfo)
           removeNodeFromTree(treeData.value, fileInfo);
         }
       });
     });
+    // 排序函数，递归排序子节点，确保目录排在文件前面
+    const sortTreeData = (nodes) => {
+      // 将节点分为目录和文件
+      const directories = nodes.filter(node => node.type === 'directory');
+      const files = nodes.filter(node => node.type === 'file');
+
+      // 分别对目录和文件进行字母顺序排序
+      directories.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+      files.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+
+      // 递归排序子节点
+      directories.forEach(dir => {
+        if (dir.children) {
+          dir.children = sortTreeData(dir.children);
+        }
+      });
+
+      // 合并目录和文件，确保目录在文件之前
+      return [...directories, ...files];
+    };
+
     // 根据 key 查找节点
     const findNodeByKey = (nodes, key) => {
       for (const node of nodes) {
