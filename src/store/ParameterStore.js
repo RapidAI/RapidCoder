@@ -1,16 +1,17 @@
 import { defineStore } from 'pinia';
 
-export const useStyleStore = defineStore('style_store', {
+export const useParameterStore = defineStore('parameter_store', {
   state: () => ({
     treePane: 25,
     filePane: 50,
     contentPane: 25,
+    debugMode: true,
   }),
   persist: {
     enabled: true,
     strategies: [
       {
-        key: 'style_store',
+        key: 'parameter_store',
         storage: localStorage,
       },
     ],

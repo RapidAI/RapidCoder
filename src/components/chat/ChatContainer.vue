@@ -17,7 +17,7 @@
         </a-select-option>
       </a-select>
       <a-switch
-          v-model:checked="debugMode"
+          v-model:checked="parameterStore.debugMode"
           class="debug-switch"
           checked-children="调试"
           un-checked-children=""
@@ -25,7 +25,7 @@
     </div>
     <chat-message-list
         class="message-list"
-        :debugMode="debugMode"
+        :debugMode="parameterStore.debugMode"
         v-if="selectedSessionId"
         :selectedSessionId="selectedSessionId"
     />
@@ -39,6 +39,7 @@
 
 <script>
 import {ref, computed, watch} from 'vue';
+import {useParameterStore} from '@/store/ParameterStore';
 import {useSessionStore} from '@/store/SessionStore.js';
 import {useModelStore} from '@/store/ModelStore.js';
 import ChatMessageList from '../chatcomponents/ChatMessageList.vue';
@@ -54,9 +55,9 @@ export default {
     },
   },
   setup(props) {
+    const parameterStore = useParameterStore();
     const sessionStore = useSessionStore();
     const modelStore = useModelStore();
-    const debugMode = ref(true);
     const selectedModelId = ref(null);
 
     const currentSession = computed(() => {
@@ -83,7 +84,7 @@ export default {
     };
 
     return {
-      debugMode,
+      parameterStore,
       currentSession,
       models,
       selectedModelId,

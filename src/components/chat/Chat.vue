@@ -1,14 +1,14 @@
 <template>
   <a-layout class="custom-content">
     <splitpanes class="default-theme" @resize="resize">
-      <pane :size="styleStore.treePane">
+      <pane :size="parameterStore.treePane">
         <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
-      <pane :size="styleStore.filePane">
+      <pane :size="parameterStore.filePane">
         <chat-file-editor v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
-      <pane :size="styleStore.contentPane">
-        <chat-content v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
+      <pane :size="parameterStore.contentPane">
+        <chat-container v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
     </splitpanes>
   </a-layout>
@@ -17,16 +17,16 @@
 <script>
 import {Splitpanes, Pane} from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
-import {useStyleStore} from '@/store/StyleStore';
-import ChatTree from '@/components/chatcomponents/ChatTree.vue';
-import ChatFileEditor from '@/components/chatcomponents/ChatFileEditor.vue';
-import ChatContent from '@/components/chat/ChatContent.vue';
+import {useParameterStore} from '@/store/ParameterStore';
+import ChatTree from '@/components/chat/ChatTree.vue';
+import ChatFileEditor from '@/components/chat/ChatFileEditor.vue';
+import ChatContainer from '@/components/chat/ChatContainer.vue';
 
 export default {
   components: {
     ChatTree,
     ChatFileEditor,
-    ChatContent,
+    ChatContainer,
     Splitpanes,
     Pane,
   },
@@ -36,14 +36,14 @@ export default {
     },
   },
   setup() {
-    const styleStore = useStyleStore();
+    const parameterStore = useParameterStore();
     const resize = (paneSize) => {
-      styleStore.treePane = paneSize[0].size;
-      styleStore.filePane = paneSize[1].size;
-      styleStore.contentPane = paneSize[2].size;
+      parameterStore.treePane = paneSize[0].size;
+      parameterStore.filePane = paneSize[1].size;
+      parameterStore.contentPane = paneSize[2].size;
     };
     return {
-      styleStore,
+      parameterStore,
       resize
     };
   },
