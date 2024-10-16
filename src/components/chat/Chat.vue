@@ -5,7 +5,7 @@
         <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
       <pane :size="styleStore.filePane">
-        <chat-file v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
+        <chat-file-editor v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
       <pane :size="styleStore.contentPane">
         <chat-content v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
@@ -19,13 +19,13 @@ import {Splitpanes, Pane} from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import {useStyleStore} from '@/store/StyleStore';
 import ChatTree from '@/components/chatcomponents/ChatTree.vue';
-import ChatFile from '@/components/chatcomponents/ChatFile.vue';
+import ChatFileEditor from '@/components/chatcomponents/ChatFileEditor.vue';
 import ChatContent from '@/components/chat/ChatContent.vue';
 
 export default {
   components: {
     ChatTree,
-    ChatFile,
+    ChatFileEditor,
     ChatContent,
     Splitpanes,
     Pane,

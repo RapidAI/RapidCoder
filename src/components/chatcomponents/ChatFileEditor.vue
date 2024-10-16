@@ -6,7 +6,7 @@
         :tab="getTitle(file)"
         :closable="true"
     >
-      <CodeMirrorEditor :content="fileContents[index]"  :language="file.split('.').pop()" :file-path="file"/>
+      <code-editor :content="fileContents[index]"  :language="file.split('.').pop()" :file-path="file"/>
     </a-tab-pane>
   </a-tabs>
 </template>
@@ -15,11 +15,11 @@ import {useSessionStore} from "@/store/SessionStore";
 import {ref, computed, watch} from "vue";
 
 const {ipcRenderer} = require("electron");
-import CodeMirrorEditor from "@/components/common/CodeEditor.vue";
+import CodeEditor from "@/components/common/CodeEditor.vue";
 
 export default {
   components: {
-    CodeMirrorEditor,
+    CodeEditor,
   },
   props: {
     selectedSessionId: {required: true},
