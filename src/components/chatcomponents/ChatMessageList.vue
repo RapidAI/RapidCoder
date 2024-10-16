@@ -1,7 +1,7 @@
 <template>
   <div ref="messageList" class="custom-list">
     <div v-for="(item, index) in currentSession.messages" :key="index" class="message-item">
-      <div class="message-content" v-if="item.role !== 'system'" >
+      <div class="message-content" v-if="item.role !== 'system'">
         <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'edit-container':''">
           <!--内容-->
           <template v-if="debugMode">
@@ -148,15 +148,8 @@ export default {
     const scrollToCurrentMessage = (sessionId, index) => {
       nextTick(() => {
         if (currentSession.value && currentSession.value.sessionId === sessionId) {
-          if (messageItems.value && messageItems.value[index]) {
             const messageItem = messageItems.value[index];
-            const rect = messageItem.getBoundingClientRect();
-            const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-
-            if (!isVisible) {
-              messageItem.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-          }
+            messageItem.scrollIntoView({behavior: 'smooth', block: 'end'});
         }
       });
     };
