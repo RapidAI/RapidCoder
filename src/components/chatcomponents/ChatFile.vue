@@ -15,7 +15,7 @@ import {useSessionStore} from "@/store/SessionStore";
 import {ref, computed, watch} from "vue";
 
 const {ipcRenderer} = require("electron");
-import CodeMirrorEditor from "@/components/common/CodeMirrorEditor.vue";
+import CodeMirrorEditor from "@/components/common/CodeEditor.vue";
 
 export default {
   components: {
