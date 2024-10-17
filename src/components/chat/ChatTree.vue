@@ -50,12 +50,12 @@ export default {
 
     // 初始化tree
     onMounted(async () => {
-      const {currentProjectPath,sessionId} = currentSession.value;
-      const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath,sessionId);
+      const {currentProjectPath, sessionId} = currentSession.value;
+      const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath);
       treeData.value = sortTreeData([structure]);
       updateSessionMessages();
       // 监控目录
-      ipcRenderer.invoke('initDirectoryWatch', currentProjectPath);
+      ipcRenderer.invoke('initDirectoryWatch', currentProjectPath, sessionId);
       ipcRenderer.on(currentProjectPath, (event, {action, fileInfo}) => {
         if (action === 'add' || action === 'addDir') {
           addNodeToTree(treeData.value, fileInfo);
@@ -68,8 +68,8 @@ export default {
     });
     // 取消监控
     onBeforeUnmount(() => {
-      const {currentProjectPath,sessionId} = currentSession.value;
-      ipcRenderer.invoke('removeDirectoryWatch', currentProjectPath,sessionId);
+      const {currentProjectPath, sessionId} = currentSession.value;
+      ipcRenderer.invoke('removeDirectoryWatch', currentProjectPath, sessionId);
     });
 
     const sortTreeData = (nodes) => {

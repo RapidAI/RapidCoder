@@ -10,6 +10,7 @@
 import {defineComponent, ref, watch, onMounted, onBeforeUnmount} from 'vue'
 import {Codemirror} from 'vue-codemirror'
 import {oneDark} from '@codemirror/theme-one-dark'
+
 const {ipcRenderer} = require('electron');
 
 // 导入所有语言扩展
@@ -51,7 +52,10 @@ export default defineComponent({
     filePath: {
       type: String,
       required: true
-    }
+    },
+    selectedSessionId: {
+      required: true
+    },
   },
   setup(props) {
     const code = ref(props.content)

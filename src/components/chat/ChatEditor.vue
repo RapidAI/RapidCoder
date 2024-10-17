@@ -10,7 +10,7 @@
           {{ getTitle(file) }}
         </span>
       </template>
-      <code-editor :content="fileContents[index]"  :language="file.split('.').pop()" :file-path="file"/>
+      <code-editor :content="fileContents[index]" :selectedSessionId="selectedSessionId" :language="file.split('.').pop()" :file-path="file"/>
     </a-tab-pane>
   </a-tabs>
 </template>
