@@ -1,6 +1,6 @@
 <template>
   <a-layout class="custom-content">
-    <splitpanes class="default-theme" @resize="resize" horizontal>
+    <splitpanes class="default-theme" :push-other-panes="false" @resize="resize" horizontal>
       <pane :size="100-parameterStore.sshPane">
         <splitpanes>
           <pane :size="parameterStore.treePane">
