@@ -49,55 +49,35 @@ const getFileStats = async (filePath) => {
         modified: stats.mtime
     };
 };
-// 监听文件夹变化
-const activeWatchers = {};  // 用来存储已经监听的目录
-ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
-    if (activeWatchers[dirPath]) {
-        console.log(`目录 ${dirPath} 已经在监听中。`);
-        return;
+// 监控目录
+const activeWatchers = {};  // 存储监听器及其关联的多个ID
+
+ipcMain.handle('initDirectoryWatch', (event, dirPath, id) => {
+    if (!activeWatchers[dirPath]) {
+        const watcher = chokidar.watch(dirPath, { persistent: true, ignoreInitial: true, ignored: /(^|[\/\\])\../ });
+        activeWatchers[dirPath] = { watcher, ids: new Set() };
+
+        watcher.on('add', filePath => event.sender.send(dirPath, { action: 'add', fileInfo: { key: filePath, type: 'file' } }));
+        watcher.on('change', filePath => event.sender.send(dirPath, { action: 'change', fileInfo: { key: filePath, type: 'file' } }));
+        watcher.on('unlink', filePath => event.sender.send(dirPath, { action: 'unlink', fileInfo: { key: filePath, type: 'file' } }));
+        watcher.on('addDir', dirPath => event.sender.send(dirPath, { action: 'addDir', fileInfo: { key: dirPath, type: 'folder' } }));
+        watcher.on('unlinkDir', dirPath => event.sender.send(dirPath, { action: 'unlinkDir', fileInfo: { key: dirPath, type: 'folder' } }));
     }
 
-    const watcher = chokidar.watch(dirPath, {
-        persistent: true,
-        ignoreInitial: true,
-        ignored: /(^|[\/\\])\../, // 忽略隐藏文件
-    });
-
-    activeWatchers[dirPath] = watcher;  // 记录当前监听的目录
-
-    const sendFileDetails = async (filePath, action, type) => {
-        try {
-            if (action === 'unlink' || action === 'unlinkDir') {
-                event.sender.send(dirPath, {action, fileInfo: {key: filePath, type}});
-            } else {
-                const fileInfo = await getFileStats(filePath);
-                event.sender.send(dirPath, {action, fileInfo: {...fileInfo, type}});
-            }
-        } catch (err) {
-            console.error(`处理文件/目录变更事件时出错: ${filePath}`, err);
-        }
-    };
-
-    // 监控文件的增加、修改和删除
-    watcher.on('add', filePath => sendFileDetails(filePath, 'add', 'file'));
-    watcher.on('change', filePath => sendFileDetails(filePath, 'change', 'file'));
-    watcher.on('unlink', filePath => sendFileDetails(filePath, 'unlink', 'file'));
-
-    // 监控目录的增加和删除
-    watcher.on('addDir', dirPath => sendFileDetails(dirPath, 'addDir', 'folder'));
-    watcher.on('unlinkDir', dirPath => sendFileDetails(dirPath, 'unlinkDir', 'folder'));
-
-    watcher.on('error', (error) => {
-        console.error(`监控目录时发生错误: ${error}`);
-        event.sender.send('watchError', {message: `监控目录时发生错误: ${error.message}`});
-    });
-
-    // 确保应用关闭时清理监视器
-    app.on('before-quit', () => {
-        watcher.close();
-        delete activeWatchers[dirPath];  // 移除已经关闭的监听器
-    });
+    activeWatchers[dirPath].ids.add(id);
 });
+// 移除目录监控
+ipcMain.handle('removeDirectoryWatch', (event, dirPath, id) => {
+    const watcherData = activeWatchers[dirPath];
+    if (watcherData) {
+        watcherData.ids.delete(id);
+        if (watcherData.ids.size === 0) {
+            watcherData.watcher.close();
+            delete activeWatchers[dirPath];
+        }
+    }
+});
+
 
 // 选择目录处理
 ipcMain.handle('getDirectoryDialog', async () => {

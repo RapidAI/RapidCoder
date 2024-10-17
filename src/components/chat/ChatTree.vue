@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import {ref, onMounted, computed, watch} from 'vue';
+import {ref, onMounted, computed, watch, onUpdated, onBeforeUnmount} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -48,14 +48,15 @@ export default {
     const treeData = ref([]);
     const analyzingStates = ref(new Map());
 
+    // 初始化tree
     onMounted(async () => {
-      const directoryPath = currentSession.value.currentProjectPath;
-      const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
+      const {currentProjectPath,sessionId} = currentSession.value;
+      const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath,sessionId);
       treeData.value = sortTreeData([structure]);
       updateSessionMessages();
-      ipcRenderer.invoke('initDirectoryWatch', directoryPath);
-
-      ipcRenderer.on(directoryPath, (event, {action, fileInfo}) => {
+      // 监控目录
+      ipcRenderer.invoke('initDirectoryWatch', currentProjectPath);
+      ipcRenderer.on(currentProjectPath, (event, {action, fileInfo}) => {
         if (action === 'add' || action === 'addDir') {
           addNodeToTree(treeData.value, fileInfo);
         } else if (action === 'change') {
@@ -64,6 +65,11 @@ export default {
           removeNodeFromTree(treeData.value, fileInfo);
         }
       });
+    });
+    // 取消监控
+    onBeforeUnmount(() => {
+      const {currentProjectPath,sessionId} = currentSession.value;
+      ipcRenderer.invoke('removeDirectoryWatch', currentProjectPath,sessionId);
     });
 
     const sortTreeData = (nodes) => {
