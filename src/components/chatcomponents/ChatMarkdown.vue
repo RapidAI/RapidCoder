@@ -5,9 +5,8 @@
         <div class="code-header">
           <span>{{ block.language }}</span>
           <div class="code-actions">
-<!--            'link' | 'default' | 'primary' | 'ghost' | 'dashed' | 'text'-->
-            <a-button type="link" size="small" @click="copyCode(block.code)">复制</a-button>
-            <a-button type="link" size="small" @click="executeCode(block)">替换</a-button>
+            <a-button type="default" size="small" @click="copyCode(block.code)">复制</a-button>
+            <a-button type="default" size="small" @click="executeCode(block)">应用</a-button>
           </div>
         </div>
       </div>
