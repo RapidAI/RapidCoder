@@ -55,9 +55,11 @@ export default {
             });
             currentTokens = [];
           }
+          const [language, filePath] = token.info.trim().split(':');
           tempBlocks.push({
             isCode: true,
-            language: token.info.trim() || 'plaintext',
+            language: language || 'plaintext',
+            filePath: filePath || '',
             code: token.content,
             content: md.renderer.render([token], md.options),
           });
@@ -88,10 +90,10 @@ export default {
     };
 
     const executeCode = async (block) => {
-      const [language, filePath] = block.language.split(':');
+      const filePath = block.filePath;
 
       if (!filePath) {
-        message.info(`文件 ${filePath} 不存在`);
+        message.info(`文件路径不存在`);
         return;
       }
 
