@@ -61,11 +61,9 @@ export default {
             if (!newFiles.includes(activeFile.value)) {
               activeFile.value = newFiles[0];
             }
-            // 对每个文件内容进行 wrapFileContent 处理
             const wrappedContents = fileContents.value.map((content, index) =>
                 wrapFileContent(content, newFiles[index])
             );
-            // 将处理后的内容连接起来
             currentSession.value.messages[0] =  {
               role: "system",
               content: wrappedContents.join("\n"),
