@@ -45,21 +45,16 @@ export default {
       return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
     });
 
-    const treeData = ref([]); // 用于存储文件目录树的状态
+    const treeData = ref([]);
     const analyzingStates = ref(new Map());
 
-    // 当组件挂载时启动文件夹监听
     onMounted(async () => {
       const directoryPath = currentSession.value.currentProjectPath;
-
-      // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
-      treeData.value= sortTreeData([structure]);
+      treeData.value = sortTreeData([structure]);
       updateSessionMessages();
-      // 启动监听文件目录
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
 
-      // 监听文件和目录变化事件
       ipcRenderer.on(directoryPath, (event, {action, fileInfo}) => {
         if (action === 'add' || action === 'addDir') {
           addNodeToTree(treeData.value, fileInfo);
@@ -70,28 +65,16 @@ export default {
         }
       });
     });
-    // 排序函数，递归排序子节点，确保目录排在文件前面
+
     const sortTreeData = (nodes) => {
-      // 将节点分为目录和文件
       const directories = nodes.filter(node => node.type === 'directory');
       const files = nodes.filter(node => node.type === 'file');
-
-      // 分别对目录和文件进行字母顺序排序
-      directories.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-      files.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-
-      // 递归排序子节点
-      directories.forEach(dir => {
-        if (dir.children) {
-          dir.children = sortTreeData(dir.children);
-        }
-      });
-
-      // 合并目录和文件，确保目录在文件之前
+      directories.sort((a, b) => a.title.localeCompare(b.title));
+      files.sort((a, b) => a.title.localeCompare(b.title));
+      directories.forEach(dir => dir.children && (dir.children = sortTreeData(dir.children)));
       return [...directories, ...files];
     };
 
-    // 根据 key 查找节点
     const findNodeByKey = (nodes, key) => {
       for (const node of nodes) {
         if (node.key === key) return node;
@@ -103,26 +86,16 @@ export default {
       return null;
     };
 
-    // 添加节点
     const addNodeToTree = (nodes, fileInfo) => {
       const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
       const parentNode = findNodeByKey(nodes, parentPath);
       if (parentNode && parentNode.children) {
-        parentNode.children.push({
-          ...fileInfo,
-          children: [],
-          type: fileInfo.type
-        });
+        parentNode.children.push({...fileInfo, children: [], type: fileInfo.type});
       } else if (!parentNode) {
-        nodes.push({
-          ...fileInfo,
-          children: [],
-          type: fileInfo.type
-        });
+        nodes.push({...fileInfo, children: [], type: fileInfo.type});
       }
     };
 
-    // 更新节点
     const updateNodeInTree = (nodes, fileInfo) => {
       const node = findNodeByKey(nodes, fileInfo.key);
       if (node) {
@@ -131,7 +104,6 @@ export default {
       }
     };
 
-    // 删除节点
     const removeNodeFromTree = (nodes, fileInfo) => {
       const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
       const parentNode = findNodeByKey(nodes, parentPath);
@@ -139,16 +111,12 @@ export default {
         parentNode.children = parentNode.children.filter(child => child.key !== fileInfo.key);
       } else {
         const nodeIndex = nodes.findIndex(node => node.key === fileInfo.key);
-        if (nodeIndex !== -1) {
-          nodes.splice(nodeIndex, 1);
-        }
+        if (nodeIndex !== -1) nodes.splice(nodeIndex, 1);
       }
     };
 
-    // 判断是否正在分析
     const isAnalyzing = (key) => analyzingStates.value.get(key);
 
-    // 处理右键菜单点击事件
     const onContextMenuClick = (nodeData, menuKey) => {
       if (menuKey === 'update') {
         message.success(`更新 ${nodeData.title} 成功`);
@@ -158,23 +126,20 @@ export default {
       }
     };
 
-    // 处理文件选中
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
-      // 过滤出文件节点
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      // 更新 currentSession.currentSelectFile
       currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
     };
 
     const updateSessionMessages = () => {
       if (currentSession.value?.currentSelectFile?.length === 0) {
-        const filterTreeData = ({ type, title, key, children }, isRoot = false) => ({
-          name: title,
-          ...(isRoot && { path: key }),
-          ...(type !== 'file' && children && { children: children.map(child => filterTreeData(child)) }),
+        const filterTreeData = (node, isRoot = false) => ({
+          name: node.title,
+          ...(isRoot && {path: node.key}),
+          ...(node.type !== 'file' && node.children && {children: node.children.map(child => filterTreeData(child))}),
         });
 
-        const filteredTreeData = treeData.value.map(node => filterTreeData(node, true));  // 根节点标记为 true
+        const filteredTreeData = treeData.value.map(node => filterTreeData(node, true));
         if (currentSession.value) {
           currentSession.value.messages = [
             {
@@ -188,11 +153,10 @@ export default {
 
     watch(
         () => currentSession.value?.currentSelectFile,
-        () => {
-          updateSessionMessages();
-        },
+        () => updateSessionMessages(),
         {immediate: true}
     );
+
     return {
       treeData,
       currentSession,
