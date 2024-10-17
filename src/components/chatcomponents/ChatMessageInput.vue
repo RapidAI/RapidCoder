@@ -12,6 +12,9 @@
     <a-button type="default" @click="handleSendOrStop" :disabled="isSending">
       {{ currentSession.isStreaming ? '终止' : '发送' }}
     </a-button>
+    <a-button type="default" @click="reset" :disabled="isSending">
+      清空
+    </a-button>
   </div>
 </template>
 
@@ -43,6 +46,19 @@ export default {
         if (isSending.value) return; // 防止重复发送
         handleSend();
       }
+    };
+
+    const reset = async () => {
+      currentSession.value.messages = [
+        {
+          role: 'system',
+          content: `你是一个高级开发工程师,喜欢用更优雅的,简洁的,效率更高的方案来完成你的工作`,
+        },
+        {
+          role: 'user',
+          content: ``,
+        }
+      ]
     };
 
     const handleSend = async () => {
@@ -85,6 +101,7 @@ export default {
       handleCompositionStart,
       handleCompositionEnd,
       sessionStore,
+      reset,
       isSending,
     };
   },

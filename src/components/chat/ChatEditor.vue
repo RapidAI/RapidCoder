@@ -63,8 +63,8 @@ export default {
             activeFile.value = newFiles.includes(activeFile.value) ? activeFile.value : newFiles[0];
 
             // 更新系统消息内容
-            currentSession.value.messages[0] = {
-              role: "system",
+            currentSession.value.messages[1] = {
+              role: "user",
               content: fileContents.value.map((content, index) => wrapFileContent(content, newFiles[index])).join("\n"),
             };
 
@@ -96,8 +96,8 @@ export default {
           const updatedContent = await ipcRenderer.invoke('getFileContent', fileInfo.key);
           fileContents.value[index] = updatedContent;
           //
-          // // 更新系统消息
-          // currentSession.value.messages[0].content = fileContents.value
+          // // 更新提示内容
+          // currentSession.value.messages[1].content = fileContents.value
           //     .map((content, idx) => wrapFileContent(content, newFiles[idx]))
           //     .join("\n");
         } else if (action === 'unlink' && index !== -1) {
