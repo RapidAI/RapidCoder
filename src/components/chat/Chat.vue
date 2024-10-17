@@ -19,7 +19,7 @@ import {Splitpanes, Pane} from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import {useParameterStore} from '@/store/ParameterStore';
 import ChatTree from '@/components/chat/ChatTree.vue';
-import ChatFileEditor from '@/components/chat/ChatFileEditor.vue';
+import ChatFileEditor from '@/components/chat/ChatEditor.vue';
 import ChatContainer from '@/components/chat/ChatContainer.vue';
 
 export default {
