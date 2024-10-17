@@ -3,9 +3,13 @@
     <a-tab-pane
         v-for="(file, index) in currentSession.currentSelectFile"
         :key="file"
-        :tab="getTitle(file)"
         :closable="true"
     >
+      <template #tab>
+        <span style="color: #1e1e1e">
+          {{ getTitle(file) }}
+        </span>
+      </template>
       <code-editor :content="fileContents[index]"  :language="file.split('.').pop()" :file-path="file"/>
     </a-tab-pane>
   </a-tabs>
@@ -16,9 +20,11 @@ import {ref, computed, watch} from "vue";
 
 const {ipcRenderer} = require("electron");
 import CodeEditor from "@/components/common/CodeEditor.vue";
+import CustomLoading from "@/components/common/CustomLoading.vue";
 
 export default {
   components: {
+    CustomLoading,
     CodeEditor,
   },
   props: {

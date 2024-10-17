@@ -3,7 +3,10 @@
   <a-tabs v-model:activeKey="sessionStore.selectedSessionId" size="small" type="editable-card" @edit="onEdit" hideAdd>
     <a-tab-pane v-for="session in sessionStore.sessions" :key="session.sessionId" :closable="true">
       <template #tab>
-        <custom-loading v-if="session.isStreaming" class="loading-icon"/>{{ sessionTitle(session) }}
+        <span style="color: #1e1e1e">
+          <custom-loading v-if="session.isStreaming" class="loading-icon"/>
+          {{ sessionTitle(session) }}
+        </span>
       </template>
       <Chat :selectedSessionId="session.sessionId"/>
     </a-tab-pane>
