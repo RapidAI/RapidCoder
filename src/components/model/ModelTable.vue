@@ -49,8 +49,7 @@ export default {
     const modalType = ref('add');
 
     const columns = [
-      { title: '模型名称', dataIndex: 'modelName', align: 'center' },
-      { title: 'name', dataIndex: 'model', align: 'center' },
+      { title: '模型名称', dataIndex: 'model', align: 'center' },
       { title: 'baseUrl', dataIndex: 'baseUrl', align: 'center' },
       { title: 'API Key', dataIndex: 'apiKey', align: 'center' },
       { title: '操作', dataIndex: 'action', align: 'center' },

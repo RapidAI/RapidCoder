@@ -7,39 +7,27 @@
       :wrapper-col="{ span: 14 }"
   >
     <a-form-item label="模型名称" name="modelName">
-      <a-input v-model:value="formState.modelName" placeholder="请输入模型名称"/>
+      <a-input v-model:value="formState.model" placeholder="请输入模型名称"/>
     </a-form-item>
 
     <a-form-item label="API Key" name="apiKey">
-      <a-input
-          v-model:value="formState.apiKey"
-          placeholder="请输入API Key"
-          style="width: 400px"
-      />
+      <a-input v-model:value="formState.apiKey" placeholder="请输入API Key" style="width: 400px"/>
     </a-form-item>
 
     <a-form-item label="使用代理" name="useProxy">
       <a-switch v-model:checked="formState.useProxy"/>
     </a-form-item>
 
-    <a-form-item label="代理主机" name="proxyHost" v-if="formState.useProxy">
+    <a-form-item v-if="formState.useProxy" label="代理主机" name="proxyHost">
       <a-input v-model:value="formState.proxyHost" placeholder="请输入代理主机地址"/>
     </a-form-item>
 
-    <a-form-item label="代理端口" name="proxyPort" v-if="formState.useProxy">
+    <a-form-item v-if="formState.useProxy" label="代理端口" name="proxyPort">
       <a-input-number v-model:value="formState.proxyPort" placeholder="请输入代理端口"/>
     </a-form-item>
 
     <a-form-item label="基础URL" name="baseUrl">
       <a-input v-model:value="formState.baseUrl" placeholder="请输入基础URL"/>
-    </a-form-item>
-
-    <a-form-item label="模型标识" name="model">
-      <a-input v-model:value="formState.model" placeholder="请输入模型标识"/>
-    </a-form-item>
-
-    <a-form-item label="描述" name="description">
-      <a-textarea v-model:value="formState.description" placeholder="请输入描述信息"/>
     </a-form-item>
 
     <a-form-item :wrapper-col="{ span: 20, offset: 6 }">
@@ -51,122 +39,51 @@
 
 <script>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { useModelStore } from '@/store/ModelStore';  // 引入 ModelStore
+import { useModelStore } from '@/store/ModelStore';
 
 export default {
   props: {
-    initialValues: {
-      type: Object,
-      default: () => ({}),
-    },
-    mode: {
-      type: String,
-      default: 'add',
-    },
+    initialValues: { type: Object, default: () => ({}) },
+    mode: { type: String, default: 'add' },
   },
   setup(props, { emit }) {
-    const modelStore = useModelStore(); // 使用 ModelStore
-
+    const modelStore = useModelStore();
     const formRef = ref(null);
     const formState = reactive({
-      modelName: '',
       apiKey: '',
       useProxy: false,
       proxyHost: '',
       proxyPort: null,
       baseUrl: '',
       model: '',
-      description: '',
     });
 
-    const maskedApiKey = ref('');
-
     const rules = computed(() => ({
-      modelName: [
-        { required: true, message: '请输入模型名称', trigger: 'blur' },
-      ],
-      apiKey: [
-        { required: true, message: '请输入API Key', trigger: 'blur' },
-      ],
-      baseUrl: [
-        { required: true, message: '请输入基础URL', trigger: 'blur' },
-      ],
+      model: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
+      apiKey: [{ required: true, message: '请输入API Key', trigger: 'blur' }],
+      baseUrl: [{ required: true, message: '请输入基础URL', trigger: 'blur' }],
     }));
 
-    const maskApiKey = (apiKey) => {
-      return apiKey ? apiKey.replace(/.(?=.{4})/g, '*') : '';
-    };
+    const maskApiKey = (apiKey) => apiKey.replace(/.(?=.{4})/g, '*');
 
-    watch(
-        () => formState.apiKey,
-        (newVal) => {
-          maskedApiKey.value = maskApiKey(newVal);
-        }
-    );
-
-    watch(
-        () => props.initialValues,
-        (newVal) => {
-          if (newVal) {
-            formState.modelName = newVal.modelName || '';
-            formState.apiKey = newVal.apiKey || '';
-            formState.useProxy = newVal.useProxy || false;
-            formState.proxyHost = newVal.proxyHost || '';
-            formState.proxyPort = newVal.proxyPort || null;
-            formState.baseUrl = newVal.baseUrl || '';
-            formState.model = newVal.model || '';
-            formState.description = newVal.description || '';
-            maskedApiKey.value = maskApiKey(formState.apiKey);
-          }
-        },
-        { immediate: true }
-    );
+    watch(() => props.initialValues, (newVal) => {
+      Object.assign(formState, newVal || {});
+      formState.apiKey = newVal.apiKey || '';
+    }, { immediate: true });
 
     const onSubmit = async () => {
-      try {
-        await formRef.value.validate();
-        const data = { ...formState };
-
-        if (!formState.useProxy) {
-          delete data.proxyHost;
-          delete data.proxyPort;
-        }
-
-        if (props.mode === 'add') {
-          modelStore.addModel(data); // 使用 ModelStore 添加模型
-        } else {
-          data.modelId = props.initialValues.modelId;
-          modelStore.updateModel(data); // 使用 ModelStore 更新模型
-        }
-
-        emit('onCancel');
-      } catch (error) {
-        console.error('Validation failed or store update error:', error);
-      }
-    };
-
-    const onCancel = () => {
+      await formRef.value.validate();
+      const data = { ...formState };
+      if (!data.useProxy) delete data.proxyHost, delete data.proxyPort;
+      props.mode === 'add' ? modelStore.addModel(data) : modelStore.updateModel({ ...data, modelId: props.initialValues.modelId });
       emit('onCancel');
     };
 
-    onMounted(() => {
-      if (props.initialValues) {
-        Object.assign(formState, props.initialValues);
-        maskedApiKey.value = maskApiKey(formState.apiKey);
-      }
-    });
+    const onCancel = () => emit('onCancel');
 
-    return {
-      formRef,
-      formState,
-      rules,
-      onSubmit,
-      onCancel,
-      maskedApiKey,
-    };
+    onMounted(() => Object.assign(formState, props.initialValues));
+
+    return { formRef, formState, rules, onSubmit, onCancel };
   },
 };
 </script>
-
-<style scoped>
-</style>
