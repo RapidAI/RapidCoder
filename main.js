@@ -78,6 +78,43 @@ ipcMain.handle('removeDirectoryWatch', (event, dirPath, id) => {
     }
 });
 
+// 监控文件
+const activeFileWatchers = {};  // 存储文件监听器及其关联的多个ID
+
+// 初始化文件监控
+ipcMain.handle('initFileWatch', (event, filePath, id) => {
+    if (!activeFileWatchers[filePath]) {
+        const watcher = chokidar.watch(filePath, { persistent: true, ignoreInitial: true });
+        activeFileWatchers[filePath] = { watcher, ids: new Set() };
+
+        watcher.on('change', (filePath) => event.sender.send(filePath, { action: 'change', fileInfo: { key: filePath, type: 'file' } }));
+        watcher.on('unlink', (filePath) => {
+            event.sender.send(filePath, { action: 'unlink', fileInfo: { key: filePath, type: 'file' } });
+            // 如果文件被删除了，自动移除监控
+            activeFileWatchers[filePath].ids.delete(id);
+            if (activeFileWatchers[filePath].ids.size === 0) {
+                watcher.close();
+                delete activeFileWatchers[filePath];
+            }
+        });
+    }
+
+    // 将ID关联到这个文件监控
+    activeFileWatchers[filePath].ids.add(id);
+});
+
+// 移除文件监控
+ipcMain.handle('removeFileWatch', (event, filePath, id) => {
+    const watcherData = activeFileWatchers[filePath];
+    if (watcherData) {
+        watcherData.ids.delete(id);
+        if (watcherData.ids.size === 0) {
+            watcherData.watcher.close();
+            delete activeFileWatchers[filePath];
+        }
+    }
+});
+
 
 // 选择目录处理
 ipcMain.handle('getDirectoryDialog', async () => {

@@ -19,7 +19,7 @@ import {useSessionStore} from "@/store/SessionStore";
 import {ref, computed, watch} from "vue";
 
 const {ipcRenderer} = require("electron");
-import CodeEditor from "@/components/common/CodeEditor.vue";
+import CodeEditor from "@/components/chatcomponents/CodeEditor.vue";
 import CustomLoading from "@/components/common/CustomLoading.vue";
 
 export default {
