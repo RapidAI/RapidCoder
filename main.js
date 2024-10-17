@@ -57,7 +57,12 @@ ipcMain.handle('initDirectoryWatch', (event, dirPath) => {
         return;
     }
 
-    const watcher = chokidar.watch(dirPath, {persistent: true, ignoreInitial: true});
+    const watcher = chokidar.watch(dirPath, {
+        persistent: true,
+        ignoreInitial: true,
+        ignored: /(^|[\/\\])\../, // 忽略隐藏文件
+    });
+
     activeWatchers[dirPath] = watcher;  // 记录当前监听的目录
 
     const sendFileDetails = async (filePath, action, type) => {

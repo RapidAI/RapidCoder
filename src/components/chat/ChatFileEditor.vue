@@ -64,13 +64,6 @@ export default {
               role: "system",
               content: wrappedContents.join("\n"),
             };
-          } else {
-            currentSession.value.messages = [
-              {
-                role: "system",
-                content: "",
-              },
-            ];
           }
         },
         {immediate: true}

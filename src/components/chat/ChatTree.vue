@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted, computed, watch, nextTick} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -54,7 +54,7 @@ export default {
 
       // 获取目录结构
       const structure = await ipcRenderer.invoke('getDirectoryStructure', directoryPath);
-      treeData.value= sortTreeData([structure]);
+      treeData.value = sortTreeData([structure]);
 
       // 启动监听文件目录
       ipcRenderer.invoke('initDirectoryWatch', directoryPath);
@@ -77,8 +77,8 @@ export default {
       const files = nodes.filter(node => node.type === 'file');
 
       // 分别对目录和文件进行字母顺序排序
-      directories.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-      files.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+      directories.sort((a, b) => a.title.localeCompare(b.title, undefined, {sensitivity: 'base'}));
+      files.sort((a, b) => a.title.localeCompare(b.title, undefined, {sensitivity: 'base'}));
 
       // 递归排序子节点
       directories.forEach(dir => {
@@ -164,7 +164,36 @@ export default {
       const fileNodes = selectedNodes.filter(node => node.type === 'file');
       // 更新 currentSession.currentSelectFile
       currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
+
+
     };
+
+    watch(
+        () => currentSession.value?.currentSelectFile,
+        (newFiles) => {
+          if (newFiles.length === 0) {
+            const filterTreeData = ({type, key, children}) => {
+              if (type === "file") {
+                return {type, path: key};
+              }
+              return {
+                type,
+                path: key,
+                children: Array.isArray(children) ? children.map(filterTreeData) : []
+              };
+            };
+            const filteredTreeData = treeData.value.map(filterTreeData);
+            currentSession.value.messages = [
+              {
+                role: "system",
+                content: JSON.stringify(filteredTreeData[0]),
+              },
+            ];
+          }
+        },
+        {immediate: true}
+    );
+
 
     return {
       treeData,
