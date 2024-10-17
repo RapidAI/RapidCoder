@@ -5,8 +5,9 @@
         <div class="code-header">
           <span>{{ block.language }}</span>
           <div class="code-actions">
-            <a-button type="text" size="small" @click="copyCode(block.code)">复制</a-button>
-            <a-button type="text" size="small" @click="executeCode(block)">替换</a-button>
+<!--            'link' | 'default' | 'primary' | 'ghost' | 'dashed' | 'text'-->
+            <a-button type="link" size="small" @click="copyCode(block.code)">复制</a-button>
+            <a-button type="link" size="small" @click="executeCode(block)">替换</a-button>
           </div>
         </div>
       </div>
@@ -91,12 +92,10 @@ export default {
 
     const executeCode = async (block) => {
       const filePath = block.filePath;
-
       if (!filePath) {
         message.info(`文件路径不存在`);
         return;
       }
-
       await ipcRenderer.invoke('replaceFileContent', filePath, block.code);
       message.info(`文件 ${filePath} 替换成功。`);
     };

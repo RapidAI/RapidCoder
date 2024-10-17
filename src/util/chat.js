@@ -65,17 +65,6 @@ export function parseChatResponse(input) {
         }, '');
 }
 
-export async function messageExecuteCode(selectedSessionId, index, sessions) {
-    const currentSession = sessions.find(s => s.sessionId === selectedSessionId);
-    const assistantMessage = currentSession.messages[index]?.content;
-    if (!assistantMessage) return;
-    const finalResult = await parseParenthesesMessage(assistantMessage);
-    if (!finalResult) {
-        message.success('不是代码无需运行');
-        return;
-    }
-    await processResults(finalResult);
-}
 
 export async function parseParenthesesMessage(assistantMessage) {
     const removeQuotes = str => str.replace(/^['"]|['"]$/g, '');

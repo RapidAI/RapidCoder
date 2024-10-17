@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 import {message} from 'ant-design-vue';
-import {processChat, messageExecuteCode} from '@/util/chat';
+import {processChat} from '@/util/chat';
 
 export const useSessionStore = defineStore('session_store', {
     state: () => ({
@@ -70,7 +70,6 @@ python:/src/.../file
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
             await processChat(currentSession, clonedMessages, index, overwrite);
-            messageExecuteCode(currentSession.sessionId, index + 1, this.sessions);
         },
         async agent1(currentSession, index, overwrite) {
             await this.agent2(currentSession, index, overwrite);
