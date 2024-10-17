@@ -28,7 +28,7 @@ export const useSessionStore = defineStore('session_store', {
                 messages: [
                     {
                         role: 'system',
-                        content: ``,
+                        content: `你是一个高级开发工程师,喜欢用更优雅的,简洁的,效率更高的方案来完成你的工作`,
                     },
                 ],
             };
