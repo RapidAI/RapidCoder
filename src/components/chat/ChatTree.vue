@@ -147,12 +147,10 @@ export default {
 
         const filteredTreeData = treeData.value.map(node => filterTreeData(node, true));
         if (currentSession.value) {
-          currentSession.value.messages = [
-            {
-              role: 'system',
-              content: JSON.stringify(filteredTreeData[0]),
-            },
-          ];
+          currentSession.value.messages[0] = {
+            role: 'system',
+            content: JSON.stringify(filteredTreeData[0]),
+          };
         }
       }
     };
