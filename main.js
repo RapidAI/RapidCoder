@@ -37,31 +37,35 @@ app.on('window-all-closed', () => {
         app.quit();
     }
 });
-// 通用函数：获取文件信息
-const getFileStats = async (filePath) => {
-    const stats = await fs.stat(filePath);
-    return {
-        title: path.basename(filePath),
-        key: filePath,
-        type: stats.isDirectory() ? 'folder' : 'file',
-        size: stats.size,
-        created: stats.birthtime,
-        modified: stats.mtime
-    };
-};
+
 // 监控目录
 const activeWatchers = {};  // 存储监听器及其关联的多个ID
 
 ipcMain.handle('initDirectoryWatch', (event, dirPath, id) => {
     if (!activeWatchers[dirPath]) {
-        const watcher = chokidar.watch(dirPath, { persistent: true, ignoreInitial: true, ignored: /(^|[\/\\])\../ });
-        activeWatchers[dirPath] = { watcher, ids: new Set() };
+        const watcher = chokidar.watch(dirPath, {persistent: true, ignoreInitial: true, ignored: /(^|[\/\\])\../});
+        activeWatchers[dirPath] = {watcher, ids: new Set()};
 
-        watcher.on('add', filePath => event.sender.send(dirPath, { action: 'add', fileInfo: { key: filePath, type: 'file' } }));
-        watcher.on('change', filePath => event.sender.send(dirPath, { action: 'change', fileInfo: { key: filePath, type: 'file' } }));
-        watcher.on('unlink', filePath => event.sender.send(dirPath, { action: 'unlink', fileInfo: { key: filePath, type: 'file' } }));
-        watcher.on('addDir', dirPath => event.sender.send(dirPath, { action: 'addDir', fileInfo: { key: dirPath, type: 'folder' } }));
-        watcher.on('unlinkDir', dirPath => event.sender.send(dirPath, { action: 'unlinkDir', fileInfo: { key: dirPath, type: 'folder' } }));
+        watcher.on('add', filePath => event.sender.send(dirPath, {
+            action: 'add',
+            fileInfo: {title: path.basename(filePath), key: filePath, type: 'file'}
+        }));
+        watcher.on('change', filePath => event.sender.send(dirPath, {
+            action: 'change',
+            fileInfo: {title: path.basename(filePath), key: filePath, type: 'file'}
+        }));
+        watcher.on('unlink', filePath => event.sender.send(dirPath, {
+            action: 'unlink',
+            fileInfo: {title: path.basename(filePath), key: filePath, type: 'file'}
+        }));
+        watcher.on('addDir', dirPath => event.sender.send(dirPath, {
+            action: 'addDir',
+            fileInfo: {title: path.basename(filePath), key: dirPath, type: 'folder'}
+        }));
+        watcher.on('unlinkDir', dirPath => event.sender.send(dirPath, {
+            action: 'unlinkDir',
+            fileInfo: {title: path.basename(filePath), key: dirPath, type: 'folder'}
+        }));
     }
 
     activeWatchers[dirPath].ids.add(id);
@@ -84,12 +88,15 @@ const activeFileWatchers = {};  // 存储文件监听器及其关联的多个ID
 // 初始化文件监控
 ipcMain.handle('initFileWatch', (event, filePath, id) => {
     if (!activeFileWatchers[filePath]) {
-        const watcher = chokidar.watch(filePath, { persistent: true, ignoreInitial: true });
-        activeFileWatchers[filePath] = { watcher, ids: new Set() };
+        const watcher = chokidar.watch(filePath, {persistent: true, ignoreInitial: true});
+        activeFileWatchers[filePath] = {watcher, ids: new Set()};
 
-        watcher.on('change', (filePath) => event.sender.send(filePath, { action: 'change', fileInfo: { key: filePath, type: 'file' } }));
+        watcher.on('change', (filePath) => event.sender.send(filePath, {
+            action: 'change',
+            fileInfo: {key: filePath, type: 'file'}
+        }));
         watcher.on('unlink', (filePath) => {
-            event.sender.send(filePath, { action: 'unlink', fileInfo: { key: filePath, type: 'file' } });
+            event.sender.send(filePath, {action: 'unlink', fileInfo: {key: filePath, type: 'file'}});
             // 如果文件被删除了，自动移除监控
             activeFileWatchers[filePath].ids.delete(id);
             if (activeFileWatchers[filePath].ids.size === 0) {
