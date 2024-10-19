@@ -1,8 +1,8 @@
 <template>
   <a-layout class="custom-content">
-    <splitpanes class="default-theme" :push-other-panes="false" @resize="resize" horizontal>
-      <pane :size="100-parameterStore.sshPane">
-        <splitpanes>
+    <splitpanes class="default-theme" :push-other-panes="false" @resize="resize1" horizontal>
+      <pane :size="parameterStore.sshPane">
+        <splitpanes class="default-theme" :push-other-panes="false" @resize="resize2">
           <pane :size="parameterStore.treePane">
             <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
           </pane>
@@ -14,7 +14,7 @@
           </pane>
         </splitpanes>
       </pane>
-      <pane :size="parameterStore.sshPane">
+      <pane>
         <ssh-connector v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
       </pane>
     </splitpanes>
@@ -46,15 +46,18 @@ export default {
   },
   setup() {
     const parameterStore = useParameterStore();
-    const resize = (paneSize) => {
+    const resize1 = (paneSize) => {
+      parameterStore.sshPane = paneSize[0].size;
+    };
+    const resize2 = (paneSize) => {
       parameterStore.treePane = paneSize[0].size;
       parameterStore.filePane = paneSize[1].size;
       parameterStore.contentPane = paneSize[2].size;
-      parameterStore.sshPane = paneSize[3].size; // 更新新的pane大小
     };
     return {
       parameterStore,
-      resize
+      resize1,
+      resize2
     };
   },
 };
