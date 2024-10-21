@@ -6,15 +6,15 @@ import ModelTable from '../components/model/ModelTable.vue';
 const routes = [
     {
         path: '/',
-        redirect: '/session'
+        redirect: '/Session'
     },
     {
-        path: '/session',
+        path: '/Session',
         name: 'Session',
         component: Session
     },
     {
-        path: '/models',
+        path: '/ModelTable',
         name: 'ModelTable',
         component: ModelTable
     },
