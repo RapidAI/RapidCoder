@@ -49,17 +49,11 @@ export default {
     };
 
     const reset = async () => {
-      currentSession.value.messages = [
-        {
-          role: 'system',
-          content: `你是一个高级开发工程师,喜欢用更优雅的,简洁的,效率更高的方案来完成你的工作`,
-        },
-        {
-          role: 'user',
-          content: ``,
-        }
-      ]
+      if (currentSession.value && currentSession.value.messages.length > 2) {
+        currentSession.value.messages = currentSession.value.messages.slice(0, 2);
+      }
     };
+
 
     const handleSend = async () => {
       if (inputvalue.value.trim() && currentSession.value) {
