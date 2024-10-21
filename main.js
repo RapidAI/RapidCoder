@@ -168,17 +168,29 @@ ipcMain.handle('applyPatchToFile', async (event, filePath, diffContent) => {
     return {success: true, message: '文件补丁应用成功'};
 });
 // 终端
-const { exec } = require('child_process');
-ipcMain.on('execute-command', (event, command) => {
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            event.reply('command-output', `${error.message}`);
-            return;
-        }
-        if (stderr) {
-            event.reply('command-output', `${stderr}`);
-            return;
-        }
-        event.reply('command-output', `${stdout}`);
+const { spawn } = require('child_process');
+
+ipcMain.on('execute-command', (event, command, args, cwd) => {
+    // 使用spawn创建子进程
+    const child = spawn(command, args, { cwd: cwd || process.cwd(), shell: true });
+
+    // 捕获标准输出
+    child.stdout.on('data', (data) => {
+        event.reply('command-output', data.toString());
+    });
+
+    // 捕获标准错误输出
+    child.stderr.on('data', (data) => {
+        event.reply('command-output', `Error: ${data.toString()}`);
+    });
+
+    // 捕获执行错误
+    child.on('error', (error) => {
+        event.reply('command-output', `Failed to start command: ${error.message}`);
+    });
+
+    // 监听子进程关闭事件
+    child.on('close', (code) => {
+        event.reply('command-output', `Command exited with code ${code}`);
     });
 });
