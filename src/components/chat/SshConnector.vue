@@ -75,18 +75,14 @@ export default {
   },
   mounted() {
     TerminalApi.pushMessage(this.name, {content: "hello world"});
-
-    // Listen for command results from Electron main process
     ipcRenderer.on('command-output', (event, message) => {
       TerminalApi.pushMessage(this.name, {content: message});
     });
   },
   methods: {
     onExecCmd(key, command, success, failed) {
-      console.log(key, command, success, failed)
-      const cmd = command
-      ipcRenderer.send('execute-command', cmd);
-      success({type: "text", content: `Executing: ${cmd}`});
+      ipcRenderer.send('execute-command', command);
+      success({type: "text", content: `Executing: ${command}`});
     },
   },
 };
