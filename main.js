@@ -191,6 +191,16 @@ ipcMain.on('execute-command', (event, command, args, cwd) => {
 
     // 监听子进程关闭事件
     child.on('close', (code) => {
-        event.reply('command-output', `Command exited with code ${code}`);
+        event.reply('command-output', '');
     });
+});
+
+// 添加路径解析逻辑
+ipcMain.handle("resolve-path", (event, currentDirectory, target) => {
+    try {
+        const newPath = path.resolve(currentDirectory, target);
+        return newPath;
+    } catch (error) {
+        throw new Error("Failed to resolve path");
+    }
 });
