@@ -10,6 +10,7 @@
 <script>
 import {Terminal, TerminalApi} from "vue-web-terminal";
 import "vue-web-terminal/lib/theme/dark.css";
+import {TerminalFlash} from 'vue-web-terminal'
 
 const {ipcRenderer} = require("electron");
 
@@ -79,10 +80,13 @@ export default {
       TerminalApi.pushMessage(this.name, {content: message});
     });
   },
+  beforeDestroy() {
+    ipcRenderer.removeAllListeners("command-output");
+  },
   methods: {
     onExecCmd(key, command, success, failed) {
       ipcRenderer.send('execute-command', command);
-      success({type: "text", content: `Executing: ${command}`});
+      success({type: "text", content: ''});
     },
   },
 };

@@ -167,18 +167,18 @@ ipcMain.handle('applyPatchToFile', async (event, filePath, diffContent) => {
     await fs.writeFile(filePath, patchedContent, 'utf-8');
     return {success: true, message: '文件补丁应用成功'};
 });
+// 终端
 const { exec } = require('child_process');
-
 ipcMain.on('execute-command', (event, command) => {
     exec(command, (error, stdout, stderr) => {
         if (error) {
-            event.reply('command-output', `Error: ${error.message}`);
+            event.reply('command-output', `${error.message}`);
             return;
         }
         if (stderr) {
-            event.reply('command-output', `Stderr: ${stderr}`);
+            event.reply('command-output', `${stderr}`);
             return;
         }
-        event.reply('command-output', `Output: ${stdout}`);
+        event.reply('command-output', `${stdout}`);
     });
 });
