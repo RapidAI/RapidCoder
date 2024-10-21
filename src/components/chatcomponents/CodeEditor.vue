@@ -2,7 +2,6 @@
   <Codemirror
       v-model="code"
       :extensions="extensions"
-      :style="{ height: '89vh' }"
   />
 </template>
 

@@ -169,11 +169,6 @@ export default {
 </script>
 
 <style scoped>
-.custom-list {
-  height: 83vh;
-  overflow-y: auto;
-}
-
 .user-container {
   background-color: white;
 }

@@ -1,5 +1,5 @@
 <template>
-  <a-layout-content class="full-height">
+  <a-layout-content class="chat-container">
     <div class="top-bar">
       <a-select
           type="text"
@@ -95,6 +95,11 @@ export default {
 </script>
 
 <style scoped>
+.chat-container {
+  background-color: #F7F8FAFF;
+  height: 100%; /* 自适应父组件高度 */
+  overflow: auto; /* 超出时显示滚动条 */
+}
 .top-bar {
   display: flex;
   justify-content: space-between;

@@ -1,5 +1,5 @@
 <template>
-  <a-tabs v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit" hideAdd>
+  <a-tabs class="chat-editor" v-model:activeKey="activeFile" size="small" type="editable-card" @edit="onEdit" hideAdd>
     <a-tab-pane
         v-for="(file, index) in currentSession.currentSelectFile"
         :key="file"
@@ -131,3 +131,10 @@ export default {
   },
 };
 </script>
+<style>
+.chat-editor {
+  background-color: #F7F8FAFF;
+  height: 100%; /* 自适应父组件高度 */
+  overflow: auto; /* 超出时显示滚动条 */
+}
+</style>

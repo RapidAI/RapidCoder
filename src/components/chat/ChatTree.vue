@@ -174,7 +174,8 @@ export default {
 <style>
 .chat-tree {
   background-color: #F7F8FAFF;
-  height: 93vh;
-  overflow: auto;
+  height: 100%; /* 自适应父组件高度 */
+  overflow: auto; /* 超出时显示滚动条 */
 }
 </style>
+
