@@ -16,6 +16,7 @@ import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import { useSessionStore } from "@/store/sessionStore";
 const {ipcRenderer} = require("electron");
 
+
 export default {
   props: { selectedSessionId: { required: true } },
   components: { Terminal },
@@ -89,8 +90,9 @@ export default {
   },
 };
 </script>
-<style>
-.Terminal{
-  font-size: small;
+<style lang="scss">
+:root {
+  --t-font-height: 11px !important;
+  --t-font-size: 12px !important;
 }
 </style>
