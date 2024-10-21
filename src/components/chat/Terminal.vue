@@ -30,7 +30,7 @@ export default {
         currentSession.value.currentProjectPath
     );
 
-    const name = ref("my-terminal");
+    const name = ref(props.selectedSessionId.toString());
 
     const cmdStore = reactive([
       { key: "ls", group: "文件管理", usage: "ls", description: "列出目录中的文件" },
