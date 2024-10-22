@@ -73,8 +73,10 @@ export default {
     });
 
     const sortTreeData = (nodes) => {
-      const directories = nodes.filter(node => node.type === 'directory');
-      const files = nodes.filter(node => node.type === 'file');
+      const filterNodes = (node) => node.title && !node.title.startsWith('.');
+
+      const directories = nodes.filter(node => node.type === 'directory' && filterNodes(node));
+      const files = nodes.filter(node => node.type === 'file' && filterNodes(node));
       directories.sort((a, b) => a.title.localeCompare(b.title));
       files.sort((a, b) => a.title.localeCompare(b.title));
       directories.forEach(dir => dir.children && (dir.children = sortTreeData(dir.children)));
@@ -178,4 +180,3 @@ export default {
   overflow: auto; /* 超出时显示滚动条 */
 }
 </style>
-
