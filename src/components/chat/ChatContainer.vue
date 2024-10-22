@@ -96,9 +96,8 @@ export default {
 
 <style scoped>
 .chat-container {
-  background-color: #F7F8FAFF;
-  height: 100%; /* 自适应父组件高度 */
-  overflow: auto; /* 超出时显示滚动条 */
+  height: 100%; 
+  overflow: auto;
 }
 .top-bar {
   display: flex;
@@ -107,5 +106,15 @@ export default {
   background-color: white;
   height: 35px;
   font-size: 15px;
+}
+.message-list {
+  height: calc(100% - 35px - 70px); 
+  overflow-y: auto;
+}
+.message-input {
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+  padding:10px;
 }
 </style>
