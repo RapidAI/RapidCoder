@@ -73,7 +73,7 @@ export default {
     });
 
     const sortTreeData = (nodes) => {
-      const filterNodes = (node) => node.title && !node.title.startsWith('.');
+      const filterNodes = (node) => node.title && (node.type === 'directory' ? node.title[0] !== '.' : true);
 
       const directories = nodes.filter(node => node.type === 'directory' && filterNodes(node));
       const files = nodes.filter(node => node.type === 'file' && filterNodes(node));
