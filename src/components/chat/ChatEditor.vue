@@ -136,4 +136,11 @@ export default {
   height: 100%; /* 自适应父组件高度 */
   overflow: auto; /* 超出时显示滚动条 */
 }
+
+.chat-editor .ant-tabs-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10; /* 确保头部在滚动时不会被其他内容覆盖 */
+  background-color: #F7F8FAFF; /* 保持背景颜色一致 */
+}
 </style>
