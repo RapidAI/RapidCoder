@@ -13,7 +13,6 @@
 .code-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     background-color: #1e1e1e;
     color: #d4d4d4;
     padding: 10px;
@@ -22,8 +21,7 @@
 
 .code-footer {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end; 
     background-color: #1e1e1e;
     color: #d4d4d4;
     padding: 10px;
@@ -35,6 +33,7 @@
     gap: 10px;
     color: #d4d4d4;
 }
+
 
 pre {
     white-space: pre-wrap;

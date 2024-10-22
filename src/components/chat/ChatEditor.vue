@@ -95,11 +95,10 @@ export default {
           // 重新获取文件内容并更新
           const updatedContent = await ipcRenderer.invoke('getFileContent', fileInfo.key);
           fileContents.value[index] = updatedContent;
-          //
-          // // 更新提示内容
-          // currentSession.value.messages[1].content = fileContents.value
-          //     .map((content, idx) => wrapFileContent(content, newFiles[idx]))
-          //     .join("\n");
+          // 更新提示内容
+          currentSession.value.messages[1].content = fileContents.value
+              .map((content, idx) => wrapFileContent(content, newFiles[idx]))
+              .join("\n");
         } else if (action === 'unlink' && index !== -1) {
           // 移除删除的文件
           currentSession.value.currentSelectFile.splice(index, 1);
