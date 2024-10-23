@@ -1,11 +1,12 @@
-import { eventBus } from './eventBus.js';
-import {message,Modal} from 'ant-design-vue';
+import {eventBus} from './eventBus.js';
+import {message, Modal} from 'ant-design-vue';
+const {ipcRenderer} = require('electron');
 
 export async function processChat(currentSession, messagelist, index, overwrite) {
     currentSession.isStreaming = true;
     try {
-        const { currentModel } = currentSession;
-        const { baseUrl = '', apiKey, model } = currentModel;
+        const {currentModel} = currentSession;
+        const {baseUrl = '', apiKey, model} = currentModel;
 
         const url = baseUrl.endsWith('/') ? `${baseUrl}v1/chat/completions` : `${baseUrl}/v1/chat/completions`;
 
@@ -32,7 +33,7 @@ export async function processChat(currentSession, messagelist, index, overwrite)
         };
 
         while (true) {
-            const { done, value } = await currentSession.reader.read();
+            const {done, value} = await currentSession.reader.read();
             if (done) break;
             const chunk = decoder.decode(value);
             currentSession.messages[assistantIndex].content += parseChatResponse(chunk);
@@ -63,4 +64,18 @@ export function parseChatResponse(input) {
             }
             return acc;
         }, '');
+}
+
+export async function replaceFileContent(filePath, content) {
+    if (!filePath) {
+        message.info(`文件路径不存在`);
+        return;
+    }
+    try {
+        await ipcRenderer.invoke('replaceFileContent', filePath, content);
+        message.info(`文件 ${filePath} 替换成功。`);
+    } catch (error) {
+        console.error('文件替换失败:', error);
+        message.error(`文件 ${filePath} 替换失败。`);
+    }
 }

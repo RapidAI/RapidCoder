@@ -30,6 +30,7 @@ import {useSessionStore} from '@/store/SessionStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import {message} from 'ant-design-vue';
+import {replaceFileContent} from '@/util/chat.js';
 
 export default {
   props: {
@@ -38,7 +39,7 @@ export default {
   },
   setup(props) {
     const sessionStore = useSessionStore();
-    const dataBlocks = ref([]); 
+    const dataBlocks = ref([]);
 
     const md = new MarkdownIt({
       highlight: (str, lang) => {
@@ -99,12 +100,14 @@ export default {
 
     const executeCode = async (block) => {
       const filePath = block.filePath;
-      if (!filePath) {
-        message.info(`文件路径不存在`);
+      const code = block.code;
+
+      if (!filePath || !code) {
+        message.info(`文件路径或内容不存在`);
         return;
       }
-      await ipcRenderer.invoke('replaceFileContent', filePath, block.code);
-      message.info(`文件 ${filePath} 替换成功。`);
+
+      await replaceFileContent(filePath, code);
     };
 
     return {
