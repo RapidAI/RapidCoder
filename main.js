@@ -169,38 +169,46 @@ ipcMain.handle('applyPatchToFile', async (event, filePath, diffContent) => {
 });
 // 终端
 const { spawn } = require('child_process');
-
 ipcMain.on('execute-command', (event, command, args, cwd) => {
-    // 使用spawn创建子进程
     const child = spawn(command, args, { cwd: cwd || process.cwd(), shell: true });
-
-    // 捕获标准输出
     child.stdout.on('data', (data) => {
         event.reply('command-output', data.toString());
     });
-
-    // 捕获标准错误输出
     child.stderr.on('data', (data) => {
         event.reply('command-output', `Error: ${data.toString()}`);
     });
-
-    // 捕获执行错误
     child.on('error', (error) => {
         event.reply('command-output', `Failed to start command: ${error.message}`);
     });
-
-    // 监听子进程关闭事件
     child.on('close', (code) => {
         event.reply('command-output', '');
     });
 });
-
-// 添加路径解析逻辑
 ipcMain.handle("resolve-path", (event, currentDirectory, target) => {
     try {
         const newPath = path.resolve(currentDirectory, target);
         return newPath;
     } catch (error) {
         throw new Error("Failed to resolve path");
+    }
+});
+// 创建目录
+ipcMain.handle('createDirectory', async (event, dirPath) => {
+    try {
+        await fs.mkdir(dirPath, { recursive: true });
+        return { success: true, message: '目录创建成功' };
+    } catch (error) {
+        return { success: false, message: `目录创建失败: ${error.message}` };
+    }
+});
+
+// 创建文件
+ipcMain.handle('createFile', async (event, filePath) => {
+    try {
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '', 'utf-8');
+        return { success: true, message: '文件创建成功' };
+    } catch (error) {
+        return { success: false, message: `文件创建失败: ${error.message}` };
     }
 });

@@ -18,12 +18,17 @@
           <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
             <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
             <a-menu-item key="delete">删除</a-menu-item>
+            <a-menu-item key="addDir">新增目录</a-menu-item>
+            <a-menu-item key="addFile">新增文件</a-menu-item>
           </a-menu>
         </template>
       </a-dropdown>
       <custom-loading v-if="isAnalyzing(data.key)"/>
     </template>
   </a-directory-tree>
+  <a-modal :mask="false" v-model:open="modalVisible" title="输入名称" @ok="handleModalOk" @cancel="handleModalCancel">
+    <a-input v-model:value="newName" placeholder="请输入名称"/>
+  </a-modal>
 </template>
 
 <script>
@@ -47,6 +52,10 @@ export default {
 
     const treeData = ref([]);
     const analyzingStates = ref(new Map());
+    const modalVisible = ref(false);
+    const newName = ref('');
+    const currentNode = ref(null);
+    const actionType = ref('');
 
     // 初始化tree
     onMounted(async () => {
@@ -131,7 +140,34 @@ export default {
       } else if (menuKey === 'delete') {
         removeNodeFromTree(treeData.value, nodeData);
         message.success(`${nodeData.title} 已删除`);
+      } else if (menuKey === 'addDir' || menuKey === 'addFile') {
+        currentNode.value = nodeData;
+        actionType.value = menuKey;
+        modalVisible.value = true;
       }
+    };
+
+    const handleModalOk = async () => {
+      const {currentProjectPath} = currentSession.value;
+      const fullPath = `${currentNode.value.key}/${newName.value}`;
+      if (actionType.value === 'addDir') {
+        await ipcRenderer.invoke('createDirectory', fullPath);
+      } else if (actionType.value === 'addFile') {
+        await ipcRenderer.invoke('createFile', fullPath);
+      }
+      modalVisible.value = false;
+      newName.value = '';
+      const fileInfo = {
+        key: fullPath,
+        title: newName.value,
+        type: actionType.value === 'addDir' ? 'directory' : 'file'
+      };
+      addNodeToTree(treeData.value, fileInfo);
+    };
+
+    const handleModalCancel = () => {
+      modalVisible.value = false;
+      newName.value = '';
     };
 
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
@@ -168,7 +204,11 @@ export default {
       currentSession,
       isAnalyzing,
       onContextMenuClick,
-      onSelect
+      onSelect,
+      modalVisible,
+      newName,
+      handleModalOk,
+      handleModalCancel
     };
   }
 };
