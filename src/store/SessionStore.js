@@ -59,8 +59,8 @@ export const useSessionStore = defineStore('session_store', {
 
 如果用户的问题包含代码,请按照以下格式返回:
 ### 代码:
-在编写新的代码块时，请在初始反引号后指定语言ID:对应的文件路径，例如：
-python:/src/.../file
+在编写新的代码块时，请在初始反引号后指定语言ID:对应的文件绝对路径，例如：
+python:/Users/.../file
 // ... existing code ...
 {{ edit_1 }}
 // ... existing code ...
