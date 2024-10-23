@@ -43,7 +43,11 @@ const activeWatchers = {};  // 存储监听器及其关联的多个ID
 
 ipcMain.handle('initDirectoryWatch', (event, dirPath, id) => {
     if (!activeWatchers[dirPath]) {
-        const watcher = chokidar.watch(dirPath, {persistent: true, ignoreInitial: true, ignored: /(^|[\/\\])\../});
+        const watcher = chokidar.watch(dirPath, {
+            persistent: true,
+            ignoreInitial: true,
+            ignored: [/(^|[\/\\])\../, '**/node_modules/**']
+        });
         activeWatchers[dirPath] = {watcher, ids: new Set()};
 
         watcher.on('add', filePath => event.sender.send(dirPath, {
