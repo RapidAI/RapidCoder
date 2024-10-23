@@ -39,6 +39,7 @@
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.34.1",
+    "@ddietr/codemirror-themes": "^1.4.4",
     "ant-design-vue": "^4.2.3",
     "better-sqlite3": "^11.2.1",
     "chokidar": "^4.0.1",

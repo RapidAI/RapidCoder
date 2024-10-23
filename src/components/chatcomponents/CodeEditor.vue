@@ -8,7 +8,18 @@
 <script>
 import {defineComponent, ref, watch, onMounted, onBeforeUnmount} from 'vue'
 import {Codemirror} from 'vue-codemirror'
-import {oneDark} from '@codemirror/theme-one-dark'
+import {oneDark } from '@codemirror/theme-one-dark'
+import {materialLight } from '@ddietr/codemirror-themes/material-light'
+import {materialDark } from '@ddietr/codemirror-themes/material-dark'
+import {solarizedLight } from '@ddietr/codemirror-themes/solarized-light'
+import {solarizedDark } from '@ddietr/codemirror-themes/solarized-dark'
+import {dracula as theme} from '@ddietr/codemirror-themes/dracula'
+import {githubLight } from '@ddietr/codemirror-themes/github-light'
+import {githubDark } from '@ddietr/codemirror-themes/github-dark'
+import {aura } from '@ddietr/codemirror-themes/aura'
+import {tokyoNight } from '@ddietr/codemirror-themes/tokyo-night'
+import {tokyoNightStorm } from '@ddietr/codemirror-themes/tokyo-night-storm'
+import {tokyoNightDay } from '@ddietr/codemirror-themes/tokyo-night-day'
 
 const {ipcRenderer} = require('electron');
 
@@ -112,7 +123,7 @@ export default defineComponent({
       }
     }
 
-    const extensions = ref([getLanguageExtension(props.language), oneDark])
+    const extensions = ref([getLanguageExtension(props.language), theme])
 
     // 监听 props.content 的变化
     watch(() => props.content, (newContent) => {
@@ -121,7 +132,7 @@ export default defineComponent({
 
     // 监听 props.language 的变化并更新扩展
     watch(() => props.language, (newLanguage) => {
-      extensions.value = [getLanguageExtension(newLanguage), oneDark]
+      extensions.value = [getLanguageExtension(newLanguage), theme]
     })
 
     // 保存文件方法
