@@ -1,5 +1,9 @@
 <template>
+  <div v-if="loading">
+    <custom-loading />
+  </div>
   <a-directory-tree
+      v-else
       class="chat-tree"
       :treeData="treeData"
       :checkable="false"
@@ -56,12 +60,15 @@ export default {
     const newName = ref('');
     const currentNode = ref(null);
     const actionType = ref('');
+    const loading = ref(true); // 新增加载状态
 
     // 初始化tree
     onMounted(async () => {
+      loading.value = true; // 设置加载状态为 true
       const {currentProjectPath, sessionId} = currentSession.value;
       const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath);
       treeData.value = sortTreeData([structure]);
+      loading.value = false; // 设置加载状态为 false
       updateSessionMessages();
       // 监控目录
       ipcRenderer.invoke('initDirectoryWatch', currentProjectPath, sessionId);
@@ -208,7 +215,8 @@ export default {
       modalVisible,
       newName,
       handleModalOk,
-      handleModalCancel
+      handleModalCancel,
+      loading // 返回 loading 状态
     };
   }
 };
