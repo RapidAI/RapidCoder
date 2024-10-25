@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import {ref, onMounted, computed, watch, onUpdated, onBeforeUnmount} from 'vue';
+import {ref, onMounted, computed, watch, onBeforeUnmount} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -47,97 +47,62 @@ export default {
   props: {selectedSessionId: {required: true}},
   components: {CustomLoading},
   setup(props) {
-
     const sessionStore = useSessionStore();
-
-    const currentSession = computed(() => {
-      return sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null;
-    });
-
+    const currentSession = computed(() => sessionStore.sessions.find(s => s.sessionId === props.selectedSessionId) || null);
     const treeData = ref([]);
-    const analyzingStates = ref(new Map());
+    const loading = ref(true);
     const modalVisible = ref(false);
     const newName = ref('');
     const currentNode = ref(null);
     const actionType = ref('');
-    const loading = ref(true); // 新增加载状态
-
-    // 初始化tree
-    onMounted(async () => {
-      loading.value = true; // 设置加载状态为 true
-      const {currentProjectPath, sessionId} = currentSession.value;
-      const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath);
-      treeData.value = sortTreeData([structure]);
-      loading.value = false; // 设置加载状态为 false
-      updateSessionMessages();
-      // 监控目录
-      ipcRenderer.invoke('initDirectoryWatch', currentProjectPath, sessionId);
-      ipcRenderer.on(currentProjectPath, (event, {action, fileInfo}) => {
-        if (action === 'add' || action === 'addDir') {
-          addNodeToTree(treeData.value, fileInfo);
-        } else if (action === 'change') {
-          updateNodeInTree(treeData.value, fileInfo);
-        } else if (action === 'unlink' || action === 'unlinkDir') {
-          removeNodeFromTree(treeData.value, fileInfo);
-        }
-      });
-    });
-    // 取消监控
-    onBeforeUnmount(() => {
-      const {currentProjectPath, sessionId} = currentSession.value;
-      ipcRenderer.invoke('removeDirectoryWatch', currentProjectPath, sessionId);
-    });
+    const analyzingStates = ref(new Map());
 
     const sortTreeData = (nodes) => {
       const filterNodes = (node) => node.title && (node.type === 'directory' ? node.title[0] !== '.' : true);
-
-      const directories = nodes.filter(node => node.type === 'directory' && filterNodes(node));
-      const files = nodes.filter(node => node.type === 'file' && filterNodes(node));
-      directories.sort((a, b) => a.title.localeCompare(b.title));
-      files.sort((a, b) => a.title.localeCompare(b.title));
+      const directories = nodes.filter(node => node.type === 'directory' && filterNodes(node)).sort((a, b) => a.title.localeCompare(b.title));
+      const files = nodes.filter(node => node.type === 'file' && filterNodes(node)).sort((a, b) => a.title.localeCompare(b.title));
       directories.forEach(dir => dir.children && (dir.children = sortTreeData(dir.children)));
       return [...directories, ...files];
     };
 
-    const findNodeByKey = (nodes, key) => {
-      for (const node of nodes) {
-        if (node.key === key) return node;
-        if (node.children) {
-          const result = findNodeByKey(node.children, key);
-          if (result) return result;
+    const findNodeByKey = (nodes, key) => nodes.reduce((acc, node) => acc || (node.key === key ? node : (node.children ? findNodeByKey(node.children, key) : null)), null);
+
+    const updateTree = (nodes, fileInfo, action) => {
+      const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
+      const parentNode = findNodeByKey(nodes, parentPath);
+      if (action === 'add') {
+        (parentNode?.children || nodes).push({...fileInfo, children: [], type: fileInfo.type});
+      } else if (action === 'update') {
+        const node = findNodeByKey(nodes, fileInfo.key);
+        if (node) {
+          node.title = fileInfo.title;
+          node.modified = fileInfo.modified;
+        }
+      } else if (action === 'remove') {
+        if (parentNode) {
+          parentNode.children = parentNode.children.filter(child => child.key !== fileInfo.key);
+        } else {
+          const nodeIndex = nodes.findIndex(node => node.key === fileInfo.key);
+          if (nodeIndex !== -1) nodes.splice(nodeIndex, 1);
         }
       }
-      return null;
     };
 
-    const addNodeToTree = (nodes, fileInfo) => {
-      const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
-      const parentNode = findNodeByKey(nodes, parentPath);
-      if (parentNode && parentNode.children) {
-        parentNode.children.push({...fileInfo, children: [], type: fileInfo.type});
-      } else if (!parentNode) {
-        nodes.push({...fileInfo, children: [], type: fileInfo.type});
-      }
-    };
+    onMounted(async () => {
+      loading.value = true;
+      const {currentProjectPath, sessionId} = currentSession.value;
+      const structure = await ipcRenderer.invoke('getDirectoryStructure', currentProjectPath);
+      treeData.value = sortTreeData([structure]);
+      loading.value = false;
+      updateSessionMessages();
+      ipcRenderer.invoke('initDirectoryWatch', currentProjectPath, sessionId);
+      ipcRenderer.on(currentProjectPath, (event, {action, fileInfo}) => updateTree(treeData.value, fileInfo, action));
+    });
 
-    const updateNodeInTree = (nodes, fileInfo) => {
-      const node = findNodeByKey(nodes, fileInfo.key);
-      if (node) {
-        node.title = fileInfo.title;
-        node.modified = fileInfo.modified;
-      }
-    };
-
-    const removeNodeFromTree = (nodes, fileInfo) => {
-      const parentPath = fileInfo.key.split('/').slice(0, -1).join('/');
-      const parentNode = findNodeByKey(nodes, parentPath);
-      if (parentNode && parentNode.children) {
-        parentNode.children = parentNode.children.filter(child => child.key !== fileInfo.key);
-      } else {
-        const nodeIndex = nodes.findIndex(node => node.key === fileInfo.key);
-        if (nodeIndex !== -1) nodes.splice(nodeIndex, 1);
-      }
-    };
+    onBeforeUnmount(() => {
+      const {currentProjectPath, sessionId} = currentSession.value;
+      ipcRenderer.invoke('removeDirectoryWatch', currentProjectPath, sessionId);
+    });
 
     const isAnalyzing = (key) => analyzingStates.value.get(key);
 
@@ -145,9 +110,9 @@ export default {
       if (menuKey === 'update') {
         message.success(`更新 ${nodeData.title} 成功`);
       } else if (menuKey === 'delete') {
-        removeNodeFromTree(treeData.value, nodeData);
+        updateTree(treeData.value, nodeData, 'remove');
         message.success(`${nodeData.title} 已删除`);
-      } else if (menuKey === 'addDir' || menuKey === 'addFile') {
+      } else if (['addDir', 'addFile'].includes(menuKey)) {
         currentNode.value = nodeData;
         actionType.value = menuKey;
         modalVisible.value = true;
@@ -157,19 +122,10 @@ export default {
     const handleModalOk = async () => {
       const {currentProjectPath} = currentSession.value;
       const fullPath = `${currentNode.value.key}/${newName.value}`;
-      if (actionType.value === 'addDir') {
-        await ipcRenderer.invoke('createDirectory', fullPath);
-      } else if (actionType.value === 'addFile') {
-        await ipcRenderer.invoke('createFile', fullPath);
-      }
+      await ipcRenderer.invoke(actionType.value === 'addDir' ? 'createDirectory' : 'createFile', fullPath);
       modalVisible.value = false;
       newName.value = '';
-      const fileInfo = {
-        key: fullPath,
-        title: newName.value,
-        type: actionType.value === 'addDir' ? 'directory' : 'file'
-      };
-      addNodeToTree(treeData.value, fileInfo);
+      updateTree(treeData.value, {key: fullPath, title: newName.value, type: actionType.value === 'addDir' ? 'directory' : 'file'}, 'add');
     };
 
     const handleModalCancel = () => {
@@ -178,8 +134,7 @@ export default {
     };
 
     const onSelect = (checkedKeysValue, {selectedNodes}) => {
-      const fileNodes = selectedNodes.filter(node => node.type === 'file');
-      currentSession.value.currentSelectFile = fileNodes.map(node => node.key);
+      currentSession.value.currentSelectFile = selectedNodes.filter(node => node.type === 'file').map(node => node.key);
     };
 
     const updateSessionMessages = () => {
@@ -189,7 +144,6 @@ export default {
           ...(isRoot && {path: node.key}),
           ...(node.type !== 'file' && node.children && {children: node.children.map(child => filterTreeData(child))}),
         });
-
         const filteredTreeData = treeData.value.map(node => filterTreeData(node, true));
         if (currentSession.value) {
           currentSession.value.messages[1] = {
@@ -216,7 +170,7 @@ export default {
       newName,
       handleModalOk,
       handleModalCancel,
-      loading // 返回 loading 状态
+      loading
     };
   }
 };
@@ -224,7 +178,7 @@ export default {
 <style>
 .chat-tree {
   background-color: #F7F8FAFF;
-  height: 100%; /* 自适应父组件高度 */
-  overflow: auto; /* 超出时显示滚动条 */
+  height: 100%;
+  overflow: auto;
 }
 </style>

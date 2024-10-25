@@ -67,13 +67,34 @@ export function parseChatResponse(input) {
         }, '');
 }
 
-export async function saveFileContent(filePath, content) {
+export async function saveFileContent(filePath, newcontent) {
     if (!filePath) {
         message.info(`文件路径不存在`);
         return;
     }
+
     try {
-        await ipcRenderer.invoke('saveFileContent', filePath, content);
+        const oldContent = await ipcRenderer.invoke('getFileContent', filePath);
+        const regex = /\/\/\s*replace_from\s*([\s\S]*?)\/\/\s*replace_to\s*([\s\S]*?)(?=\/\/\s*replace_from|$)/gi;
+        const matches = [...newcontent.matchAll(regex)];
+
+        // 如果没有匹配项，直接保存 newcontent
+        if (!matches.length) {
+            await ipcRenderer.invoke('saveFileContent', filePath, newcontent);
+            return message.info(`文件 ${filePath} 已保存。`);
+        }
+
+        // 处理匹配项并替换内容
+        let updatedContent = oldContent;
+        matches.forEach(([_, oldCode, newCode]) => {
+            const replaceRegex = new RegExp(
+                oldCode.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\s+/g, '\\s*'),
+                'g'
+            );
+            updatedContent = updatedContent.replace(replaceRegex, newCode.trim());
+        });
+
+        await ipcRenderer.invoke('saveFileContent', filePath, updatedContent);
         message.info(`文件 ${filePath} 替换成功。`);
     } catch (error) {
         console.error('文件替换失败:', error);
@@ -81,29 +102,4 @@ export async function saveFileContent(filePath, content) {
     }
 }
 
-export async function replaceFileContent(filePath, newContent) {
-
-    const oldContent = await ipcRenderer.invoke('getFileContent', filePath);
-// 使用替换逻辑进行内容替换
-    const updatedContent = replaceWithReplacements(oldContent, newContent);
-
-// 替换的函数
-    function replaceWithReplacements(oldContent, newContent) {
-        const regex = /\/\/\s*replace_from\s*([\s\S]*?)\/\/\s*replace_to\s*([\s\S]*?)(?=\/\/\s*replace_from|$)/gi;
-        let matches;
-        let result = oldContent;
-
-        while ((matches = regex.exec(newContent)) !== null) {
-            const oldCode = matches[1].trim();
-            const newCode = matches[2].trim();
-
-            // 转义旧代码中的特殊字符并进行正则替换
-            const escapedOldCode = oldCode.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); // 转义特殊字符
-            const replaceRegex = new RegExp(escapedOldCode, 'g');
-            result = result.replace(replaceRegex, newCode);
-        }
-
-        return result;
-    }
-}
 
