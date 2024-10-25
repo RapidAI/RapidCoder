@@ -158,7 +158,7 @@ ipcMain.handle('getFileContent', async (event, filePath) => {
 });
 
 // 替换文件内容
-ipcMain.handle('replaceFileContent', async (event, filePath, newContent) => {
+ipcMain.handle('saveFileContent', async (event, filePath, newContent) => {
     await fs.mkdir(path.dirname(filePath), {recursive: true});
     await fs.writeFile(filePath, newContent, 'utf-8');
     return {success: true, message: '文件替换成功'};

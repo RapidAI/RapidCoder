@@ -30,7 +30,7 @@ import {useSessionStore} from '@/store/SessionStore.js';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import {message} from 'ant-design-vue';
-import {replaceFileContent} from '@/util/chat.js';
+import {saveFileContent} from '@/util/chat.js';
 
 export default {
   props: {
@@ -107,7 +107,7 @@ export default {
         return;
       }
 
-      await replaceFileContent(filePath, code);
+      await saveFileContent(filePath, code);
     };
 
     return {

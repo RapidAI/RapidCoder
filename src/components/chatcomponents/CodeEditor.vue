@@ -137,7 +137,7 @@ export default defineComponent({
 
     // 保存文件方法
     const saveFile = async () => {
-      await ipcRenderer.invoke('replaceFileContent', props.filePath, code.value);
+      await ipcRenderer.invoke('saveFileContent', props.filePath, code.value);
     }
 
     // 键盘事件监听，用于保存和代码对齐快捷键
