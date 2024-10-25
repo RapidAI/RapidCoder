@@ -172,9 +172,9 @@ ipcMain.handle('applyPatchToFile', async (event, filePath, diffContent) => {
     return {success: true, message: '文件补丁应用成功'};
 });
 // 终端
-const { spawn } = require('child_process');
+const {spawn} = require('child_process');
 ipcMain.on('execute-command', (event, command, args, cwd) => {
-    const child = spawn(command, args, { cwd: cwd || process.cwd(), shell: true });
+    const child = spawn(command, args, {cwd: cwd || process.cwd(), shell: true});
     child.stdout.on('data', (data) => {
         event.reply('command-output', data.toString());
     });
@@ -198,21 +198,13 @@ ipcMain.handle("resolve-path", (event, currentDirectory, target) => {
 });
 // 创建目录
 ipcMain.handle('createDirectory', async (event, dirPath) => {
-    try {
-        await fs.mkdir(dirPath, { recursive: true });
-        return { success: true, message: '目录创建成功' };
-    } catch (error) {
-        return { success: false, message: `目录创建失败: ${error.message}` };
-    }
+    await fs.mkdir(dirPath, {recursive: true});
+    return {success: true, message: '目录创建成功'};
 });
 
 // 创建文件
 ipcMain.handle('createFile', async (event, filePath) => {
-    try {
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, '', 'utf-8');
-        return { success: true, message: '文件创建成功' };
-    } catch (error) {
-        return { success: false, message: `文件创建失败: ${error.message}` };
-    }
+    await fs.mkdir(path.dirname(filePath), {recursive: true});
+    await fs.writeFile(filePath, '', 'utf-8');
+    return {success: true, message: '文件创建成功'};
 });
