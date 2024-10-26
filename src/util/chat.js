@@ -11,7 +11,8 @@ export async function processChat(currentSession, messagelist, index, overwrite)
 
         const url = baseUrl.endsWith('/') ? `${baseUrl}v1/chat/completions` : `${baseUrl}/v1/chat/completions`;
 
-        const response = await fetch(url, {
+        let response;
+        response = await fetch(url, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -23,6 +24,13 @@ export async function processChat(currentSession, messagelist, index, overwrite)
                 messages: messagelist,
             }),
         });
+
+        if (!response.ok) {
+            const errorMessage = `大模型 API 错误，状态码: ${response.status}`;
+            console.error(errorMessage);
+            message.error(errorMessage);
+            return;
+        }
 
         currentSession.reader = response.body.getReader();
         const decoder = new TextDecoder();

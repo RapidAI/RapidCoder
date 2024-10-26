@@ -57,18 +57,17 @@ export const useSessionStore = defineStore('session_store', {
 ### 再思考:
 根据你的反思做出必要的调整，提出更完善的解决方案。
 
-如果用户的问题包含代码,请按照以下格式返回:
-### 代码:
-在编写新的代码块时，请在初始反引号后指定语言ID:对应的文件绝对路径，例如：
+如果你的回复中包含代码,请按照以下格式返回:
+### 结果:
+示例：
 python:/Users/.../file
 // replace_from
 {{ old code }}
 // replace_to
 {{ new code }}
-
-如果用户的问题不需要返回代码:
-### 结果:
-提供最终的结果
+示例说明:指定语言ID:对应的文件绝对路径
+如果是修改的部分代码,需要指定替换的代码块,使用// replace_from和// replace_to来标识
+如果不是修改部分代码,请全部返回
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
