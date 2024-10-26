@@ -59,13 +59,13 @@ export const useSessionStore = defineStore('session_store', {
 
 如果你的回复中包含代码,请按照以下格式返回:
 ### 结果:
-示例：
-python:/Users/.../file
+\`\`\`lang:/Users/.../file
 // replace_from
 {{ old code }}
 // replace_to
 {{ new code }}
-示例说明:指定语言ID:对应的文件绝对路径
+\`\`\`
+示例格式说明: 指定语言ID:对应的文件绝对路径
 如果是修改的部分代码,需要指定替换的代码块,使用// replace_from和// replace_to来标识
 如果不是修改部分代码,请全部返回
 `;
