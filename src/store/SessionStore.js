@@ -57,7 +57,7 @@ export const useSessionStore = defineStore('session_store', {
 ### 再思考:
 根据你的反思做出必要的调整，提出更完善的解决方案。
 
-如果你的回复中包含代码,请按照以下格式返回:
+请按照以下格式返回:
 ### 结果:
 \`\`\`lang:/Users/.../file
 // replace_from
@@ -66,8 +66,8 @@ export const useSessionStore = defineStore('session_store', {
 {{ new code }}
 \`\`\`
 示例格式说明: 指定语言ID:对应的文件绝对路径
-如果是修改的部分代码,需要指定替换的代码块,使用// replace_from和// replace_to来标识
-如果不是修改部分代码,请全部返回
+如果是修改的部分内容,需要指定替换的内容块,使用// replace_from和// replace_to来标识
+如果不是修改部分内容,请全部返回
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
