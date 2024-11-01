@@ -6,7 +6,7 @@
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 14 }"
   >
-    <a-form-item label="模型名称" name="modelName">
+    <a-form-item label="模型名称" name="model">
       <a-input v-model:value="formState.model" placeholder="请输入模型名称"/>
     </a-form-item>
 
@@ -38,15 +38,15 @@
 </template>
 
 <script>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { useModelStore } from '@/store/ModelStore';
+import {ref, reactive, computed, watch, onMounted} from 'vue';
+import {useModelStore} from '@/store/ModelStore';
 
 export default {
   props: {
-    initialValues: { type: Object, default: () => ({}) },
-    mode: { type: String, default: 'add' },
+    initialValues: {type: Object, default: () => ({})},
+    mode: {type: String, default: 'add'},
   },
-  setup(props, { emit }) {
+  setup(props, {emit}) {
     const modelStore = useModelStore();
     const formRef = ref(null);
     const formState = reactive({
@@ -59,9 +59,9 @@ export default {
     });
 
     const rules = computed(() => ({
-      model: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
-      apiKey: [{ required: true, message: '请输入API Key', trigger: 'blur' }],
-      baseUrl: [{ required: true, message: '请输入基础URL', trigger: 'blur' }],
+      model: [{required: true, message: '请输入模型名称', trigger: 'blur'}],
+      apiKey: [{required: true, message: '请输入API Key', trigger: 'blur'}],
+      baseUrl: [{required: true, message: '请输入基础URL', trigger: 'blur'}],
     }));
 
     const maskApiKey = (apiKey) => apiKey.replace(/.(?=.{4})/g, '*');
@@ -69,13 +69,20 @@ export default {
     watch(() => props.initialValues, (newVal) => {
       Object.assign(formState, newVal || {});
       formState.apiKey = newVal.apiKey || '';
-    }, { immediate: true });
+    }, {immediate: true});
 
     const onSubmit = async () => {
       await formRef.value.validate();
-      const data = { ...formState };
+      const data = {...formState};
       if (!data.useProxy) delete data.proxyHost, delete data.proxyPort;
-      props.mode === 'add' ? modelStore.addModel(data) : modelStore.updateModel({ ...data, modelId: props.initialValues.modelId });
+      if (props.mode === 'add') {
+        modelStore.addModel(data);
+      } else {
+        const index = modelStore.models.findIndex(model => model.modelId === props.initialValues.modelId);
+        if (index !== -1) {
+          modelStore.models[index] = {...data, modelId: props.initialValues.modelId};
+        }
+      }
       emit('onCancel');
     };
 
@@ -83,7 +90,7 @@ export default {
 
     onMounted(() => Object.assign(formState, props.initialValues));
 
-    return { formRef, formState, rules, onSubmit, onCancel };
+    return {formRef, formState, rules, onSubmit, onCancel};
   },
 };
 </script>

@@ -13,7 +13,7 @@
             :key="model.modelId"
             :value="model.modelId"
         >
-          {{ model.modelName }}
+          {{ model.model }}
         </a-select-option>
       </a-select>
       <a-switch

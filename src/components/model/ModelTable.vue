@@ -17,14 +17,15 @@
           </a-space>
         </template>
         <template v-else-if="column.dataIndex === 'apiKey'">
-          {{ record[column.dataIndex] ? record[column.dataIndex].replace(/.(?=.{4})/g, '*') : '' }}
-        </template>
+  {{ record[column.dataIndex] ? record[column.dataIndex].slice(0, 4) + '****' + record[column.dataIndex].slice(-4) : '' }}
+</template>
         <template v-else>
           {{ record[column.dataIndex] }}
         </template>
       </template>
     </a-table>
-    <a-modal :mask="false" v-model:open="isModalVisible" :title="modalType === 'add' ? '添加模型' : '更新模型'" :footer="null" :width="600">
+    <a-modal :mask="false" v-model:open="isModalVisible" :title="modalType === 'add' ? '添加模型' : '更新模型'"
+             :footer="null" :width="600">
       <ModelForm v-if="isModalVisible" ref="modelFormRef" :initialValues="currentModel" :mode="modalType"
                  @onCancel="handleCancel"/>
     </a-modal>
@@ -32,10 +33,10 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { useModelStore } from '@/store/ModelStore';
+import {ref} from 'vue';
+import {useModelStore} from '@/store/ModelStore';
 import ModelForm from './ModelForm.vue';
-import { message } from 'ant-design-vue';
+import {message} from 'ant-design-vue';
 
 export default {
   components: {
@@ -49,38 +50,40 @@ export default {
     const modalType = ref('add');
 
     const columns = [
-      { title: '模型名称', dataIndex: 'model', align: 'center' },
-      { title: 'baseUrl', dataIndex: 'baseUrl', align: 'center' },
-      { title: 'API Key', dataIndex: 'apiKey', align: 'center' },
-      { title: '操作', dataIndex: 'action', align: 'center' },
+      {title: '模型名称', dataIndex: 'model', align: 'center'},
+      {title: 'baseUrl', dataIndex: 'baseUrl', align: 'center'},
+      {title: 'API Key', dataIndex: 'apiKey', align: 'center'},
+      {title: '操作', dataIndex: 'action', align: 'center'},
     ];
 
-    function showModal(type, model = {}) {
+    const showModal = (type, model = {}) => {
       modalType.value = type;
-      currentModel.value = { ...model };
+      currentModel.value = {...model};
       isModalVisible.value = true;
-    }
+    };
 
-    function handleCancel() {
+    const handleCancel = () => {
       isModalVisible.value = false;
       currentModel.value = {};
-    }
+    };
 
+    const deleteModel = (modelId) => {
+      const index = modelStore.models.findIndex(model => model.modelId === modelId);
+      if (index !== -1) {
+        modelStore.models.splice(index, 1);
+      }
+    };
 
-    async function deleteModel(modelId) {
-      await modelStore.deleteModel(modelId);
-    }
-
-    async function testConnection(model) {
+    const testConnection = (model) => {
       model.messages = [{role: 'user', content: '你好'}];
-      const result = await modelStore.chatCompletions(model);
-      console.log(result)
+      const result = modelStore.chatCompletions(model);
+      console.log(result);
       if (result) {
         message.success('连接成功');
       } else {
         message.error('连接失败');
       }
-    }
+    };
 
     return {
       columns,

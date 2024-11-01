@@ -11,18 +11,6 @@ export const useModelStore = defineStore('model_store', {
             model.modelId = Date.now()
             this.models.push(model);
         },
-        // 更新模型
-        updateModel(updatedModel) {
-            const index = this.models.findIndex(model => model.modelId === updatedModel.modelId);
-            if (index !== -1) {
-                this.models[index] = updatedModel;
-            }
-        },
-        // 删除模型
-        deleteModel(modelId) {
-            this.models = this.models.filter(model => model.modelId !== modelId);
-        },
-        // 测试连接（使用 post 请求）
         async chatCompletions(model) {
             try {
                 // 发送请求

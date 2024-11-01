@@ -58,7 +58,7 @@ export default {
     const projectPath = ref(null);
 
 
-    const modelOptions = modelStore.models.map(({modelName, modelId}) => ({label: modelName, value: modelId}));
+    const modelOptions = modelStore.models.map(({model, modelId}) => ({label: model, value: modelId}));
 
     const resetModal = () => {
       isSessionCreationModalVisible.value = false;
