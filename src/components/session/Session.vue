@@ -81,14 +81,15 @@ export default {
     };
 
     const selectDirectory = () => {
-      ipcRenderer.invoke('getDirectoryDialog').then((result) => {
-        if (result && !result.canceled && result.filePaths.length > 0) {
-          projectPath.value = result.filePaths[0];  // 将路径直接赋值给变量
-        }
-      }).catch((err) => {
-        console.error('Failed to select directory:', err);
-      });
-    };
+  ipcRenderer.invoke('getDirectoryDialog').then((result) => {
+    if (result && !result.canceled && result.filePaths.length > 0) {
+      projectPath.value = result.filePaths[0];  // 将路径直接赋值给变量
+      createSession();  // 选择完目录后立即调用createSession
+    }
+  }).catch((err) => {
+    console.error('Failed to select directory:', err);
+  });
+};
 
     const sessionTitle = (session) => {
       const title = session.messages[2]?.content || '新对话';
