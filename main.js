@@ -145,6 +145,9 @@ ipcMain.handle('getDirectoryStructure', async (event, dirPath) => {
             children: []
         };
         if (stats.isDirectory()) {
+            if (path.basename(directoryPath) === 'node_modules') {
+                return item;
+            }
             const files = await fs.readdir(directoryPath);
             item.children = await Promise.all(files.map(child => buildDirectoryStructure(path.join(directoryPath, child))));
         }

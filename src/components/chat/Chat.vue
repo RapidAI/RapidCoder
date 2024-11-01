@@ -46,14 +46,15 @@ export default {
   },
   setup() {
     const parameterStore = useParameterStore();
-    const resize1 = (paneSize) => {
-      parameterStore.sshPane = paneSize[0].size;
-    };
-    const resize2 = (paneSize) => {
-      parameterStore.treePane = paneSize[0].size;
-      parameterStore.filePane = paneSize[1].size;
-      parameterStore.contentPane = paneSize[2].size;
-    };
+const updatePaneSize = (paneSize, paneKey) => {
+  parameterStore[paneKey] = paneSize[0].size;
+};
+const resize1 = (paneSize) => updatePaneSize(paneSize, 'sshPane');
+const resize2 = (paneSize) => {
+  updatePaneSize(paneSize.slice(0, 1), 'treePane');
+  updatePaneSize(paneSize.slice(1, 2), 'filePane');
+  updatePaneSize(paneSize.slice(2, 3), 'contentPane');
+};
     return {
       parameterStore,
       resize1,

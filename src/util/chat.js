@@ -99,7 +99,10 @@ export async function saveFileContent(filePath, newcontent) {
                 oldCode.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\s+/g, '\\s*'),
                 'g'
             );
-            updatedContent = updatedContent.replace(replaceRegex, newCode.trim());
+            updatedContent = updatedContent.replace(replaceRegex, (match) => {
+                const indent = match.match(/^\s*/)[0];
+                return `${indent}${newCode.trim()}`;
+            });
         });
 
         await ipcRenderer.invoke('saveFileContent', filePath, updatedContent);
