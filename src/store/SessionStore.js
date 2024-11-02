@@ -68,6 +68,7 @@ export const useSessionStore = defineStore('session_store', {
 示例格式说明: 指定语言ID:对应的文件绝对路径
 如果是修改的部分内容,需要指定替换的内容块,使用// replace_from和// replace_to来标识
 如果不是修改部分内容,请全部返回
+请不要忽略内容块
 `;
             const clonedMessages = JSON.parse(JSON.stringify(messagelist));
             clonedMessages[index].content = prompt;
