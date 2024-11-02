@@ -14,9 +14,9 @@
           </pane>
         </splitpanes>
       </pane>
-      <pane>
-        <ssh-connector v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
-      </pane>
+<!--      <pane>-->
+<!--        <ssh-connector v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>-->
+<!--      </pane>-->
     </splitpanes>
   </a-layout>
 </template>

@@ -211,3 +211,22 @@ ipcMain.handle('createFile', async (event, filePath) => {
     await fs.writeFile(filePath, '', 'utf-8');
     return {success: true, message: '文件创建成功'};
 });
+// 删除文件
+ipcMain.handle('deleteFile', async (event, filePath) => {
+    try {
+        await fs.unlink(filePath);
+        return {success: true, message: '文件删除成功'};
+    } catch (error) {
+        return {success: false, message: `文件删除失败: ${error.message}`};
+    }
+});
+
+// 删除目录
+ipcMain.handle('deleteDirectory', async (event, dirPath) => {
+    try {
+        await fs.rmdir(dirPath, {recursive: true});
+        return {success: true, message: '目录删除成功'};
+    } catch (error) {
+        return {success: false, message: `目录删除失败: ${error.message}`};
+    }
+});
