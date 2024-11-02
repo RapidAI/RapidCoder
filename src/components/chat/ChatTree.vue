@@ -31,12 +31,17 @@
     </template>
   </a-directory-tree>
   <a-modal :mask="false" v-model:open="modalVisible" title="输入名称" @ok="handleModalOk" @cancel="handleModalCancel">
-    <a-input v-model:value="newName" placeholder="请输入名称"/>
+    <a-input
+        ref="nameInput"
+        v-model:value="newName"
+        placeholder="请输入名称"
+        @keyup.enter="handleModalOk"
+    />
   </a-modal>
 </template>
 
 <script>
-import {ref, onMounted, computed, watch, onBeforeUnmount} from 'vue';
+import {ref, onMounted, computed, watch, nextTick, onBeforeUnmount} from 'vue';
 import {message} from 'ant-design-vue';
 import CustomLoading from '@/components/common/CustomLoading.vue';
 import {useSessionStore} from "@/store/SessionStore";
@@ -56,7 +61,13 @@ export default {
     const currentNode = ref(null);
     const actionType = ref('');
     const analyzingStates = ref(new Map());
-
+    const nameInput = ref(null);
+    watch(modalVisible, async (newVal) => {
+      if (newVal) {
+        await nextTick();
+        nameInput.value?.focus();
+      }
+    });
     const sortTreeData = (nodes) => {
       const filterNodes = (node) => node.title && (node.type === 'directory' ? node.title[0] !== '.' : true);
       const directories = nodes.filter(node => node.type === 'directory' && filterNodes(node)).sort((a, b) => a.title.localeCompare(b.title));
@@ -174,6 +185,7 @@ export default {
       onSelect,
       modalVisible,
       newName,
+      nameInput,
       handleModalOk,
       handleModalCancel,
       loading

@@ -1,29 +1,36 @@
 <template>
-  <Codemirror
-      v-model="code"
-      :extensions="extensions"
-  />
+  <div style="position: relative;height:100%;overflow:hidden">
+    <button @click="undoEdit" style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
+      撤销
+    </button>
+    <Codemirror
+        ref="cmRef"
+        v-model="code"
+        :extensions="extensions"
+        @ready="handleReady"
+    />
+  </div>
 </template>
 
 <script>
 import {defineComponent, ref, watch, onMounted, onBeforeUnmount} from 'vue'
 import {Codemirror} from 'vue-codemirror'
-import {oneDark } from '@codemirror/theme-one-dark'
-import {materialLight } from '@ddietr/codemirror-themes/material-light'
-import {materialDark } from '@ddietr/codemirror-themes/material-dark'
-import {solarizedLight } from '@ddietr/codemirror-themes/solarized-light'
-import {solarizedDark } from '@ddietr/codemirror-themes/solarized-dark'
+import {oneDark} from '@codemirror/theme-one-dark'
+import {materialLight} from '@ddietr/codemirror-themes/material-light'
+import {materialDark} from '@ddietr/codemirror-themes/material-dark'
+import {solarizedLight} from '@ddietr/codemirror-themes/solarized-light'
+import {solarizedDark} from '@ddietr/codemirror-themes/solarized-dark'
 import {dracula as theme} from '@ddietr/codemirror-themes/dracula'
-import {githubLight } from '@ddietr/codemirror-themes/github-light'
-import {githubDark } from '@ddietr/codemirror-themes/github-dark'
-import {aura } from '@ddietr/codemirror-themes/aura'
-import {tokyoNight } from '@ddietr/codemirror-themes/tokyo-night'
-import {tokyoNightStorm } from '@ddietr/codemirror-themes/tokyo-night-storm'
-import {tokyoNightDay } from '@ddietr/codemirror-themes/tokyo-night-day'
+import {githubLight} from '@ddietr/codemirror-themes/github-light'
+import {githubDark} from '@ddietr/codemirror-themes/github-dark'
+import {aura} from '@ddietr/codemirror-themes/aura'
+import {tokyoNight} from '@ddietr/codemirror-themes/tokyo-night'
+import {tokyoNightStorm} from '@ddietr/codemirror-themes/tokyo-night-storm'
+import {tokyoNightDay} from '@ddietr/codemirror-themes/tokyo-night-day'
+import {undo} from '@codemirror/commands'
 
 const {ipcRenderer} = require('electron');
 
-// 导入所有语言扩展
 import {javascript} from '@codemirror/lang-javascript'
 import {html} from '@codemirror/lang-html'
 import {css} from '@codemirror/lang-css'
@@ -69,8 +76,12 @@ export default defineComponent({
   },
   setup(props) {
     const code = ref(props.content)
+    const cmRef = ref({view: null})
 
-    // 根据文件扩展名或语言名称确定语言
+    const handleReady = ({view}) => {
+      cmRef.value.view = view
+    }
+
     const getLanguageExtension = (lang) => {
       switch (lang.toLowerCase()) {
         case 'javascript':
@@ -125,42 +136,45 @@ export default defineComponent({
 
     const extensions = ref([getLanguageExtension(props.language), theme])
 
-    // 监听 props.content 的变化
     watch(() => props.content, (newContent) => {
       code.value = newContent
     })
 
-    // 监听 props.language 的变化并更新扩展
     watch(() => props.language, (newLanguage) => {
       extensions.value = [getLanguageExtension(newLanguage), theme]
     })
 
-    // 保存文件方法
     const saveFile = async () => {
       await ipcRenderer.invoke('saveFileContent', props.filePath, code.value);
     }
 
-    // 键盘事件监听，用于保存和代码对齐快捷键
+    const undoEdit = () => {
+      if (cmRef.value && cmRef.value.view) {
+        undo({state: cmRef.value.view.state, dispatch: cmRef.value.view.dispatch});
+      }
+    };
+
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();  // 阻止默认保存行为
+        e.preventDefault();
         saveFile();
       }
     }
 
-    // 组件挂载时添加键盘监听器
     onMounted(() => {
       window.addEventListener('keydown', handleKeyDown);
     })
 
-    // 组件卸载时移除键盘监听器
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', handleKeyDown);
     })
 
     return {
       code,
+      handleReady,
       extensions,
+      undoEdit,
+      cmRef
     }
   }
 })
