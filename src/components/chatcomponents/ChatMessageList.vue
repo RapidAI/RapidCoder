@@ -132,7 +132,7 @@ export default {
         const messageItems = messageList.value.querySelectorAll('.message-item')
         if (messageItems.length > 0) {
           const lastMessageItem = messageItems[messageItems.length - 1];
-          lastMessageItem.scrollIntoView({behavior: 'smooth', block: 'end'});
+          lastMessageItem.scrollIntoView({ block: 'end'});
         }
       });
     };
