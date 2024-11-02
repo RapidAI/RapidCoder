@@ -60,13 +60,13 @@ export const useSessionStore = defineStore('session_store', {
 请按照以下格式返回:
 ### 结果:
 \`\`\`lang:/Users/.../file
-// replace_from
-{{ old code }}
-// replace_to
-{{ new code }}
+// 替换原内容
+{{ old content }}
+// 替换后内容
+{{ new content }}
 \`\`\`
 示例格式说明: 指定语言ID:对应的文件绝对路径
-如果是修改的部分内容,需要指定替换的内容块,使用// replace_from和// replace_to来标识
+如果是修改的部分内容,需要指定替换的内容块,使用// 替换原内容 和// 替换后内容 来标识
 如果不是修改部分内容,请全部返回
 请不要忽略内容块
 `;

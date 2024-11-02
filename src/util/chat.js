@@ -83,7 +83,7 @@ export async function saveFileContent(filePath, newcontent) {
 
     try {
         const oldContent = await ipcRenderer.invoke('getFileContent', filePath);
-        const regex = /\/\/\s*replace_from\s*([\s\S]*?)\/\/\s*replace_to\s*([\s\S]*?)(?=\/\/\s*replace_from|$)/gi;
+        const regex = /\/\/\s*替换原内容\s*([\s\S]*?)\/\/\s*替换后内容\s*([\s\S]*?)(?=\/\/\s*替换原内容|$)/gi;
         const matches = [...newcontent.matchAll(regex)];
 
         // 如果没有匹配项，直接保存 newcontent

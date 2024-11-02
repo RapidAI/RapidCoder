@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading">
-    <custom-loading />
+    <custom-loading/>
   </div>
   <a-directory-tree
       v-else
@@ -110,8 +110,15 @@ export default {
       if (menuKey === 'update') {
         message.success(`更新 ${nodeData.title} 成功`);
       } else if (menuKey === 'delete') {
-        updateTree(treeData.value, nodeData, 'remove');
-        message.success(`${nodeData.title} 已删除`);
+        const method = nodeData.type === 'file' ? 'deleteFile' : 'deleteDirectory';
+        ipcRenderer.invoke(method, nodeData.key).then(response => {
+          if (response.success) {
+            updateTree(treeData.value, nodeData, 'remove');
+            message.success(`${nodeData.title} 已删除`);
+          } else {
+            message.error(response.message);
+          }
+        });
       } else if (['addDir', 'addFile'].includes(menuKey)) {
         currentNode.value = nodeData;
         actionType.value = menuKey;
@@ -125,7 +132,6 @@ export default {
       await ipcRenderer.invoke(actionType.value === 'addDir' ? 'createDirectory' : 'createFile', fullPath);
       modalVisible.value = false;
       newName.value = '';
-      updateTree(treeData.value, {key: fullPath, title: newName.value, type: actionType.value === 'addDir' ? 'directory' : 'file'}, 'add');
     };
 
     const handleModalCancel = () => {
