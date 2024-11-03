@@ -25,7 +25,6 @@
     </div>
     <chat-message-list
         class="message-list"
-        :debugMode="parameterStore.debugMode"
         v-if="selectedSessionId"
         :selectedSessionId="selectedSessionId"
     />
@@ -96,9 +95,10 @@ export default {
 
 <style scoped>
 .chat-container {
-  height: 100%; 
+  height: 100%;
   overflow: auto;
 }
+
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -107,14 +107,16 @@ export default {
   height: 35px;
   font-size: 15px;
 }
+
 .message-list {
-  height: calc(100% - 35px - 70px); 
+  height: calc(100% - 35px - 70px);
   overflow-y: auto;
 }
+
 .message-input {
   bottom: 0;
   width: 100%;
   height: 50px;
-  padding:10px;
+  padding: 10px;
 }
 </style>

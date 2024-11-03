@@ -4,11 +4,11 @@
       <div class="message-content" v-if="index>1">
         <div v-if="editedMessageIndex !== index" :class="item.role === 'user'?'user-container':''">
           <!--内容-->
-          <template v-if="debugMode">
+          <template v-if="parameterStore.debugMode">
             <chat-markdown :markdown="item.content" :messageindex="index"/>
           </template>
           <!--展示-->
-          <div v-if="!debugMode" class="analysis-status">
+          <div v-if="!parameterStore.debugMode" class="analysis-status">
             <span :class="['status-text', { 'analyzing': item.isAnalyzing }]">
               {{ item.isAnalyzing ? '正在分析' : '分析完成' }}
             </span>
@@ -54,6 +54,7 @@ import {
 import {eventBus} from '@/util/eventBus.js';
 import ChatMarkdown from './ChatMarkdown.vue';
 import CustomLoading from "@/components/common/CustomLoading.vue";
+import {useParameterStore} from '@/store/ParameterStore';
 
 export default {
   components: {
@@ -62,15 +63,12 @@ export default {
     ArrowDownOutlined,
   },
   props: {
-    debugMode: {
-      type: Boolean,
-      default: false,
-    },
     selectedSessionId: {
       required: true,
     },
   },
   setup(props) {
+    const parameterStore = useParameterStore();
     const sessionStore = useSessionStore();
     const messageList = ref([]);
     const editedMessageIndex = ref(null);
@@ -161,6 +159,7 @@ export default {
       resetEdit,
       copyToClipboard,
       handleKeyDown,
+      parameterStore,
       handleComposition,
       sessionStore,
     };
