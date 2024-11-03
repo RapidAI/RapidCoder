@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "vite dev & cross-env NODE_ENV=development electron .",
+    "electron:dev": "concurrently \"vite dev\" \"cross-env NODE_ENV=development electron .\"",
     "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
   },
   "dependencies": {
@@ -66,6 +66,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
+    "concurrently": "^9.0.1",
     "cross-env": "^7.0.3",
     "electron": "latest",
     "electron-builder": "latest",

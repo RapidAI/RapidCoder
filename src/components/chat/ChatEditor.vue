@@ -95,6 +95,8 @@ export default {
           // 重新获取文件内容并更新
           const updatedContent = await ipcRenderer.invoke('getFileContent', fileInfo.key);
           fileContents.value[index] = updatedContent;
+          // 设置 activeFile 为发生变化的文件
+          activeFile.value = fileInfo.key;
           // 更新提示内容
           currentSession.value.messages[1].content = fileContents.value
               .map((content, idx) => wrapFileContent(content, newFiles[idx]))
