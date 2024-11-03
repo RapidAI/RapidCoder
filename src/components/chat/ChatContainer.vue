@@ -22,6 +22,12 @@
           checked-children="调试"
           un-checked-children=""
       />
+      <a-switch
+          v-model:checked="parameterStore.autoReplace"
+          class="debug-switch"
+          checked-children="自动"
+          un-checked-children=""
+      />
     </div>
     <chat-message-list
         class="message-list"

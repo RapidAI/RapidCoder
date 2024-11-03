@@ -7,6 +7,7 @@ export const useParameterStore = defineStore('parameter_store', {
     contentPane: 25,
     sshPane: 25,
     debugMode: true,
+    autoReplace: false,
   }),
   persist: {
     enabled: true,

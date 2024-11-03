@@ -47,6 +47,7 @@ export default {
 
     const wrapFileContent = (content, filePath) => {
       const language = filePath.split('.').pop();
+      console.log(filePath)
       return `\`\`\`${language}:${filePath}\n${content}\n\`\`\``;
     };
 

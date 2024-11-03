@@ -34,6 +34,7 @@ import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import {message} from 'ant-design-vue';
 import {saveFileContent} from '@/util/chat.js';
+import {useParameterStore} from '@/store/ParameterStore.js';  // Import ParameterStore
 
 export default {
   props: {
@@ -42,6 +43,7 @@ export default {
   },
   setup(props) {
     const sessionStore = useSessionStore();
+    const parameterStore = useParameterStore(); // Initialize ParameterStore
     const dataBlocks = ref([]);
 
     const md = new MarkdownIt({
@@ -76,6 +78,7 @@ export default {
             filePath: filePath || '',
             code: token.content,
             content: md.renderer.render([token], md.options),
+            applied: false, // Add applied flag
           });
         } else {
           currentTokens.push(token);
@@ -93,6 +96,18 @@ export default {
     };
 
     watch(() => props.markdown, parseDataBlocks, {immediate: true});
+
+    // Watch for autoReplace changes
+    watch(() => parameterStore.autoReplace, (autoReplace) => {
+      if (autoReplace) {
+        dataBlocks.value.forEach(async (block) => {
+          if (block.isCode && !block.applied) {
+            await executeCode(block);
+            block.applied = true;
+          }
+        });
+      }
+    });
 
     const copyCode = async (code) => {
       try {
@@ -123,6 +138,7 @@ export default {
   },
 };
 </script>
+
 <style lang="scss">
 @import "@/assets/chatmarkdown.css";
 </style>
