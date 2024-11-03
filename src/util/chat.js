@@ -82,7 +82,22 @@ export async function saveFileContent(filePath, newcontent) {
     }
 
     try {
-        const oldContent = await ipcRenderer.invoke('getFileContent', filePath);
+        // 检查文件是否存在
+        const fileExists = await ipcRenderer.invoke('fileExists', filePath);
+        if (!fileExists) {
+            const userConfirmed = await Modal.confirm({
+                title: '文件不存在',
+                content: `文件路径 ${filePath} 不存在。要创建该文件吗？`,
+                okText: '是',
+                cancelText: '否',
+            });
+
+            if (!userConfirmed) {
+                return;
+            }
+        }
+
+        const oldContent = fileExists ? await ipcRenderer.invoke('getFileContent', filePath) : '';
         const regex = /\/\/\s*替换原内容\s*([\s\S]*?)\/\/\s*替换后内容\s*([\s\S]*?)(?=\/\/\s*替换原内容|$)/gi;
         const matches = [...newcontent.matchAll(regex)];
 
@@ -112,5 +127,3 @@ export async function saveFileContent(filePath, newcontent) {
         message.error(`文件 ${filePath} 替换失败。`);
     }
 }
-
-

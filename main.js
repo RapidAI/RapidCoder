@@ -156,8 +156,31 @@ ipcMain.handle('getDirectoryStructure', async (event, dirPath) => {
     return await buildDirectoryStructure(dirPath);
 });
 // 获取单个文件的内容
+const chardet = require('chardet');
+const iconv = require('iconv-lite');
+
 ipcMain.handle('getFileContent', async (event, filePath) => {
-    return await fs.readFile(filePath, 'utf-8');
+    const buffer = await fs.readFile(filePath);
+    const encoding = chardet.detect(buffer);
+
+    let content;
+    if (encoding !== 'UTF-8' && encoding !== 'utf8') {
+        content = iconv.decode(buffer, encoding);
+    } else {
+        content = buffer.toString('utf-8');
+    }
+
+    return content;
+});
+
+// 扩展: 检查文件是否存在
+ipcMain.handle('fileExists', async (event, filePath) => {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
 });
 
 // 替换文件内容
@@ -192,12 +215,8 @@ ipcMain.on('execute-command', (event, command, args, cwd) => {
     });
 });
 ipcMain.handle("resolve-path", (event, currentDirectory, target) => {
-    try {
-        const newPath = path.resolve(currentDirectory, target);
-        return newPath;
-    } catch (error) {
-        throw new Error("Failed to resolve path");
-    }
+    const newPath = path.resolve(currentDirectory, target);
+    return newPath;
 });
 // 创建目录
 ipcMain.handle('createDirectory', async (event, dirPath) => {
