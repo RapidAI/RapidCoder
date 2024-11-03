@@ -85,11 +85,15 @@ export async function saveFileContent(filePath, newcontent) {
         // 检查文件是否存在
         const fileExists = await ipcRenderer.invoke('fileExists', filePath);
         if (!fileExists) {
-            const userConfirmed = await Modal.confirm({
-                title: '文件不存在',
-                content: `文件路径 ${filePath} 不存在。要创建该文件吗？`,
-                okText: '是',
-                cancelText: '否',
+            const userConfirmed = await new Promise((resolve) => {
+                Modal.confirm({
+                    title: '文件不存在',
+                    content: `文件路径 ${filePath} 不存在。要创建该文件吗？`,
+                    okText: '是',
+                    cancelText: '否',
+                    onOk: () => resolve(true),
+                    onCancel: () => resolve(false),
+                });
             });
 
             if (!userConfirmed) {
