@@ -1,8 +1,8 @@
 <template>
-  <div class="markdown-content" >
+  <div class="markdown-content">
     <div v-for="(block, index) in dataBlocks" :key="index" style="margin-bottom: 10px;">
-      
-      <div v-if="block.isCode" >
+
+      <div v-if="block.isCode">
         <div class="code-header">
           <span>{{ block.language + (block.filePath ? ':' + block.filePath.split(/[\/]/).pop() : '') }}</span>
           <div class="code-actions">
@@ -11,9 +11,9 @@
           </div>
         </div>
       </div>
-      
+
       <div v-html="block.content"></div>
-      
+
       <div v-if="block.isCode">
         <div class="code-footer">
           <div class="code-actions">
@@ -22,7 +22,7 @@
           </div>
         </div>
       </div>
-      
+
     </div>
   </div>
 </template>
@@ -67,7 +67,9 @@ export default {
             });
             currentTokens = [];
           }
-          const [language, filePath] = token.info.trim().split(':');
+          const infoParts = token.info.trim().split(':');
+          const language = infoParts[0];
+          const filePath = infoParts.slice(1).join(':');
           tempBlocks.push({
             isCode: true,
             language: language || 'plaintext',
