@@ -249,3 +249,12 @@ ipcMain.handle('deleteDirectory', async (event, dirPath) => {
         return {success: false, message: `目录删除失败: ${error.message}`};
     }
 });
+// 重命名
+ipcMain.handle('renameFileOrDirectory', async (event, oldPath, newPath) => {
+    try {
+        await fs.rename(oldPath, newPath);
+        return {success: true, message: '文件/目录重命名成功'};
+    } catch (error) {
+        return {success: false, message: `文件/目录重命名失败: ${error.message}`};
+    }
+});

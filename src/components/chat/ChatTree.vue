@@ -21,6 +21,7 @@
         <template #overlay>
           <a-menu @click="({ key: menuKey }) => onContextMenuClick(data, menuKey)">
             <a-menu-item key="update">{{ data.type === 'file' ? '更新' : '更新目录' }}</a-menu-item>
+            <a-menu-item key="rename">重命名</a-menu-item>
             <a-menu-item key="delete">删除</a-menu-item>
             <a-menu-item key="addDir">新增目录</a-menu-item>
             <a-menu-item key="addFile">新增文件</a-menu-item>
@@ -120,6 +121,11 @@ export default {
     const onContextMenuClick = (nodeData, menuKey) => {
       if (menuKey === 'update') {
         message.success(`更新 ${nodeData.title} 成功`);
+      } else if (menuKey === 'rename') {
+        currentNode.value = nodeData;
+        actionType.value = 'rename';
+        newName.value = nodeData.title;
+        modalVisible.value = true;
       } else if (menuKey === 'delete') {
         const method = nodeData.type === 'file' ? 'deleteFile' : 'deleteDirectory';
         ipcRenderer.invoke(method, nodeData.key).then(response => {
@@ -139,8 +145,15 @@ export default {
 
     const handleModalOk = async () => {
       const {currentProjectPath} = currentSession.value;
-      const fullPath = `${currentNode.value.key}/${newName.value}`;
-      await ipcRenderer.invoke(actionType.value === 'addDir' ? 'createDirectory' : 'createFile', fullPath);
+      if (actionType.value === 'rename') {
+        const oldPath = currentNode.value.key;
+        const newPath = `${oldPath.split('/').slice(0, -1).join('/')}/${newName.value}`;
+        await ipcRenderer.invoke('renameFileOrDirectory', oldPath, newPath);
+        updateTree(treeData.value, {key: oldPath, title: newName.value}, 'update');
+      } else {
+        const fullPath = `${currentNode.value.key}/${newName.value}`;
+        await ipcRenderer.invoke(actionType.value === 'addDir' ? 'createDirectory' : 'createFile', fullPath);
+      }
       modalVisible.value = false;
       newName.value = '';
     };
