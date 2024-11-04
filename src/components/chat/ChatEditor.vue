@@ -137,7 +137,8 @@ export default {
 .chat-editor {
   background-color: #F7F8FAFF;
   height: 100%; /* 自适应父组件高度 */
-  overflow: auto; /* 超出时显示滚动条 */
+  width:100%;
+  overflow: hidden; /* 超出时显示滚动条 */
 }
 
 .chat-editor .ant-tabs-nav {

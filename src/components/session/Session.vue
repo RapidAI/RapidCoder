@@ -105,8 +105,17 @@ export default {
 
     const onEdit = (targetKey, action) => {
       if (action === 'remove') {
-        const session = sessionStore.sessions.find(s => s.sessionId === targetKey);
-        deleteSession(session);
+        const sessionIndex = sessionStore.sessions.findIndex(s => s.sessionId === targetKey);
+        if (sessionIndex !== -1) {
+          sessionStore.sessions.splice(sessionIndex, 1);
+          
+          // Recalculate the active session
+          if (sessionStore.sessions.length) {
+            sessionStore.selectedSessionId = sessionStore.sessions[Math.min(sessionIndex, sessionStore.sessions.length - 1)].sessionId;
+          } else {
+            sessionStore.selectedSessionId = null; // No active tab if no sessions
+          }
+        }
       }
     };
 
