@@ -133,18 +133,24 @@ export default {
   },
 };
 </script>
+
 <style>
 .chat-editor {
   background-color: #F7F8FAFF;
-  height: 100%; /* 自适应父组件高度 */
-  width:100%;
-  overflow: hidden; /* 超出时显示滚动条 */
+  height: 100%;
+  width: 100%;
 }
 
 .chat-editor .ant-tabs-nav {
   position: sticky;
   top: 0;
-  z-index: 10; /* 确保头部在滚动时不会被其他内容覆盖 */
-  background-color: #F7F8FAFF; /* 保持背景颜色一致 */
+  z-index: 10;
+  background-color: #F7F8FAFF;
+}
+
+.chat-editor .ant-tabs-content-holder {
+  height: 100%;
+  overflow: auto;
+  width: 100%;
 }
 </style>

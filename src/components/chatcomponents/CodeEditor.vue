@@ -1,15 +1,13 @@
 <template>
-  <div style="position: relative;height:100%;overflow:hidden">
-    <button @click="undoEdit" style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
-      撤销
-    </button>
-    <Codemirror
-        ref="cmRef"
-        v-model="code"
-        :extensions="extensions"
-        @ready="handleReady"
-    />
-  </div>
+  <button @click="undoEdit" style="position:sticky; top: 0; right:0; z-index: 1000;">
+    撤销
+  </button>
+  <Codemirror
+      ref="cmRef"
+      v-model="code"
+      :extensions="extensions"
+      @ready="handleReady"
+  />
 </template>
 
 <script>
