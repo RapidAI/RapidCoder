@@ -1,7 +1,5 @@
 <template>
-  <button @click="undoEdit" style="position:sticky; top: 0; right:0; z-index: 1000;">
-    撤销
-  </button>
+  <a-button type="default" size="small" style="position:sticky; top: 0; right:0; z-index: 1000;" @click="undoEdit">撤销</a-button>
   <Codemirror
       ref="cmRef"
       v-model="code"
