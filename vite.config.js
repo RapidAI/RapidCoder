@@ -21,6 +21,7 @@ export default defineConfig({
     assetsDir: 'assets',
     minify: process.env.NODE_ENV === 'development' ? false : 'terser',
     sourcemap: process.env.NODE_ENV === 'development',
+    chunkSizeWarningLimit: 1500 // Adjust this value to a higher limit
   },
   server: {
     hmr: true

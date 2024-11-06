@@ -3,12 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "main": "main.js",
+  "description": "MyCodeGPT Electron application",
+  "author": "Your Name",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite dev\" \"cross-env NODE_ENV=development electron .\"",
-    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
+    "electron:build": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build\""
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
@@ -41,14 +43,11 @@
     "@codemirror/view": "^6.34.1",
     "@ddietr/codemirror-themes": "^1.4.4",
     "ant-design-vue": "^4.2.3",
-    "better-sqlite3": "^11.2.1",
     "chardet": "^2.0.0",
     "chokidar": "^4.0.1",
     "codemirror": "^6.0.1",
     "diff": "^7.0.0",
     "echarts": "^5.5.1",
-    "electron": "latest",
-    "electron-builder": "latest",
     "highlight.js": "^11.9.0",
     "iconv-lite": "^0.6.3",
     "markdown-it": "^14.1.0",

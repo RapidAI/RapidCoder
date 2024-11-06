@@ -11,7 +11,6 @@
 
 <script>
 import { Terminal,TerminalApi } from "vue-web-terminal";
-import "vue-web-terminal/lib/theme/light.css";
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import { useSessionStore } from "@/store/sessionStore";
 const {ipcRenderer} = require("electron");
