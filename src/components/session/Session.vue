@@ -81,18 +81,20 @@ export default {
     };
 
     const selectDirectory = () => {
-  ipcRenderer.invoke('getDirectoryDialog').then((result) => {
-    if (result && !result.canceled && result.filePaths.length > 0) {
-      projectPath.value = result.filePaths[0];  // 将路径直接赋值给变量
-      createSession();  // 选择完目录后立即调用createSession
-    }
-  }).catch((err) => {
-    console.error('Failed to select directory:', err);
-  });
-};
+      ipcRenderer.invoke('getDirectoryDialog').then((result) => {
+        if (result && !result.canceled && result.filePaths.length > 0) {
+          projectPath.value = result.filePaths[0];  // 将路径直接赋值给变量
+          createSession();  // 选择完目录后立即调用createSession
+        }
+      }).catch((err) => {
+        console.error('Failed to select directory:', err);
+      });
+    };
 
     const sessionTitle = (session) => {
-      const title = session.messages[2]?.content || '新对话';
+      const title = session.messages[2]?.content ||
+          (session.currentProjectPath ? new URL(`file://${session.currentProjectPath}`).pathname.split('/').pop() : '新对话');
+      console.log('Session Title:', title); // 添加这个行来输出调试信息
       return title.length > 20 ? title.substring(0, 20) + '...' : title;
     };
     const selectSession = (session) => {
@@ -108,12 +110,11 @@ export default {
         const sessionIndex = sessionStore.sessions.findIndex(s => s.sessionId === targetKey);
         if (sessionIndex !== -1) {
           sessionStore.sessions.splice(sessionIndex, 1);
-          
-          // Recalculate the active session
+
           if (sessionStore.sessions.length) {
             sessionStore.selectedSessionId = sessionStore.sessions[Math.min(sessionIndex, sessionStore.sessions.length - 1)].sessionId;
           } else {
-            sessionStore.selectedSessionId = null; // No active tab if no sessions
+            sessionStore.selectedSessionId = null;
           }
         }
       }
