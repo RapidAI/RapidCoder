@@ -44,10 +44,11 @@ export const useSessionStore = defineStore('session_store', {
             const userQuestion = messagelist[index].content;
             const prompt = `
 请基于以上内容回答用户的问题: ${userQuestion}
-返回的数据格式为：
 
-如果用户的问题比较简单:
-直接返回你的回答，不需要思考
+如果用户的问题比较简单,按照以下示例格式返回:
+### 结果:
+\`\`\`lang:/Users/.../file
+直接返回结果
 
 如果用户的问题比较复杂,按照以下示例格式返回:
 ### 思考:
