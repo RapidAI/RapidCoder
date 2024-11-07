@@ -94,7 +94,6 @@ export default {
     const sessionTitle = (session) => {
       const title = session.messages[2]?.content ||
           (session.currentProjectPath ? new URL(`file://${session.currentProjectPath}`).pathname.split('/').pop() : '新对话');
-      console.log('Session Title:', title); // 添加这个行来输出调试信息
       return title.length > 20 ? title.substring(0, 20) + '...' : title;
     };
     const selectSession = (session) => {
