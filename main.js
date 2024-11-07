@@ -13,7 +13,7 @@ const initMainWindow = () => {
             nodeIntegration: true,
             contextIsolation: false
         },
-        icon: path.join(__dirname, 'public/logo.png')
+        icon: path.join(__dirname, 'public/logo3.png')
     });
 
     const startURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : path.join(__dirname, 'dist/index.html');
