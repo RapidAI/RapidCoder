@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite dev\" \"cross-env NODE_ENV=development electron .\"",
-    "electron:build": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build\""
+    "electron:build": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build\"",
+    "electron:mac": "concurrently \"npm run build\" \"cross-env NODE_GYP_FORCE_PYTHON=python3  NODE_ENV=production DEBUG=electron-builder electron-builder build --mac\""
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
@@ -72,7 +73,8 @@
     "fast-glob": "^3.3.2",
     "terser": "^5.31.3",
     "vite": "^5.2.0",
-    "vite-plugin-svg-icons": "^2.0.1"
+    "vite-plugin-svg-icons": "^2.0.1",
+    "wait-on": "^8.0.1"
   },
   "build": {
     "appId": "com.mycodegpt.app",
