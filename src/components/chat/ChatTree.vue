@@ -138,8 +138,10 @@ export default {
         });
       } else if (['addDir', 'addFile'].includes(menuKey)) {
         currentNode.value = nodeData;
+        const parentKey = nodeData.type === 'file' ? nodeData.key.split('/').slice(0, -1).join('/') : nodeData.key;
         actionType.value = menuKey;
         modalVisible.value = true;
+        currentNode.value.key = parentKey; // 更新为使用父节点路径
       }
     };
 
@@ -175,10 +177,14 @@ export default {
           ...(node.type !== 'file' && node.children && {children: node.children.map(child => filterTreeData(child))}),
         });
         const filteredTreeData = treeData.value.map(node => filterTreeData(node, true));
-        if (currentSession.value) {
+
+        // Ensure the content is valid before updating
+        const contentToUpdate = filteredTreeData.length > 0 ? JSON.stringify(filteredTreeData[0]) : '';
+
+        if (currentSession.value && contentToUpdate) {
           currentSession.value.messages[1] = {
             role: 'user',
-            content: JSON.stringify(filteredTreeData[0]),
+            content: contentToUpdate,
           };
         }
       }
