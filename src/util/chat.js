@@ -76,6 +76,10 @@ export function parseChatResponse(input) {
 }
 
 export async function saveFileContent(filePath, newcontent) {
+    if (filePath.startsWith('/')) {
+        filePath = filePath.substring(1);
+    }
+
     if (!filePath) {
         message.info(`文件路径不存在`);
         return;
@@ -94,6 +98,7 @@ export async function saveFileContent(filePath, newcontent) {
                     onOk: () => resolve(true),
                     onCancel: () => resolve(false),
                 });
+                console.log(filePath);
             });
 
             if (!userConfirmed) {
