@@ -221,20 +221,12 @@ ipcMain.handle("resolve-path", (event, currentDirectory, target) => {
 });
 // 创建目录
 ipcMain.handle('createDirectory', async (event, dirPath) => {
-    // 如果路径以 / 开头，去掉它
-    if (dirPath.startsWith('/')) {
-        dirPath = dirPath.substring(1);
-    }
     await fs.mkdir(dirPath, {recursive: true});
     return {success: true, message: '目录创建成功'};
 });
 
 // 创建文件
 ipcMain.handle('createFile', async (event, filePath) => {
-    // 如果路径以 / 开头，去掉它
-    if (filePath.startsWith('/')) {
-        filePath = filePath.substring(1);
-    }
     await fs.mkdir(path.dirname(filePath), {recursive: true});
     await fs.writeFile(filePath, '', 'utf-8');
     return {success: true, message: '文件创建成功'};
