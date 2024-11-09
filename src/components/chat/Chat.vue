@@ -6,17 +6,17 @@
           <pane :size="parameterStore.treePane">
             <chat-tree v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
           </pane>
-          <pane :size="parameterStore.filePane">
-            <chat-file-editor v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
-          </pane>
           <pane :size="parameterStore.contentPane">
             <chat-container v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
           </pane>
+          <pane :size="parameterStore.filePane">
+            <chat-file-editor v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>
+          </pane>
         </splitpanes>
       </pane>
-<!--      <pane>-->
-<!--        <ssh-connector v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>-->
-<!--      </pane>-->
+      <!--      <pane>-->
+      <!--        <ssh-connector v-if="selectedSessionId" :selectedSessionId="selectedSessionId"/>-->
+      <!--      </pane>-->
     </splitpanes>
   </a-layout>
 </template>
@@ -46,15 +46,15 @@ export default {
   },
   setup() {
     const parameterStore = useParameterStore();
-const updatePaneSize = (paneSize, paneKey) => {
-  parameterStore[paneKey] = paneSize[0].size;
-};
-const resize1 = (paneSize) => updatePaneSize(paneSize, 'sshPane');
-const resize2 = (paneSize) => {
-  updatePaneSize(paneSize.slice(0, 1), 'treePane');
-  updatePaneSize(paneSize.slice(1, 2), 'filePane');
-  updatePaneSize(paneSize.slice(2, 3), 'contentPane');
-};
+    const updatePaneSize = (paneSize, paneKey) => {
+      parameterStore[paneKey] = paneSize[0].size;
+    };
+    const resize1 = (paneSize) => updatePaneSize(paneSize, 'sshPane');
+    const resize2 = (paneSize) => {
+      updatePaneSize(paneSize.slice(0, 1), 'treePane');
+      updatePaneSize(paneSize.slice(1, 2), 'contentPane');
+      updatePaneSize(paneSize.slice(2, 3), 'filePane');
+    };
     return {
       parameterStore,
       resize1,
