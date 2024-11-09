@@ -47,7 +47,7 @@ export const useSessionStore = defineStore('session_store', {
 
 如果用户的问题比较简单,按照以下示例格式返回:
 ### 结果:
-\`\`\`lang:/Users/.../file
+\`\`\`lang:absolutePath
 直接返回结果
 
 如果用户的问题比较复杂,按照以下示例格式返回:
@@ -58,14 +58,16 @@ export const useSessionStore = defineStore('session_store', {
 ### 再思考:
 根据你的反思做出必要的调整，提出更完善的解决方案。
 ### 结果:
-\`\`\`lang:/Users/.../file
+\`\`\`lang:absolutePath
 // 替换原内容
 {{ old content }}
 // 替换后内容
 {{ new content }}
 \`\`\`
 
-示例格式说明: 指定语言ID:对应的文件绝对路径
+示例格式说明: 
+lang:指定语言ID
+absolutePath:对应的文件绝对路径例如：D:\\... , /User/...
 如果是修改的部分内容,需要指定替换的内容块,使用// 替换原内容 和// 替换后内容 来标识
 如果不是修改部分内容,请全部返回
 请不要忽忽略和省略已有内容
