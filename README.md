@@ -65,3 +65,6 @@ MyCodeGPT 是一个基于 Electron 和 Vue 的桌面应用程序，可在本地�
 ## 许可
 
 MIT © qixing
+
+bug:
+关闭项目后没法新建

@@ -43,7 +43,10 @@ export default {
             ) || {}
     );
 
-    const getTitle = (filePath) => filePath.split("/").pop();
+    const getTitle = (filePath) => {
+      // 使用纯 JavaScript 处理文件路径
+      return filePath.split(/[\\/]/).pop();
+    };
 
     const wrapFileContent = (content, filePath) => {
       const language = filePath.split('.').pop();
