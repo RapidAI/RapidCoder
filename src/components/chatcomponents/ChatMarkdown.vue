@@ -5,10 +5,6 @@
       <div v-if="block.isCode">
         <div class="code-header">
           <span>{{ block.language + (block.filePath ? ':' + block.filePath.split(/[\\/]/).pop(): '') }}</span>
-          <div class="code-actions">
-            <a-button type="default" size="small" @click="copyCode(block.code)">复制</a-button>
-            <a-button type="default" size="small" @click="executeCode(block)">应用</a-button>
-          </div>
         </div>
       </div>
 

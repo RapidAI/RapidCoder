@@ -101,7 +101,7 @@ export default {
     const regenerateMessage = (index) => {
         currentSession.value.messages[index].content = editedMessageContent.value;
         currentSession.value.messages.splice(index+1);
-        sessionStore.agent1(currentSession.value, index, false);
+        sessionStore.agent1(currentSession.value, index, true);
     };
 
     const resetEdit = () => {
