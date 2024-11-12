@@ -218,4 +218,7 @@ export default {
   height: 100%;
   overflow: auto;
 }
+:where(.css-dev-only-do-not-override-nqguil).ant-tree.ant-tree-directory .ant-tree-treenode {
+    white-space: nowrap;
+}
 </style>

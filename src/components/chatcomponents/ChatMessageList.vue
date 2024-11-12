@@ -24,6 +24,7 @@
             <template v-if="item.role === 'assistant'">
               <a-button type="text" size="small" @click="enableEditMode(index, item.content)">编辑</a-button>
               <a-button type="text" size="small" @click="copyToClipboard(item.content)">复制</a-button>
+              <a-button type="text" size="small" @click="regenerateMessage(index)">重新生成</a-button>
             </template>
           </div>
         </div>
@@ -96,6 +97,12 @@ export default {
         resetEdit();
       }
     };
+    
+    const regenerateMessage = (index) => {
+        currentSession.value.messages[index].content = editedMessageContent.value;
+        currentSession.value.messages.splice(index+1);
+        sessionStore.agent1(currentSession.value, index, false);
+    };
 
     const resetEdit = () => {
       editedMessageIndex.value = null;
@@ -157,6 +164,7 @@ export default {
       enableEditMode,
       updateMessage,
       resetEdit,
+      regenerateMessage,
       copyToClipboard,
       handleKeyDown,
       parameterStore,
