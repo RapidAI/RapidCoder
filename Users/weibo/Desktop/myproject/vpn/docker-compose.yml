@@ -1,0 +1,9 @@
+services:
+  v2raya:
+    image: mzz2017/v2raya
+    container_name: v2raya
+    restart: always
+    network_mode: host
+    privileged: true
+    volumes:
+      - ./config:/etc/v2raya  # 将宿主机的 config 文件夹挂载到容器中

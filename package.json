@@ -79,7 +79,6 @@
   "build": {
     "appId": "com.mycodegpt.app",
     "productName": "MyCodeGPT",
-    "publish": "never",
     "directories": {
       "output": "build"
     },
