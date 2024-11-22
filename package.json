@@ -51,6 +51,7 @@
     "echarts": "^5.5.1",
     "highlight.js": "^11.9.0",
     "iconv-lite": "^0.6.3",
+    "lodash": "^4.17.21",
     "markdown-it": "^14.1.0",
     "mitt": "^3.0.1",
     "moment": "^2.30.1",

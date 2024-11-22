@@ -1,15 +1,15 @@
 <template>
   <a-button type="default" size="small" style="position:sticky; top: 0; right:0; z-index: 1000;" @click="undoEdit">撤销</a-button>
   <Codemirror
-      ref="cmRef"
-      v-model="code"
-      :extensions="extensions"
-      @ready="handleReady"
+    ref="cmRef"
+    v-model="code"
+    :extensions="extensions"
+    @ready="handleReady"
   />
 </template>
 
 <script>
-import {defineComponent, ref, watch, onMounted, onBeforeUnmount} from 'vue'
+import {defineComponent, ref, watch, onMounted} from 'vue'
 import {Codemirror} from 'vue-codemirror'
 import {oneDark} from '@codemirror/theme-one-dark'
 import {materialLight} from '@ddietr/codemirror-themes/material-light'
@@ -24,6 +24,7 @@ import {tokyoNight} from '@ddietr/codemirror-themes/tokyo-night'
 import {tokyoNightStorm} from '@ddietr/codemirror-themes/tokyo-night-storm'
 import {tokyoNightDay} from '@ddietr/codemirror-themes/tokyo-night-day'
 import {undo} from '@codemirror/commands'
+import {debounce} from 'lodash' // 引入 lodash 的 debounce
 
 const {ipcRenderer} = require('electron');
 
@@ -47,7 +48,6 @@ import {angular} from '@codemirror/lang-angular'
 import {liquid} from '@codemirror/lang-liquid'
 import {wast} from '@codemirror/lang-wast'
 import {java} from '@codemirror/lang-java'
-
 
 export default defineComponent({
   components: {
@@ -140,30 +140,20 @@ export default defineComponent({
       extensions.value = [getLanguageExtension(newLanguage), theme]
     })
 
-    const saveFile = async () => {
+    // 使用 debounce 进行自动保存，间隔设置为 500ms
+    const debouncedSaveFile = debounce(async () => {
       await ipcRenderer.invoke('saveFileContent', props.filePath, code.value);
-    }
+    }, 500);
+
+    watch(() => code.value, () => {
+      debouncedSaveFile();
+    })
 
     const undoEdit = () => {
       if (cmRef.value && cmRef.value.view) {
         undo({state: cmRef.value.view.state, dispatch: cmRef.value.view.dispatch});
       }
     };
-
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        saveFile();
-      }
-    }
-
-    onMounted(() => {
-      window.addEventListener('keydown', handleKeyDown);
-    })
-
-    onBeforeUnmount(() => {
-      window.removeEventListener('keydown', handleKeyDown);
-    })
 
     return {
       code,
