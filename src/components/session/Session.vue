@@ -16,7 +16,7 @@
 
     <!-- 新对话按钮，保留原逻辑 -->
     <template #leftExtra>
-      <a-button type="text" @click="newsession">新对话</a-button>
+      <a-button type="default" @click="newsession">新对话</a-button>
     </template>
   </a-tabs>
 
