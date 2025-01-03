@@ -6,12 +6,9 @@
   "description": "MyCodeGPT Electron application",
   "author": "Your Name",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
     "electron:dev": "concurrently \"vite dev\" \"cross-env NODE_ENV=development electron .\"",
-    "electron:build": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build\"",
-    "electron:mac": "concurrently \"npm run build\" \"cross-env NODE_GYP_FORCE_PYTHON=python3  NODE_ENV=production DEBUG=electron-builder electron-builder build --mac\""
+    "electron:build-win": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build\"",
+    "electron:build-mac": "concurrently \"cross-env NODE_ENV=production vite build\" \"wait-on dist && electron-builder build --mac\""
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
