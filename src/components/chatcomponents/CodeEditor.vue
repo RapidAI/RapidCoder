@@ -165,3 +165,14 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+:deep(.cm-searching ){
+  background-color: white !important;
+  color: black;
+}
+:deep(.cm-selectionMatch) {
+  background-color: #757474 !important;
+  color: black;
+}
+</style>
